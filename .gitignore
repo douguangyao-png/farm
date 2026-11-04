@@ -1,0 +1,8 @@
+node_modules/
+dist/
+dist-*/
+unpackage/
+.DS_Store
+*.log
+.env.*.local
+graphify-out/
