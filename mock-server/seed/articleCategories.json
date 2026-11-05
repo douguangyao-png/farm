@@ -1,0 +1,6 @@
+[
+  {"id": 1, "tenantId": 1, "name": "平台公告", "picUrl": "", "sort": 1, "status": 0, "createTime": "2026-09-01T10:00:00+08:00"},
+  {"id": 2, "tenantId": 1, "name": "帮助中心", "picUrl": "", "sort": 2, "status": 0, "createTime": "2026-09-01T10:00:00+08:00"},
+  {"id": 11, "tenantId": 2, "name": "农事科普", "picUrl": "", "sort": 1, "status": 0, "createTime": "2026-10-09T10:00:00+08:00"},
+  {"id": 21, "tenantId": 3, "name": "园区动态", "picUrl": "", "sort": 1, "status": 0, "createTime": "2026-10-01T10:00:00+08:00"}
+]

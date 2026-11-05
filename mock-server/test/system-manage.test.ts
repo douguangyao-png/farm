@@ -32,7 +32,7 @@ describe('系统管理列表页（用户、角色、字典）', () => {
   it('用户列表按租户隔离；查别的租户的用户返回不存在', async () => {
     const h = await auth(2, 'qingshan')
     const r = await request(app).get('/admin-api/system/user/page').set(h)
-    expect(r.body.data.list.map((x: { username: string }) => x.username)).toEqual(['qingshan', 'zhangguanjia'])
+    expect(r.body.data.list.map((x: { username: string }) => x.username)).toEqual(['qingshan', 'zhangguanjia', 'liguanjia'])
     expect(r.body.data.list[0]).not.toHaveProperty('password')
     expect(r.body.data.list[0].deptName).toBe('青山农场')
     const other = await request(app).get('/admin-api/system/user/get').set(h).query({ id: 4 })

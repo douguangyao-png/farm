@@ -1,5 +1,5 @@
 [
-  { "id": 1, "name": "平台运营中心", "contactName": "平台管理员", "contactMobile": "13900000000", "status": 0, "packageId": 0, "websites": [] },
-  { "id": 2, "name": "青山农场", "contactName": "李青山", "contactMobile": "13900000002", "status": 0, "packageId": 2, "websites": ["localhost:3000", "127.0.0.1:3000", "121.40.221.126"] },
-  { "id": 3, "name": "绿野农庄", "contactName": "王绿野", "contactMobile": "13900000003", "status": 0, "packageId": 1, "websites": [] }
+  {"id": 1, "name": "平台运营中心", "contactName": "平台管理员", "contactMobile": "13900000000", "status": 0, "packageId": 0, "websites": [], "expireTime": "2099-12-31T00:00:00+08:00", "accountCount": 99, "createTime": "2026-09-01T10:00:00+08:00"},
+  {"id": 2, "name": "青山农场", "contactName": "李青山", "contactMobile": "13900000002", "status": 0, "packageId": 2, "websites": ["localhost:3000", "127.0.0.1:3000", "121.40.221.126"], "expireTime": "2027-10-07T23:59:59+08:00", "accountCount": 20, "createTime": "2026-10-08T09:30:00+08:00"},
+  {"id": 3, "name": "绿野农庄", "contactName": "王绿野", "contactMobile": "13900000003", "status": 0, "packageId": 1, "websites": [], "expireTime": "2027-09-30T23:59:59+08:00", "accountCount": 5, "createTime": "2026-09-30T14:00:00+08:00"}
 ]

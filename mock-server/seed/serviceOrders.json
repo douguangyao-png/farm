@@ -1,0 +1,3 @@
+[
+  {"id": 1, "tenantId": 2, "no": "DG20261028001", "fromTaskId": null, "taskTitle": "代浇水（出差 3 天）", "adoptionId": 2, "assetId": 4, "memberId": 2, "stewardId": 3, "serviceType": "代浇水", "price": 4500, "status": 20, "split": {"steward": 70, "farm": 20, "platform": 10}, "proofPhotos": ["svg:代浇水:#0288d1"], "remark": "出差期间每天傍晚浇一次", "createTime": "2026-10-28T08:00:00+08:00", "acceptTime": "2026-10-28T08:20:00+08:00", "finishTime": "2026-10-30T18:30:00+08:00"}
+]

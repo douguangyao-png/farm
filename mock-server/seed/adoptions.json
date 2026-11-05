@@ -1,0 +1,7 @@
+[
+  {"id": 1, "tenantId": 2, "orderId": 1, "memberId": 1, "productId": 1, "assetId": 3, "careMode": "full", "startAt": "2026-10-12T00:00:00+08:00", "endAt": "2027-10-11T23:59:59+08:00", "status": 10, "promisedJin": 240, "harvestedJin": 31.5, "stewardId": 3},
+  {"id": 2, "tenantId": 2, "orderId": 2, "memberId": 2, "productId": 1, "assetId": 4, "careMode": "semi", "startAt": "2026-10-13T00:00:00+08:00", "endAt": "2027-10-12T23:59:59+08:00", "status": 10, "promisedJin": null, "harvestedJin": 12, "stewardId": 3},
+  {"id": 3, "tenantId": 2, "orderId": 3, "memberId": 1, "productId": 1, "assetId": 5, "careMode": "semi", "startAt": "2026-10-20T00:00:00+08:00", "endAt": "2027-10-19T23:59:59+08:00", "status": 10, "promisedJin": null, "harvestedJin": 0, "stewardId": 3},
+  {"id": 4, "tenantId": 2, "orderId": 4, "memberId": 3, "productId": 2, "assetId": 9, "careMode": "full", "startAt": "2026-10-21T00:00:00+08:00", "endAt": "2027-04-18T23:59:59+08:00", "status": 10, "promisedJin": 3.5, "harvestedJin": 0, "stewardId": 3},
+  {"id": 11, "tenantId": 3, "orderId": 11, "memberId": 4, "productId": 11, "assetId": 21, "careMode": "full", "startAt": "2026-10-05T00:00:00+08:00", "endAt": "2027-04-03T23:59:59+08:00", "status": 10, "promisedJin": 100, "harvestedJin": 8, "stewardId": 6}
+]

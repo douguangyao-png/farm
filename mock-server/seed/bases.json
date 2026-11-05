@@ -1,0 +1,5 @@
+[
+  {"id": 1, "tenantId": 2, "name": "青山一号基地", "address": "浙江省湖州市安吉县递铺街道青山村", "lng": 119.6812, "lat": 30.6385, "areaMu": 86, "certNo": "浙安农字（2026）第 0312 号", "cropSummary": "时令蔬菜、跑山鸡", "status": 0, "cover": "svg:青山一号基地:#2e7d32", "createTime": "2026-10-08T10:00:00+08:00"},
+  {"id": 2, "tenantId": 2, "name": "青山二号基地（果园）", "address": "浙江省湖州市安吉县孝丰镇横溪坞村", "lng": 119.5521, "lat": 30.5402, "areaMu": 40, "certNo": "浙安农字（2026）第 0313 号", "cropSummary": "猕猴桃", "status": 0, "cover": "svg:青山果园:#558b2f", "createTime": "2026-10-08T10:20:00+08:00"},
+  {"id": 3, "tenantId": 3, "name": "绿野生态园", "address": "江苏省苏州市吴中区临湖镇", "lng": 120.4461, "lat": 31.1468, "areaMu": 30, "certNo": "苏吴农字（2026）第 1108 号", "cropSummary": "时令蔬菜", "status": 0, "cover": "svg:绿野生态园:#00897b", "createTime": "2026-09-30T15:00:00+08:00"}
+]

@@ -1,0 +1,4 @@
+[
+  {"id": 1, "tenantId": 2, "no": "NZ20261016001", "memberId": 2, "adoptionId": 2, "assetId": 4, "spuId": 1, "qty": 1, "amount": 2990, "deliverWay": "store", "batchNo": "ZZ-2026-1001", "traceState": 10, "usedAt": "2026-10-17T09:00:00+08:00", "dosage": "一套", "createTime": "2026-10-16T19:20:00+08:00"},
+  {"id": 2, "tenantId": 2, "no": "NZ20261102002", "memberId": 1, "adoptionId": 3, "assetId": 5, "spuId": 3, "qty": 1, "amount": 6800, "deliverWay": "store", "batchNo": "YF-2026-0908", "traceState": 0, "usedAt": null, "dosage": null, "createTime": "2026-11-02T20:05:00+08:00"}
+]

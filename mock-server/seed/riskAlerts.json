@@ -1,0 +1,6 @@
+[
+  {"id": 1, "tenantId": 3, "type": "promise", "level": 3, "title": "商品文案疑似承诺收益", "content": "「绿野菜园 · 半年认养」详情页图片中出现「年化收益 8%」字样（OCR 识别）。", "source": "文案巡检", "status": 0, "handleRemark": null, "createTime": "OffsetH:-20", "handleTime": null},
+  {"id": 2, "tenantId": 2, "type": "brush", "level": 2, "title": "疑似刷单", "content": "同一手机号 1 小时内下单 6 次后全部取消。", "source": "交易风控", "status": 0, "handleRemark": null, "createTime": "OffsetH:-9", "handleTime": null},
+  {"id": 3, "tenantId": 2, "type": "scope", "level": 2, "title": "农资类目超范围", "content": "新上架农资「吡虫啉」为化学农药，已自动设为不可零售、仅农场代施。", "source": "类目规则", "status": 10, "handleRemark": "规则已自动拦截，确认无误", "createTime": "2026-10-20T10:00:00+08:00", "handleTime": "2026-10-20T11:00:00+08:00"},
+  {"id": 4, "tenantId": 3, "type": "fake_base", "level": 1, "title": "基地资质待核验", "content": "基地「绿野生态园」资质照片清晰度不足，建议补传。", "source": "资质核验", "status": 20, "handleRemark": "已电话提醒补传", "createTime": "2026-10-02T09:00:00+08:00", "handleTime": "2026-10-02T15:00:00+08:00"}
+]

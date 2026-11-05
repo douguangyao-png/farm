@@ -1,3 +1,6 @@
 [
-  { "id": 1, "tenantId": 2, "mobile": "13800000001", "password": "demo123", "nickname": "周女士" }
+  {"id": 1, "tenantId": 2, "mobile": "13800000001", "password": "demo123", "nickname": "周女士", "address": "浙江省杭州市西湖区文三路 90 号"},
+  {"id": 2, "tenantId": 2, "mobile": "13800000002", "password": "demo123", "nickname": "陈先生", "address": "上海市徐汇区漕溪北路 18 号"},
+  {"id": 3, "tenantId": 2, "mobile": "13800000003", "password": "demo123", "nickname": "王女士", "address": "浙江省湖州市吴兴区人民路 1 号"},
+  {"id": 4, "tenantId": 3, "mobile": "13800000004", "password": "demo123", "nickname": "赵先生", "address": "江苏省苏州市姑苏区干将路 8 号"}
 ]

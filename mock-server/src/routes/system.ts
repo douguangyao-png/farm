@@ -74,8 +74,9 @@ systemRouter.get('/auth/get-permission-info', requireLogin('admin'), (req, res) 
   const u = getDb().users.find((x) => x.id === req.session!.userId)
   if (!u) return fail(res, ERR.UNAUTHORIZED, '账号未登录')
   const { roles, menus, all } = userMenus(u)
-  // 目录、菜单进 menus；带 permission 的按钮只进 permissions
-  const permissions = all ? ['*:*:*'] : menus.map((m) => m.permission).filter(Boolean)
+  // 演示：按钮权限全开（芋道页面的新增、编辑按钮靠 v-hasPermi 控制显示），看得到哪些页面由菜单决定。
+  // 真后端按角色返回权限标识。
+  const permissions = all ? ['*:*:*'] : ['*:*:*', ...menus.map((m) => m.permission).filter(Boolean)]
   return ok(res, {
     user: { id: u.id, nickname: u.nickname, avatar: u.avatar ?? '', deptId: u.deptId ?? null, username: u.username },
     roles: roles.map((r) => r.code),

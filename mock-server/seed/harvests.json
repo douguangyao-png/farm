@@ -1,0 +1,5 @@
+[
+  {"id": 1, "tenantId": 2, "adoptionId": 1, "assetId": 3, "crop": "生菜、萝卜", "weightJin": 31.5, "harvestDate": "2026-11-02T08:30:00+08:00", "photos": ["svg:采收:#689f38"], "remark": "第一批", "shipmentId": 1},
+  {"id": 2, "tenantId": 2, "adoptionId": 2, "assetId": 4, "crop": "生菜", "weightJin": 12, "harvestDate": "2026-11-03T09:00:00+08:00", "photos": ["svg:采收:#689f38"], "remark": "第一批", "shipmentId": null},
+  {"id": 11, "tenantId": 3, "adoptionId": 11, "assetId": 21, "crop": "生菜", "weightJin": 8, "harvestDate": "2026-11-01T09:00:00+08:00", "photos": [], "remark": "", "shipmentId": null}
+]

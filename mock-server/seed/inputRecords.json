@@ -1,0 +1,6 @@
+[
+  {"id": 1, "tenantId": 2, "assetId": 3, "source": "farm", "name": "腐熟羊粪有机肥", "batchNo": "YF-2026-0908", "usedAt": "2026-10-13T09:20:00+08:00", "dosage": "100kg（基肥）", "operator": "张管家"},
+  {"id": 2, "tenantId": 2, "assetId": 3, "source": "farm", "name": "生物菌肥", "batchNo": "SJ-2026-0915", "usedAt": "2026-10-29T16:10:00+08:00", "dosage": "5kg", "operator": "张管家"},
+  {"id": 3, "tenantId": 2, "assetId": 4, "source": "member", "name": "有机蔬菜种子组合", "batchNo": "ZZ-2026-1001", "usedAt": "2026-10-17T09:00:00+08:00", "dosage": "一套", "operator": "陈先生"},
+  {"id": 4, "tenantId": 2, "assetId": 4, "source": "farm", "name": "捕食螨（生物防治）", "batchNo": "BS-2026-1005", "usedAt": "2026-10-25T09:00:00+08:00", "dosage": "1 瓶", "operator": "张管家"}
+]
