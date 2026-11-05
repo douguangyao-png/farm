@@ -93,24 +93,25 @@ export const customTabbarList: CustomTabBarItem[] = [
     iconType: 'unocss',
     icon: 'i-carbon-home',
   },
-  {
-    text: '审批',
-    pagePath: 'pages/bpm/index',
-    iconType: 'unocss',
-    icon: 'i-carbon-document',
-  },
-  {
-    text: '通讯录',
-    pagePath: 'pages/contact/index',
-    iconType: 'unocss',
-    icon: 'i-carbon-user-avatar',
-  },
-  {
-    text: '消息',
-    pagePath: 'pages/message/index',
-    iconType: 'unocss',
-    icon: 'i-carbon-chat',
-  },
+  // edit by 认养农场：管家端只保留「工作台（今日任务）」和「我的」；芋道的审批、通讯录、消息页面文件仍在，只是不放进 tabbar
+  // {
+  //   text: '审批',
+  //   pagePath: 'pages/bpm/index',
+  //   iconType: 'unocss',
+  //   icon: 'i-carbon-document',
+  // },
+  // {
+  //   text: '通讯录',
+  //   pagePath: 'pages/contact/index',
+  //   iconType: 'unocss',
+  //   icon: 'i-carbon-user-avatar',
+  // },
+  // {
+  //   text: '消息',
+  //   pagePath: 'pages/message/index',
+  //   iconType: 'unocss',
+  //   icon: 'i-carbon-chat',
+  // },
   {
     text: '我的',
     pagePath: 'pages/user/index',

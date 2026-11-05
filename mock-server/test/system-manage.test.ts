@@ -60,3 +60,13 @@ describe('系统管理列表页（用户、角色、字典）', () => {
     expect(r.body.data.total).toBe(2)
   })
 })
+
+describe('个人中心', () => {
+  beforeEach(async () => { await request(app).post('/__mock/reset') })
+  it('管家能取到自己的资料，未登录 401', async () => {
+    const r = await request(app).get('/admin-api/system/user/profile/get').set(await auth(2, 'zhangguanjia'))
+    expect(r.body.data).toMatchObject({ username: 'zhangguanjia', nickname: '张管家', dept: { name: '青山农场' }, roles: [{ name: '管家' }] })
+    expect(r.body.data).not.toHaveProperty('password')
+    expect((await request(app).get('/admin-api/system/user/profile/get')).body.code).toBe(401)
+  })
+})

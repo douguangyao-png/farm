@@ -37,6 +37,8 @@ interface ImportMetaEnv {
   readonly VITE_IM_RTC_MP_ENABLED?: 'true' | 'false'
   /** 微信小程序 IM 通话网关地址，需 https 且在小程序 request 合法域名中 */
   readonly VITE_IM_RTC_MP_GATEWAY_URL?: string
+  /** 显示「演示数据」角标、演示账号预填（认养农场 R-7） */
+  readonly VITE_MOCK_BADGE?: 'true' | 'false'
   // 更多环境变量...
 }
 

@@ -86,3 +86,17 @@ systemManageRouter.get('/dict-data/page', (req, res) =>
     .map((d, i) => ({ id: i + 1, sort: i + 1, status: 0, remark: '', createTime: CREATED, ...d }))
     .filter((d) => (!req.query.dictType || d.dictType === req.query.dictType) && like(d.label, req.query.label) && eqStatus(d.status, req.query.status))))
 )
+
+// ---------- 个人中心（芋道「我的」/ 个人信息页） ----------
+systemManageRouter.get('/user/profile/get', (req, res) => {
+  const u = getDb().users.find((x) => x.id === req.session!.userId)
+  if (!u) return fail(res, ERR.NOT_FOUND, '用户不存在')
+  const tenant = getDb().tenants.find((t) => t.id === u.tenantId)
+  return ok(res, {
+    ...userView(u),
+    roles: getDb().roles.filter((r) => u.roleIds.includes(r.id)).map((r) => ({ id: r.id, name: r.name })),
+    dept: { id: u.tenantId, name: tenant?.name ?? '' },
+    posts: [],
+    socialUsers: []
+  })
+})

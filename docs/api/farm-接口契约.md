@@ -188,8 +188,8 @@ createTime
 
 | 方法 | 路径 | 说明 |
 |---|---|---|
-| GET | `/farm/steward/home` | `stewardName, baseName, todo{ taskCount, serviceOrderPending, serviceOrderMine }, todayDone, monthDone` |
-| GET | `/farm/steward/task/list` | 参数 `status`（默认 0）。只返回 `stewardId` 是自己的任务：`id, assetId, assetCode, baseName, memberName, careMode, title, description, source('calendar'|'iot'|'manual'|'service'), serviceOrderId, deadline, status, finishTime` |
+| GET | `/farm/steward/home` | `stewardName, baseName, todo{ taskCount, overdueCount, serviceOrderPending, serviceOrderMine }, todayDone, monthDone, pendingAuditCount（自己提交待审核的记录数）, rejectedCount（近 7 天被驳回数）` |
+| GET | `/farm/steward/task/list` | 参数 `status`（默认 0）。只返回 `stewardId` 是自己的任务：`id, assetId, assetCode, baseName, memberName, careMode, title, description, source('calendar'|'iot'|'manual'|'service'), serviceOrderId, deadline, status, overdue（待办且已过截止时间）, finishTime` |
 | GET | `/farm/steward/task/get?id=` | 任务 + `asset{ code, crop, areaM2 }` + `env`（当前环境快照） |
 | POST | `/farm/steward/task/checkin` | `{ taskId, content, photos[] (≥1), lng, lat }`。照片为空 → 400「至少拍一张现场照片」；任务不是自己的 → `1_030_000_007`；已完成 → `1_030_000_006`。生成一条待审核的农事记录（自动带环境快照、三项校验结果），任务置完成。来自代管工单的任务，工单同时置完成 |
 | GET | `/farm/steward/service-order/list` | 参数 `scope=pool|mine`：`pool` 是本基地待接单的，`mine` 是自己已接的 |

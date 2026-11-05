@@ -1,0 +1,161 @@
+// 管家端农场页面公共样式（参考 docs/09-管家App-演示Demo.html 的配色）
+$g: #22a06b;
+$gd: #17885a;
+$gl: #eaf7f0;
+$o: #ff8f1f;
+$ol: #fff5e8;
+$r: #e5484d;
+$rl: #fdecec;
+$b: #2b6cb8;
+$bl: #eaf1fb;
+$tx: #1a1f26;
+$tx2: #5c6570;
+$tx3: #98a0aa;
+$line: #eef0f3;
+
+.farm-page {
+  min-height: 100vh;
+  padding-bottom: 180rpx;
+  background: #f4f5f7;
+  color: $tx;
+}
+.farm-card {
+  margin: 20rpx 24rpx 0;
+  padding: 24rpx 28rpx;
+  background: #fff;
+  border-radius: 20rpx;
+  box-shadow: 0 2rpx 6rpx rgba(20, 30, 50, 0.05);
+}
+.farm-hd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 32rpx 28rpx 0;
+  font-size: 30rpx;
+  font-weight: 600;
+}
+.farm-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.farm-kv {
+  display: flex;
+  justify-content: space-between;
+  padding: 12rpx 0;
+  font-size: 26rpx;
+  .k {
+    color: $tx3;
+  }
+  .v {
+    color: $tx;
+    text-align: right;
+  }
+}
+.farm-t15 {
+  font-size: 30rpx;
+  font-weight: 600;
+}
+.farm-t13 {
+  font-size: 26rpx;
+  color: $tx2;
+}
+.farm-t12 {
+  font-size: 22rpx;
+  color: $tx3;
+}
+.farm-tag {
+  display: inline-block;
+  padding: 2rpx 14rpx;
+  font-size: 20rpx;
+  line-height: 34rpx;
+  border-radius: 8rpx;
+  color: $tx2;
+  background: #f1f2f4;
+  &.tag-iot {
+    color: $b;
+    background: $bl;
+  }
+  &.tag-cal {
+    color: $gd;
+    background: $gl;
+  }
+  &.tag-manual {
+    color: $tx2;
+    background: #f1f2f4;
+  }
+  &.tag-service {
+    color: $o;
+    background: $ol;
+  }
+  &.st-red {
+    color: $r;
+    background: $rl;
+  }
+  &.st-orange {
+    color: $o;
+    background: $ol;
+  }
+  &.st-green {
+    color: $gd;
+    background: $gl;
+  }
+  &.st-gray {
+    color: $tx3;
+    background: #f1f2f4;
+  }
+}
+.farm-red {
+  color: $r !important;
+}
+.farm-green {
+  color: $gd !important;
+}
+.farm-note {
+  margin: 20rpx 24rpx 0;
+  padding: 18rpx 24rpx;
+  font-size: 24rpx;
+  line-height: 1.6;
+  border-radius: 16rpx;
+  color: $gd;
+  background: $gl;
+  &.warn {
+    color: #b36200;
+    background: $ol;
+  }
+}
+.farm-env {
+  display: flex;
+  margin-top: 12rpx;
+  .cell {
+    flex: 1;
+    text-align: center;
+    .num {
+      font-size: 36rpx;
+      font-weight: 700;
+    }
+    .lbl {
+      margin-top: 4rpx;
+      font-size: 22rpx;
+      color: $tx3;
+    }
+  }
+}
+.farm-footbar {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 10;
+  display: flex;
+  gap: 20rpx;
+  padding: 20rpx 24rpx calc(20rpx + env(safe-area-inset-bottom));
+  background: #fff;
+  box-shadow: 0 -2rpx 8rpx rgba(20, 30, 50, 0.06);
+}
+.farm-empty {
+  padding: 60rpx 0;
+  font-size: 26rpx;
+  color: $tx3;
+  text-align: center;
+}

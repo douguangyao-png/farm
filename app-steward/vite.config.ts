@@ -122,6 +122,7 @@ export default defineConfig(({ command, mode }) => {
           'src/pages-wms', // “仓储管理”模块
           'src/pages-pms', // “项目管理”模块
           'src/pages-oa', // “OA 办公”模块
+          'src/pages-farm', // add by 认养农场：管家端业务页面（今日任务、打卡、代管工单、标的详情）
         ],
         dts: 'src/types/uni-pages.d.ts',
       }),
