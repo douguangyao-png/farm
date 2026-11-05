@@ -6,6 +6,10 @@ import { Setting } from '@/layout/components/Setting'
 import { useRenderLayout } from './components/useRenderLayout'
 import { useDesign } from '@/hooks/web/useDesign'
 import { getLayoutRenderMode } from '@/utils/layout'
+import FeedbackDock from '@/views/farm/feedback/components/FeedbackDock.vue' // farmer-saas: 全局问题反馈入口（R-12）
+
+// farmer-saas: 演示数据角标（R-7），只在 mock/demo 环境变量为 true 时渲染
+const showMockBadge = import.meta.env.VITE_MOCK_BADGE === 'true'
 
 const { getPrefixCls } = useDesign()
 
@@ -68,6 +72,10 @@ export default defineComponent({
         <Backtop></Backtop>
 
         <Setting></Setting>
+
+        {/* farmer-saas: 问题反馈浮动按钮 + 演示数据角标 */}
+        <FeedbackDock></FeedbackDock>
+        {showMockBadge ? <div class="farm-mock-badge">演示数据</div> : undefined}
       </section>
     )
   }
@@ -79,5 +87,21 @@ $prefix-cls: #{$namespace}-layout;
 
 .#{$prefix-cls} {
   background-color: var(--app-content-bg-color);
+}
+
+/* farmer-saas: 演示数据角标（R-7） */
+.farm-mock-badge {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 3000;
+  padding: 0 8px;
+  font-size: 11px;
+  line-height: 15px;
+  color: #fff;
+  pointer-events: none;
+  background: #e6a23c;
+  border-radius: 0 0 0 6px;
+  opacity: 0.92;
 }
 </style>
