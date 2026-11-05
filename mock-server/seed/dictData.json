@@ -1,0 +1,4 @@
+[
+  { "dictType": "common_status", "value": "0", "label": "开启", "colorType": "primary", "cssClass": "" },
+  { "dictType": "common_status", "value": "1", "label": "关闭", "colorType": "info", "cssClass": "" }
+]

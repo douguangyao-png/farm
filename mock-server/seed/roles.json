@@ -1,0 +1,6 @@
+[
+  { "id": 1, "tenantId": 1, "code": "super_admin", "name": "平台超级管理员", "menuIds": "*" },
+  { "id": 2, "tenantId": 2, "code": "tenant_admin", "name": "经营者管理员", "menuIds": [200, 201, 202] },
+  { "id": 3, "tenantId": 2, "code": "steward", "name": "管家", "menuIds": [] },
+  { "id": 4, "tenantId": 3, "code": "tenant_admin", "name": "经营者管理员", "menuIds": [200, 201, 202] }
+]

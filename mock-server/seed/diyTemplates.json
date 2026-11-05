@@ -1,0 +1,27 @@
+[
+  {
+    "id": 1,
+    "tenantId": 2,
+    "name": "青山农场 · 认养首页（T1 占位，T5 替换）",
+    "property": {
+      "tabBar": {
+        "theme": "green",
+        "style": { "bgType": "color", "bgColor": "#ffffff", "color": "#8a8a8a", "activeColor": "#2e7d32" },
+        "items": [
+          { "text": "首页", "url": "/pages/index/index", "iconUrl": "", "activeIconUrl": "" },
+          { "text": "我的", "url": "/pages/index/user", "iconUrl": "", "activeIconUrl": "" }
+        ]
+      }
+    },
+    "home": {
+      "page": { "backgroundColor": "#f5f7f2" },
+      "navigationBar": { "styleType": "normal", "alwaysShow": true, "bgType": "color", "bgColor": "#2e7d32", "list": [] },
+      "components": []
+    },
+    "user": {
+      "page": { "backgroundColor": "#f5f7f2" },
+      "navigationBar": { "styleType": "normal", "alwaysShow": true, "bgType": "color", "bgColor": "#2e7d32", "list": [] },
+      "components": []
+    }
+  }
+]

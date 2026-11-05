@@ -1,0 +1,5 @@
+[
+  { "id": 1, "name": "平台运营中心", "contactName": "平台管理员", "contactMobile": "13900000000", "status": 0, "packageId": 0, "websites": [] },
+  { "id": 2, "name": "青山农场", "contactName": "李青山", "contactMobile": "13900000002", "status": 0, "packageId": 2, "websites": ["localhost:3000", "127.0.0.1:3000"] },
+  { "id": 3, "name": "绿野农庄", "contactName": "王绿野", "contactMobile": "13900000003", "status": 0, "packageId": 1, "websites": [] }
+]

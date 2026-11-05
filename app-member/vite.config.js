@@ -7,7 +7,9 @@ import mpliveMainfestPlugin from './sheep/libs/mplive-manifest-plugin';
 
 
 // https://vitejs.dev/config/
-export default (command, mode) => {
+// 注意：vite 传入的是 { command, mode } 对象。上游写成 (command, mode) 时 mode 恒为 undefined，
+// 只会加载 .env，--mode mock 不生效；这里改成解构。
+export default ({ command, mode }) => {
 	const env = loadEnv(mode, __dirname, 'SHOPRO_');
 	return {
 		envPrefix: "SHOPRO_",
