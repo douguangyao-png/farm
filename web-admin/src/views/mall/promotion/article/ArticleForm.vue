@@ -138,7 +138,7 @@ const formData = ref({
 })
 const formRules = reactive({
   categoryId: [{ required: true, message: '分类id不能为空', trigger: 'blur' }],
-  title: [{ required: true, message: '文章标题不能为空', trigger: 'blur' }],
+  title: [{ required: true, message: '标题不能为空', trigger: 'blur' }], // farmer-saas: 文案与契约一致（原「文章标题不能为空」）
   picUrl: [{ required: true, message: '文章封面图片地址不能为空', trigger: 'blur' }],
   sort: [{ required: true, message: '排序不能为空', trigger: 'blur' }],
   status: [{ required: true, message: '状态不能为空', trigger: 'blur' }],
