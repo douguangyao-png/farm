@@ -32,6 +32,8 @@ platformRouter.post('/system/tenant/create', (req, res) => {
   if (db().tenants.some((t) => t.name === String(b.name).trim())) return badRequest(res, '租户名已存在')
   if (!String(b.username ?? '').trim() || !String(b.password ?? '').trim()) return badRequest(res, '请填写管理员账号和密码')
   if (!db().tenantPackages.some((p) => p.id === Number(b.packageId))) return badRequest(res, '请选择套餐')
+  // 登录只填用户名、不选租户，所以用户名要全平台唯一
+  if (db().users.some((u) => u.username === String(b.username).trim())) return badRequest(res, '管理员账号已被占用，请换一个')
   const id = nextId(db().tenants)
   const t: Tenant = { id, name: String(b.name).trim(), contactName: b.contactName ?? '', contactMobile: b.contactMobile ?? '', status: Number(b.status) || 0,
     packageId: Number(b.packageId), expireTime: Number(b.expireTime) || Date.now() + 365 * 86400_000, websites: b.websites ?? [], accountCount: Number(b.accountCount) || 10, createTime: Date.now() }

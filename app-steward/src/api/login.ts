@@ -109,6 +109,11 @@ export function getTenantSimpleList() {
   return http.get<TenantVO[]>('/system/tenant/simple-list')
 }
 
+/** farmer-saas: 按用户名获取租户编号（登录页不选租户，用户名全平台唯一） */
+export function getTenantIdByUsername(username: string) {
+  return http.get<number | null>('/system/tenant/get-id-by-username', { username })
+}
+
 /** 根据租户域名获取租户信息 */
 export function getTenantByWebsite(website: string) {
   return http.get<TenantVO>(`/system/tenant/get-by-website?website=${website}`)

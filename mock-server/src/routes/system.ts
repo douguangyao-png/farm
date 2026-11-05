@@ -38,6 +38,16 @@ systemRouter.get('/tenant/get-id-by-name', (req, res) => {
   return ok(res, t?.id ?? null)
 })
 
+/**
+ * 按用户名找租户（用户 2026-11-05：登录页不选租户，只填用户名密码，登录后进对应平台）。
+ * 前提：用户名全平台唯一（开通租户时校验）。返回租户 id，找不到返回 null，前端提示账号或密码不正确。
+ * 真后端实现时建议把这一步放进登录接口内部，避免单独暴露「用户名 → 租户」查询。
+ */
+systemRouter.get('/tenant/get-id-by-username', (req, res) => {
+  const u = getDb().users.find((x) => x.username === String(req.query.username ?? '').trim())
+  return ok(res, u?.tenantId ?? null)
+})
+
 systemRouter.get('/tenant/get-by-website', (req, res) => {
   const w = String(req.query.website ?? '')
   const t = getDb().tenants.find((x) => x.websites?.includes(w))

@@ -5,7 +5,9 @@
 
     <!-- 表单区域 -->
     <view class="form-container">
+      <!-- farmer-saas: 按用户名登录时不显示租户选择，租户由用户名确定 -->
       <TenantPicker
+        v-if="!loginByUsername"
         ref="tenantPickerRef"
         :disabled="Boolean(socialBindingContext) || authLoading"
         :preferred-tenant-id="socialBindingContext?.tenantId"
@@ -90,6 +92,8 @@ import { ensureDecodeURIComponent, redirectAfterLogin } from '@/utils'
 import Header from './components/header.vue'
 import SocialLoginPanel from './components/social-login-panel.vue'
 import TenantPicker from './components/tenant-picker.vue'
+import { getTenantIdByUsername } from '@/api/login'
+import { useUserStore } from '@/store/user'
 import Verify from './components/verifition/verify.vue'
 
 defineOptions({
@@ -150,6 +154,9 @@ async function getCode() {
   }
 }
 
+/** farmer-saas: 登录不选租户，按用户名确定租户（env/.env.mock、.env.demo 打开） */
+const loginByUsername = import.meta.env.VITE_APP_LOGIN_BY_USERNAME === 'true'
+
 /** 登录处理 */
 async function handleLogin() {
   if (authLoading.value) {
@@ -165,6 +172,15 @@ async function handleLogin() {
   if (!formData.password) {
     toast.warning('请输入密码')
     return
+  }
+  // farmer-saas: 按用户名找租户（用户 2026-11-05：不选租户，用户名密码登录）
+  if (loginByUsername) {
+    const tenantId = await getTenantIdByUsername(formData.username)
+    if (!tenantId) {
+      toast.error('账号或密码不正确')
+      return
+    }
+    useUserStore().setTenantId(tenantId)
   }
   await getCode()
 }
@@ -205,6 +221,7 @@ function goToForgetPassword() {
 
 /** 校验当前租户 */
 function validateTenant() {
+  if (loginByUsername) return true // farmer-saas: 租户由用户名确定
   return Boolean(tenantPickerRef.value?.validate())
 }
 </script>

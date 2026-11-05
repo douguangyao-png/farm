@@ -126,3 +126,19 @@ describe('C 端兼容芋道商城的请求习惯', () => {
     expect(c.body.data).toEqual({ validList: [], invalidList: [] })
   })
 })
+
+describe('登录不选租户：按用户名找租户', () => {
+  beforeEach(async () => { await request(app).post('/__mock/reset') })
+  it('平台、经营者、管家账号都能找到各自租户；不存在的返回 null；开通租户时用户名重复报错', async () => {
+    const q = (username: string) => request(app).get('/admin-api/system/tenant/get-id-by-username').query({ username }).then((r) => r.body.data)
+    expect(await q('admin')).toBe(1)
+    expect(await q('qingshan')).toBe(2)
+    expect(await q('lvye')).toBe(3)
+    expect(await q('zhangguanjia')).toBe(2)
+    expect(await q('nobody')).toBeNull()
+    const lg = await request(app).post('/admin-api/system/auth/login').set('tenant-id', '1').send({ username: 'admin', password: 'admin123' })
+    const h = { Authorization: `Bearer ${lg.body.data.accessToken}`, 'tenant-id': '1' }
+    const r = await request(app).post('/admin-api/system/tenant/create').set(h).send({ name: '东篱农场', packageId: 2, username: 'qingshan', password: 'x' })
+    expect(r.body.msg).toBe('管理员账号已被占用，请换一个')
+  })
+})

@@ -65,6 +65,11 @@ export const getTenantIdByName = (name: string) => {
   return request.get({ url: '/system/tenant/get-id-by-name?name=' + name })
 }
 
+// farmer-saas: 使用用户名，获得租户编号（登录页不选租户，用户名全平台唯一）
+export const getTenantIdByUsername = (username: string) => {
+  return request.get({ url: '/system/tenant/get-id-by-username', params: { username } })
+}
+
 // 使用租户域名，获得租户信息
 export const getTenantByWebsite = (website: string) => {
   return request.get({ url: '/system/tenant/get-by-website?website=' + website })

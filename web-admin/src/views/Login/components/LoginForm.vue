@@ -16,7 +16,8 @@
         </el-form-item>
       </el-col>
       <el-col :span="24" class="px-10px">
-        <el-form-item v-if="loginData.tenantEnable === 'true'" prop="tenantName">
+        <!-- farmer-saas: 按用户名登录时不显示租户输入框，租户由用户名确定 -->
+        <el-form-item v-if="loginData.tenantEnable === 'true' && !loginByUsername" prop="tenantName">
           <el-input
             v-model="loginData.loginForm.tenantName"
             :placeholder="t('login.tenantNamePlaceholder')"
@@ -72,6 +73,26 @@
           <el-button :loading="loginLoading" class="w-full" type="primary" @click="getCode()">
             {{ t('login.login') }}
           </el-button>
+        </el-form-item>
+      </el-col>
+      <!-- farmer-saas: 演示账号快捷切换（只在 mock / demo 模式显示）。点一下填好租户、账号、密码，不用记租户名 -->
+      <el-col v-if="demoAccounts.length" :span="24" class="px-10px">
+        <el-form-item>
+          <div class="w-full">
+            <div class="mb-6px text-12px text-[var(--el-text-color-secondary)]">演示账号（点一下自动填好）</div>
+            <div class="flex flex-wrap gap-8px">
+              <el-button
+                v-for="a in demoAccounts"
+                :key="a.username"
+                size="small"
+                :type="loginData.loginForm.username === a.username ? 'primary' : 'default'"
+                plain
+                @click="useDemoAccount(a)"
+              >
+                {{ a.label }}
+              </el-button>
+            </div>
+          </div>
         </el-form-item>
       </el-col>
       <Verify
@@ -171,7 +192,8 @@ const captchaType = ref('blockPuzzle') // blockPuzzle 滑块 clickWord 点击文
 const getShow = computed(() => unref(getLoginState) === LoginStateEnum.LOGIN)
 
 const LoginRules = {
-  tenantName: [required],
+  // farmer-saas: 按用户名登录时不校验租户名
+  ...(import.meta.env.VITE_APP_LOGIN_BY_USERNAME === 'true' ? {} : { tenantName: [required] }),
   username: [required],
   password: [required]
 }
@@ -187,6 +209,25 @@ const loginData = reactive({
     rememberMe: true // 默认记录我。如果不需要，可手动修改
   }
 })
+
+// farmer-saas: 登录不选租户，按用户名确定租户（.env.mock / .env.demo 打开）
+const loginByUsername = import.meta.env.VITE_APP_LOGIN_BY_USERNAME === 'true'
+
+// farmer-saas: 演示账号（种子数据 mock-server/seed/users.json，见 docs/demo/演示数据说明.md）；真后端构建不显示
+const demoAccounts =
+  import.meta.env.VITE_MOCK_BADGE === 'true'
+    ? [
+        { label: '平台管理员', tenantName: '平台运营中心', username: 'admin', password: 'admin123' },
+        { label: '经营者 · 青山农场', tenantName: '青山农场', username: 'qingshan', password: 'demo123' },
+        { label: '经营者 · 绿野农庄', tenantName: '绿野农庄', username: 'lvye', password: 'demo123' }
+      ]
+    : []
+const useDemoAccount = (a: { tenantName: string; username: string; password: string }) => {
+  loginData.loginForm.tenantName = a.tenantName
+  loginData.loginForm.username = a.username
+  loginData.loginForm.password = a.password
+  formLogin.value?.clearValidate()
+}
 
 const socialList = [
   { icon: 'ant-design:wechat-filled', type: 30 },
@@ -209,9 +250,20 @@ const getCode = async () => {
 // 获取租户 ID
 const getTenantId = async () => {
   if (loginData.tenantEnable === 'true') {
+    // farmer-saas: 按用户名找租户（用户 2026-11-05：不选租户，用户名密码登录后直接进对应平台）
+    if (loginByUsername) {
+      const tenantId = await LoginApi.getTenantIdByUsername(loginData.loginForm.username)
+      if (!tenantId) {
+        message.error('账号或密码不正确')
+        return false
+      }
+      authUtil.setTenantId(tenantId)
+      return true
+    }
     const res = await LoginApi.getTenantIdByName(loginData.loginForm.tenantName)
     authUtil.setTenantId(res)
   }
+  return true
 }
 // 扫码登录与账号登录一样，先确定租户。
 const handleQrcodeLogin = async () => {
@@ -232,7 +284,7 @@ const getLoginFormCache = () => {
 }
 // 根据域名，获得租户信息
 const getTenantByWebsite = async () => {
-  if (loginData.tenantEnable === 'true') {
+  if (loginData.tenantEnable === 'true' && !loginByUsername) {
     const website = location.host
     const res = await LoginApi.getTenantByWebsite(website)
     if (res) {
@@ -246,9 +298,12 @@ const loading = ref() // ElLoading.service 返回的实例
 const handleLogin = async (params: any) => {
   loginLoading.value = true
   try {
-    await getTenantId()
+    // farmer-saas: 先校验表单再找租户（按用户名找租户需要先有用户名）
     const data = await validForm()
     if (!data) {
+      return
+    }
+    if (!(await getTenantId())) {
       return
     }
     const loginDataLoginForm = { ...loginData.loginForm }
