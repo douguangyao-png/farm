@@ -59,7 +59,7 @@ const remainingRouter: AppRouteRecordRaw[] = [
     children: [
       {
         path: 'index',
-        component: () => import('@/views/Home/Index.vue'),
+        component: () => import('@/views/farm/home/index.vue'), // farmer-saas: 首页换成工作台（原芋道示例首页 views/Home/Index.vue 不再使用）
         name: 'Index',
         meta: {
           title: t('router.home'),

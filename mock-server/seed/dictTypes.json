@@ -1,6 +1,7 @@
 [
-  { "id": 1, "name": "通用状态", "type": "common_status", "status": 0, "remark": "开启 / 关闭" },
-  { "id": 2, "name": "用户性别", "type": "system_user_sex", "status": 0, "remark": "" },
-  { "id": 3, "name": "角色类型", "type": "system_role_type", "status": 0, "remark": "内置 / 自定义" },
-  { "id": 4, "name": "数据范围", "type": "system_data_scope", "status": 0, "remark": "角色的数据权限" }
+  {"id": 1, "name": "通用状态", "type": "common_status", "status": 0, "remark": "开启 / 关闭"},
+  {"id": 2, "name": "用户性别", "type": "system_user_sex", "status": 0, "remark": ""},
+  {"id": 3, "name": "角色类型", "type": "system_role_type", "status": 0, "remark": "内置 / 自定义"},
+  {"id": 4, "name": "数据范围", "type": "system_data_scope", "status": 0, "remark": "角色的数据权限"},
+  {"id": 5, "name": "系统布尔", "type": "infra_boolean_string", "status": 0, "remark": "是 / 否"}
 ]

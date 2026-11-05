@@ -96,9 +96,10 @@
       <el-table-column align="center" label="作者" min-width="180" prop="author" />
       <el-table-column align="center" label="文章简介" min-width="250" prop="introduction" />
       <el-table-column align="center" label="排序" min-width="60" prop="sort" />
-      <el-table-column align="center" label="状态" min-width="60" prop="status">
+      <el-table-column align="center" label="发布状态" min-width="70" prop="status">
         <template #default="scope">
-          <dict-tag :type="DICT_TYPE.COMMON_STATUS" :value="scope.row.status" />
+          <!-- farmer-saas: 文章用「已发布 / 未发布」，比字典的「开启 / 关闭」好懂 -->
+          <el-tag :type="scope.row.status === 0 ? 'success' : 'info'">{{ scope.row.status === 0 ? '已发布' : '未发布' }}</el-tag>
         </template>
       </el-table-column>
       <el-table-column
@@ -108,8 +109,18 @@
         prop="createTime"
         width="180px"
       />
-      <el-table-column align="center" fixed="right" label="操作" width="120">
+      <el-table-column align="center" fixed="right" label="操作" width="220">
         <template #default="scope">
+          <!-- farmer-saas: 预览、发布 / 撤回（status 0 = 已发布，1 = 未发布；发布后农场文章出现在 C 端「农场资讯」，平台文章出现在经营者工作台「平台公告」） -->
+          <el-button link type="primary" @click="previewRef.open(scope.row.id)">预览</el-button>
+          <el-button
+            v-hasPermi="['promotion:article:update']"
+            link
+            :type="scope.row.status === 0 ? 'warning' : 'success'"
+            @click="togglePublish(scope.row)"
+          >
+            {{ scope.row.status === 0 ? '撤回' : '发布' }}
+          </el-button>
           <el-button
             v-hasPermi="['promotion:article:update']"
             link
@@ -140,6 +151,8 @@
 
   <!-- 表单弹窗：添加/修改 -->
   <ArticleForm ref="formRef" @success="getList" />
+  <!-- farmer-saas: 文章预览 -->
+  <ArticlePreview ref="previewRef" :category-list="categoryList" />
 </template>
 
 <script lang="ts" setup>
@@ -147,9 +160,11 @@ import { DICT_TYPE, getIntDictOptions } from '@/utils/dict'
 import { dateFormatter } from '@/utils/formatTime'
 import * as ArticleApi from '@/api/mall/promotion/article'
 import ArticleForm from './ArticleForm.vue'
+import ArticlePreview from './ArticlePreview.vue'
 import * as ArticleCategoryApi from '@/api/mall/promotion/articleCategory'
 import * as ProductSpuApi from '@/api/mall/product/spu'
 import { createImageViewer } from '@/components/ImageViewer'
+import { getTenantId } from '@/utils/auth'
 
 defineOptions({ name: 'PromotionArticle' })
 
@@ -204,6 +219,24 @@ const formRef = ref()
 const openForm = (type: string, id?: number) => {
   formRef.value.open(type, id)
 }
+
+// farmer-saas: 预览、发布 / 撤回
+const previewRef = ref()
+const togglePublish = async (row: ArticleApi.ArticleVO) => {
+  const publish = row.status !== 0
+  try {
+    await message.confirm(
+      publish
+        ? `发布「${row.title}」？发布后${isPlatformTenant() ? '所有经营者会在工作台「平台公告」里看到' : '会出现在 C 端首页「农场资讯」'}。`
+        : `撤回「${row.title}」？撤回后外部就看不到了。`
+    )
+    const full = await ArticleApi.getArticle(row.id!)
+    await ArticleApi.updateArticle({ ...full, status: publish ? 0 : 1 })
+    message.success(publish ? '已发布' : '已撤回')
+    await getList()
+  } catch {}
+}
+const isPlatformTenant = () => Number(getTenantId()) === 1
 
 /** 删除按钮操作 */
 const handleDelete = async (id: number) => {

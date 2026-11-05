@@ -27,7 +27,9 @@ farmAppRouter.get('/home', (req, res) => {
     ],
     bases: db().bases.filter((b) => b.tenantId === t && b.status === 0).map((b) => ({ id: b.id, name: b.name, cover: b.cover, address: b.address, live: true })),
     products: db().products.filter((p) => p.tenantId === t && p.status === 0).map(productView),
-    notices: db().articles.filter((a) => (a.tenantId === t || a.tenantId === 1) && a.status === 0).sort(byNewest).slice(0, 3).map((a) => ({ id: a.id, title: a.title })),
+    // 农场资讯：只放本农场已发布（status=0）的文章；平台的公告、帮助是给经营者看的，在后台工作台展示
+    articles: db().articles.filter((a) => a.tenantId === t && a.status === 0).sort(byNewest).slice(0, 5)
+      .map((a) => ({ id: a.id, title: a.title, introduction: a.introduction, picUrl: a.picUrl, createTime: a.createTime })),
     demo: true
   })
 })
@@ -274,3 +276,17 @@ farmAppRouter.get('/shipment/list', login, (req, res) => {
   return ok(res, db().shipments.filter((s) => s.memberId === m.id && (adoptionId === undefined || s.adoptionId === Number(adoptionId))).sort(byNewest).map(shipmentView))
 })
 
+
+// ---------- 农场资讯（经营者在「系统管理 → 文章管理」发布的文章） ----------
+farmAppRouter.get('/article/list', (req, res) => {
+  const t = needTenant(req)
+  return ok(res, db().articles.filter((a) => a.tenantId === t && a.status === 0).sort(byNewest)
+    .map((a) => ({ id: a.id, title: a.title, introduction: a.introduction, picUrl: a.picUrl, author: a.author, browseCount: a.browseCount, createTime: a.createTime })))
+})
+farmAppRouter.get('/article/get', (req, res) => {
+  const t = needTenant(req)
+  const a = t ? own(db().articles, req.query.id, t) : undefined
+  if (!a || a.status !== 0) return notFound(res, '文章')
+  a.browseCount += 1
+  return ok(res, { ...a, categoryName: db().articleCategories.find((c) => c.id === a.categoryId)?.name ?? '' })
+})

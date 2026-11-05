@@ -50,11 +50,14 @@
       </view>
       <view v-if="loaded && !home.products.length" class="f-empty">暂时没有可认养的商品</view>
 
-      <!-- 公告 -->
-      <view class="f-card" v-if="home.notices.length">
-        <view class="f-title">农场公告</view>
-        <view class="notice" v-for="n in home.notices" :key="n.id">
-          <text class="f-tag orange">公告</text>
+      <!-- 农场资讯：后台「系统管理 → 文章管理」里本农场已发布的文章 -->
+      <view class="f-card" v-if="home.articles.length">
+        <view class="f-between">
+          <view class="f-title">农场资讯</view>
+          <text class="f-sub" @tap="go('/pages/farm/article/list')">更多 ›</text>
+        </view>
+        <view class="notice" v-for="n in home.articles" :key="n.id" @tap="go('/pages/farm/article/detail?id=' + n.id)">
+          <text class="f-tag orange">资讯</text>
           <text class="notice-text">{{ n.title }}</text>
         </view>
       </view>
@@ -72,7 +75,7 @@
 
   uni.hideTabBar({ fail: () => {} });
 
-  const home = reactive({ tenantName: '', banners: [], bases: [], products: [], notices: [] });
+  const home = reactive({ tenantName: '', banners: [], bases: [], products: [], articles: [] });
   const loaded = ref(false);
 
   async function load() {
@@ -84,7 +87,7 @@
       banners: data.banners || [],
       bases: data.bases || [],
       products: data.products || [],
-      notices: data.notices || [],
+      articles: data.articles || [],
     });
   }
 

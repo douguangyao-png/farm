@@ -42,7 +42,7 @@ describe('系统管理列表页（用户、角色、字典）', () => {
   it('字典类型和字典数据能查到，按类型过滤', async () => {
     const h = await auth(1, 'admin')
     const t = await request(app).get('/admin-api/system/dict-type/page').set(h)
-    expect(t.body.data.total).toBe(4)
+    expect(t.body.data.total).toBe(5)
     const d = await request(app).get('/admin-api/system/dict-data/page').set(h).query({ dictType: 'system_role_type' })
     expect(d.body.data.list.map((x: { label: string }) => x.label)).toEqual(['内置', '自定义'])
   })

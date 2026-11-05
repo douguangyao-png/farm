@@ -31,6 +31,9 @@ const FarmApi = {
   getSupply: (id) => get('/farm/supply/get', { id }),
   createSupplyOrder: (data) => post('/farm/supply-order/create', data),
   getSupplyOrderList: () => get('/farm/supply-order/list'),
+  // 农场资讯（后台文章管理里已发布的文章）
+  getArticleList: () => get('/farm/article/list'),
+  getArticle: (id) => get('/farm/article/get', { id }),
   // 收获配送
   getShipmentList: (adoptionId) => get('/farm/shipment/list', adoptionId ? { adoptionId } : {}),
 };

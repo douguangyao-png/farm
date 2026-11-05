@@ -46,15 +46,11 @@
           </el-form-item>
         </el-col>
         <el-col :span="12">
-          <el-form-item label="状态" prop="status">
+          <el-form-item label="发布状态" prop="status">
+            <!-- farmer-saas: 新文章默认存为草稿，在列表里预览后再点「发布」 -->
             <el-radio-group v-model="formData.status">
-              <el-radio
-                v-for="dict in getIntDictOptions(DICT_TYPE.COMMON_STATUS)"
-                :key="String(dict.value)"
-                :value="dict.value"
-              >
-                {{ dict.label }}
-              </el-radio>
+              <el-radio :value="1">草稿（不对外）</el-radio>
+              <el-radio :value="0">发布</el-radio>
             </el-radio-group>
           </el-form-item>
         </el-col>
@@ -107,7 +103,7 @@
   <SpuSelect ref="spuSelectRef" @confirm="selectSpu" />
 </template>
 <script lang="ts" setup>
-import { DICT_TYPE, getBoolDictOptions, getIntDictOptions } from '@/utils/dict'
+import { DICT_TYPE, getBoolDictOptions } from '@/utils/dict'
 import * as ArticleApi from '@/api/mall/promotion/article'
 import * as ArticleCategoryApi from '@/api/mall/promotion/articleCategory'
 import * as ProductSpuApi from '@/api/mall/product/spu'
@@ -130,7 +126,7 @@ const formData = ref({
   picUrl: undefined,
   introduction: undefined,
   sort: 0,
-  status: 0,
+  status: 1, // farmer-saas: 默认草稿
   spuId: 0,
   recommendHot: false,
   recommendBanner: false,
@@ -206,7 +202,7 @@ const resetForm = () => {
     picUrl: undefined,
     introduction: undefined,
     sort: 0,
-    status: 0,
+    status: 1, // farmer-saas: 默认草稿
     spuId: 0,
     recommendHot: false,
     recommendBanner: false,

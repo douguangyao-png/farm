@@ -417,3 +417,16 @@ farmAdminRouter.put('/shipment/sign', (req, res) => {
   s.tracks.push({ time: Date.now(), content: `已签收，签收人：${s.receiverName}` })
   return ok(res, true)
 })
+
+// ---------- 平台公告（平台在文章管理里发布的公告、帮助，给所有经营者看） ----------
+const PLATFORM = 1
+farmAdminRouter.get('/notice/list', (_req, res) =>
+  ok(res, db().articles.filter((a) => a.tenantId === PLATFORM && a.status === 0).sort(byNewest)
+    .map((a) => ({ id: a.id, title: a.title, introduction: a.introduction, createTime: a.createTime,
+      categoryName: db().articleCategories.find((c) => c.id === a.categoryId)?.name ?? '' })))
+)
+farmAdminRouter.get('/notice/get', (req, res) => {
+  const a = db().articles.find((x) => x.id === Number(req.query.id) && x.tenantId === PLATFORM && x.status === 0)
+  if (!a) return notFound(res, '公告')
+  return ok(res, { ...a, categoryName: db().articleCategories.find((c) => c.id === a.categoryId)?.name ?? '' })
+})

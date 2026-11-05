@@ -259,3 +259,25 @@ describe('工作台、环境数据', () => {
     expect(env.data.current.soilMoisture).toBeLessThan(22)
   })
 })
+
+describe('R-11 文章发布后在哪看', () => {
+  it('农场文章发布后 C 端农场资讯能看到，撤回（status=1）后看不到；平台公告在经营者后台能看到', async () => {
+    const qs = await admin(2, 'qingshan')
+    const id = (await post('/admin-api/promotion/article/create', qs, { categoryId: 11, title: '冬季大棚保温', content: '<p>夜间盖草帘</p>', status: 1 })).data
+    const guest = { 'tenant-id': '2' }
+    expect((await get('/app-api/farm/article/list', guest)).data.map((a: { id: number }) => a.id)).not.toContain(id)
+    expect((await get('/app-api/farm/article/get', guest, { id })).code).toBe(404)
+    await put('/admin-api/promotion/article/update', qs, { id, status: 0 })
+    expect((await get('/app-api/farm/home', guest)).data.articles[0]).toMatchObject({ id, title: '冬季大棚保温' })
+    const d = await get('/app-api/farm/article/get', guest, { id })
+    expect(d.data).toMatchObject({ content: '<p>夜间盖草帘</p>', browseCount: 1, categoryName: '农事科普' })
+    // 别的农场的 C 端看不到
+    expect((await get('/app-api/farm/article/get', { 'tenant-id': '3' }, { id })).code).toBe(404)
+    // 平台公告：经营者能看列表和内容，C 端首页不放平台文章
+    const notices = await get('/admin-api/farm/notice/list', qs)
+    expect(notices.data.map((n: { title: string }) => n.title)).toContain('认养商品文案合规指引（2026 版）')
+    expect((await get('/admin-api/farm/notice/get', qs, { id: 1 })).data.content).toContain('约定交付')
+    expect((await get('/admin-api/farm/notice/get', qs, { id: 11 })).code).toBe(404)
+    expect((await get('/app-api/farm/home', guest)).data.articles.some((a: { id: number }) => a.id === 1)).toBe(false)
+  })
+})

@@ -47,6 +47,30 @@
 			}
 		},
 		{
+			"path": "pages/farm/article/list",
+			"style": {
+				"navigationBarTitleText": "农场资讯"
+			},
+			"meta": {
+				"auth": false,
+				"sync": true,
+				"title": "农场资讯",
+				"group": "认养农场"
+			}
+		},
+		{
+			"path": "pages/farm/article/detail",
+			"style": {
+				"navigationBarTitleText": "资讯详情"
+			},
+			"meta": {
+				"auth": false,
+				"sync": true,
+				"title": "资讯详情",
+				"group": "认养农场"
+			}
+		},
+		{
 			"path": "pages/farm/mine",
 			"style": {
 				"navigationBarTitleText": "我的"
@@ -832,7 +856,7 @@
 	],
 	"globalStyle": {
 		"navigationBarTextStyle": "black",
-		"navigationBarTitleText": "芋道商城",
+		"navigationBarTitleText": "认养农场",
 		"navigationBarBackgroundColor": "#FFFFFF",
 		"backgroundColor": "#FFFFFF",
 		"navigationStyle": "custom",

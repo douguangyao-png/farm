@@ -92,6 +92,25 @@
         </el-card>
       </el-col>
     </el-row>
+    <!-- farmer-saas: 平台公告（平台在「系统管理 → 文章管理」发布的公告、帮助） -->
+    <el-card v-if="notices.length" shadow="never" class="mb-12px">
+      <template #header><span class="font-700">平台公告</span></template>
+      <div
+        v-for="n in notices"
+        :key="n.id"
+        class="flex cursor-pointer items-center justify-between py-8px hover:text-[var(--el-color-primary)]"
+        @click="openNotice(n.id)"
+      >
+        <span><el-tag size="small" class="mr-8px">{{ n.categoryName || '公告' }}</el-tag>{{ n.title }}</span>
+        <span class="text-12px text-[var(--el-text-color-secondary)]">{{ fmtTime(n.createTime) }}</span>
+      </div>
+    </el-card>
+    <Dialog v-model="noticeVisible" :title="notice?.title || '平台公告'" width="560px">
+      <div v-if="notice" class="notice-body">
+        <div class="mb-10px text-12px text-[var(--el-text-color-secondary)]">{{ notice.author }} · {{ fmtTime(notice.createTime) }}</div>
+        <div v-dompurify-html="notice.content"></div>
+      </div>
+    </Dialog>
   </div>
 </template>
 <script lang="ts" setup>
@@ -192,7 +211,18 @@ const load = async () => {
   }
 }
 
-onMounted(load)
+// farmer-saas: 平台公告
+const notices = ref<any[]>([])
+const notice = ref<any>()
+const noticeVisible = ref(false)
+const openNotice = async (id: number) => {
+  notice.value = await DashboardApi.getNotice(id)
+  noticeVisible.value = true
+}
+onMounted(async () => {
+  await load()
+  notices.value = (await DashboardApi.getNoticeList()) || []
+})
 // keep-alive 切回来时刷新（首次挂载已经加载过）
 let mounted = false
 onActivated(() => {
