@@ -1,0 +1,2423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<title>认养农业 SaaS · 消费者小程序 演示原型 v2</title>
+<style>
+  :root{
+    --g:#22a06b; --gd:#17885a; --gl:#eaf7f0;
+    --o:#ff8f1f; --ol:#fff5e8;
+    --r:#e5484d;
+    --bg:#f4f5f7; --card:#fff; --line:#eef0f3;
+    --tx:#1a1f26; --tx2:#8b9199; --tx3:#b3b8bf;
+    --sh:0 1px 3px rgba(20,30,50,.06);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:#e8ecf1;color:var(--tx);min-height:100vh;}
+  ::-webkit-scrollbar{width:0;height:0;}
+
+  .app{display:flex;gap:26px;justify-content:center;align-items:flex-start;padding:24px 20px;flex-wrap:wrap;}
+
+  /* ---------- 演示导航面板 ---------- */
+  .guide{width:250px;background:#fff;border-radius:16px;box-shadow:0 10px 30px rgba(20,30,50,.12);padding:16px 14px;position:sticky;top:24px;max-height:calc(100vh - 48px);overflow:auto;}
+  .guide h1{font-size:15px;display:flex;align-items:center;gap:7px;}
+  .guide h1 .dot{width:8px;height:8px;border-radius:50%;background:var(--g);box-shadow:0 0 0 4px var(--gl);}
+  .guide .sub{font-size:11.5px;color:var(--tx2);margin:6px 0 12px;line-height:1.6;}
+  .ggrp{margin-bottom:12px;}
+  .ggrp .gt{font-size:10.5px;color:var(--tx3);letter-spacing:.6px;margin:0 0 6px 4px;font-weight:700;}
+  .ggrp .gb{display:flex;flex-wrap:wrap;gap:5px;}
+  .gbtn{font-size:11.5px;padding:5px 8px;border:1px solid var(--line);border-radius:7px;cursor:pointer;background:#fbfcfd;color:#445;transition:.15s;}
+  .gbtn:hover{background:var(--gl);border-color:var(--g);color:var(--gd);}
+  .gbtn.flow{border-color:#ffd9ab;background:var(--ol);color:#a8620d;}
+  .gbtn.flow:hover{background:#ffeacc;border-color:var(--o);}
+  .gstep{font-size:11.5px;display:flex;align-items:center;gap:7px;padding:6px 8px;border-radius:8px;cursor:pointer;border:1px dashed #dfe6ee;background:#fafcff;margin-bottom:5px;}
+  .gstep:hover{border-color:var(--g);background:var(--gl);}
+  .gstep .n{width:16px;height:16px;border-radius:50%;background:var(--g);color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;flex:0 0 16px;}
+  .tipbar{width:100%;max-width:1320px;margin:0 auto 8px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+  .tipbar span{background:rgba(255,255,255,.75);border:1px solid #d8e0e8;border-radius:20px;padding:5px 12px;font-size:11.5px;color:#4a5560;}
+
+  /* ---------- 手机外壳 ---------- */
+  .phonecase{width:377px;height:820px;background:#111;border-radius:48px;padding:11px;box-shadow:0 24px 70px rgba(10,25,45,.35);flex:0 0 auto;}
+  .phone{width:100%;height:100%;background:var(--bg);border-radius:38px;overflow:hidden;position:relative;display:flex;flex-direction:column;}
+  .statusbar{height:40px;flex:0 0 40px;background:#fff;display:flex;align-items:flex-end;justify-content:space-between;padding:0 24px 3px;font-size:12.5px;font-weight:700;position:relative;z-index:5;}
+  .statusbar .sb-r{display:flex;gap:5px;align-items:center;font-size:11px;}
+  .statusbar .batter{width:22px;height:11px;border:1px solid #333;border-radius:3px;position:relative;}
+  .statusbar .batter::after{content:"";position:absolute;right:-3px;top:3px;width:2px;height:5px;background:#333;border-radius:0 2px 2px 0;}
+  .statusbar .batter i{display:block;height:9px;width:15px;background:#333;margin:.5px;border-radius:1px;}
+
+  .navbar{height:44px;flex:0 0 44px;background:#fff;display:flex;align-items:center;padding:0 12px;position:relative;border-bottom:1px solid var(--line);z-index:4;}
+  .navbar .back{width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#222;}
+  .navbar .title{position:absolute;left:0;right:0;text-align:center;font-size:15.5px;font-weight:600;pointer-events:none;}
+  .navbar .rt{position:absolute;right:12px;font-size:12px;color:var(--tx2);display:flex;gap:12px;align-items:center;}
+  .navbar .rt .on{color:var(--g);}
+
+  .scroll{flex:1;overflow-y:auto;overscroll-behavior:contain;position:relative;}
+  .tabbar{height:54px;flex:0 0 54px;background:#fff;border-top:1px solid var(--line);display:flex;z-index:5;}
+  .tabbar .tb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;color:var(--tx3);font-size:10.5px;}
+  .tabbar .tb.active{color:var(--g);font-weight:600;}
+
+  .toast{position:absolute;left:50%;top:46%;transform:translate(-50%,-50%) scale(.9);background:rgba(20,25,30,.86);color:#fff;padding:11px 18px;border-radius:10px;font-size:13px;opacity:0;pointer-events:none;transition:.22s;z-index:99;max-width:80%;text-align:center;}
+  .toast.show{opacity:1;transform:translate(-50%,-50%) scale(1);}
+  .mask{position:absolute;inset:0;background:rgba(0,0,0,.45);z-index:60;opacity:0;pointer-events:none;transition:.25s;}
+  .mask.show{opacity:1;pointer-events:auto;}
+  .sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:16px 16px 0 0;z-index:61;transform:translateY(105%);transition:.28s cubic-bezier(.3,.9,.3,1);padding:6px 0 20px;max-height:74%;overflow:auto;}
+  .sheet.show{transform:translateY(0);}
+  .sheet .sh-hd{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;font-size:14.5px;font-weight:600;}
+  .sheet .sh-bd{padding:0 16px;}
+  .fab{position:absolute;right:14px;bottom:74px;width:46px;height:46px;border-radius:50%;background:var(--g);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(34,160,107,.42);z-index:20;cursor:pointer;}
+
+  /* ---------- 通用组件 ---------- */
+  .card{background:var(--card);border-radius:14px;box-shadow:var(--sh);margin:10px 12px;padding:14px;}
+  .card.tight{margin:8px 12px;padding:12px;}
+  .sec{padding:0 12px;}
+  .hd{display:flex;align-items:center;justify-content:space-between;padding:14px 12px 8px;}
+  .hd h3{font-size:15.5px;display:flex;align-items:center;gap:6px;}
+  .hd h3::before{content:"";width:3px;height:14px;background:var(--g);border-radius:2px;}
+  .hd .more{font-size:12px;color:var(--tx2);display:flex;align-items:center;gap:2px;}
+  .row{display:flex;align-items:center;gap:10px;}
+  .bw{justify-content:space-between;}
+  .mt8{margin-top:8px;}.mt12{margin-top:12px;}.mt16{margin-top:16px;}
+  .t12{font-size:12px;color:var(--tx2);line-height:1.7;}
+  .t13{font-size:13px;color:#4b5259;line-height:1.75;}
+  .t14{font-size:14px;}
+  .t15{font-size:15px;font-weight:600;}
+  .t16{font-size:16px;font-weight:600;}
+  .price{color:var(--r);font-weight:700;}
+  .price b{font-size:20px;}
+  .ofh{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .strk{text-decoration:line-through;color:var(--tx3);font-size:12px;font-weight:400;}
+  .list-item{display:flex;align-items:center;gap:10px;padding:13px 14px;background:#fff;border-bottom:1px solid var(--line);}
+  .list-item:active{background:#fafbfc;}
+  .grid{display:grid;gap:10px;}
+  .g4{grid-template-columns:repeat(4,1fr);}
+  .g3{grid-template-columns:repeat(3,1fr);}
+  .g2{grid-template-columns:repeat(2,1fr);}
+  .g5{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;}
+  .gcol{display:flex;flex-direction:column;align-items:center;gap:5px;font-size:11px;color:#4b5259;cursor:pointer;}
+  .gcol i{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:21px;font-style:normal;}
+  .chip{font-size:11.5px;padding:4px 9px;border-radius:20px;background:var(--gl);color:var(--gd);display:inline-flex;align-items:center;gap:3px;}
+  .chip.o{background:var(--ol);color:#a8620d;}
+  .chip.gy{background:#f2f4f6;color:#6b7178;}
+  .chip.r{background:#fdecec;color:var(--r);}
+  .chip.b{background:#eaf2ff;color:#2b6cb8;}
+  .btn{border:none;border-radius:24px;padding:11px 20px;font-size:14.5px;font-weight:600;cursor:pointer;font-family:inherit;}
+  .btn.pri{background:linear-gradient(90deg,var(--g),var(--gd));color:#fff;flex:1;}
+  .btn.sec{background:#fff;border:1px solid var(--g);color:var(--gd);flex:1;}
+  .btn.gy{background:#f2f4f6;color:#6b7178;border:none;flex:1;}
+  .btn.full{width:100%;}
+  .btn.dis{background:#e3e7ea;color:#a3a9b0;}
+  .footbar{position:sticky;bottom:0;left:0;right:0;background:#fff;padding:10px 14px calc(10px + env(safe-area-inset-bottom));display:flex;gap:10px;align-items:center;border-top:1px solid var(--line);z-index:12;}
+  .prog{height:6px;background:#eef1f4;border-radius:6px;overflow:hidden;}
+  .prog i{display:block;height:100%;background:linear-gradient(90deg,#4bd07f,var(--g));border-radius:6px;}
+  .ph{position:relative;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:rgba(255,255,255,.95);text-shadow:0 1px 3px rgba(0,0,0,.22);}
+  .ph span{font-size:30px;}
+  .ph b{font-size:11.5px;font-weight:600;letter-spacing:.5px;}
+  .g1{background:linear-gradient(135deg,#63c98a,#2f9e63);}
+  .g2{background:linear-gradient(135deg,#7fc4f5,#3f8fd6);}
+  .g3{background:linear-gradient(135deg,#f0c07a,#c98a3c);}
+  .g4{background:linear-gradient(135deg,#f9a6bd,#e2688c);}
+  .g5{background:linear-gradient(135deg,#2c4a3a,#173023);}
+  .g6{background:linear-gradient(135deg,#ffd07a,#ff9823);}
+  .g7{background:linear-gradient(135deg,#c9b6a0,#8a7358);}
+  .g8{background:linear-gradient(135deg,#a8d8a8,#5aa85a);}
+  .pimg{border-radius:12px;flex:0 0 auto;}
+  .avatar{border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;flex:0 0 auto;background:linear-gradient(135deg,#63c98a,#2f9e63);}
+  .tabs{display:flex;background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10;}
+  .tabs .tab{flex:1;text-align:center;padding:11px 0;font-size:13.5px;color:var(--tx2);position:relative;cursor:pointer;}
+  .tabs .tab.on{color:var(--g);font-weight:600;}
+  .tabs .tab.on::after{content:"";position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:26px;height:2.5px;background:var(--g);border-radius:2px;}
+  .inp{width:100%;border:none;outline:none;font-size:14px;font-family:inherit;background:transparent;text-align:right;color:var(--tx);}
+  .inp::placeholder{color:var(--tx3);}
+  .timeline{position:relative;padding-left:22px;}
+  .timeline::before{content:"";position:absolute;left:6px;top:6px;bottom:6px;width:2px;background:linear-gradient(180deg,#cdeadb,#e8edf1);}
+  .tl-i{position:relative;margin-bottom:16px;cursor:pointer;}
+  .tl-i::before{content:"";position:absolute;left:-20px;top:5px;width:10px;height:10px;border-radius:50%;background:#fff;border:2.5px solid var(--g);}
+  .tl-i.new::before{border-color:var(--o);background:var(--o);}
+  .dot9{width:8px;height:8px;border-radius:50%;background:var(--r);flex:0 0 8px;}
+  .kv{display:flex;justify-content:space-between;font-size:13px;padding:7px 0;}
+  .kv .k{color:var(--tx2);}
+  .split{height:8px;background:var(--bg);}
+  .noticebar{display:flex;align-items:center;gap:8px;background:var(--ol);color:#a8620d;font-size:11.5px;padding:8px 12px;}
+  .searchbar{display:flex;align-items:center;gap:7px;background:#fff;border-radius:20px;padding:8px 12px;font-size:12.5px;color:var(--tx3);box-shadow:var(--sh);}
+  .imgrow{display:flex;gap:6px;overflow-x:auto;padding:0 12px 12px;}
+  .legend{margin:10px 12px;background:var(--gl);border:1px dashed #9ad7b6;border-radius:12px;padding:11px 13px;font-size:11.5px;color:#2f7358;line-height:1.75;}
+  .legend b{display:block;font-size:12.5px;margin-bottom:3px;color:var(--gd);}
+  .badge-live{position:absolute;left:8px;top:8px;background:rgba(229,72,77,.92);color:#fff;font-size:10px;padding:2px 7px;border-radius:20px;display:flex;align-items:center;gap:3px;}
+  .badge-live::before{content:"";width:5px;height:5px;border-radius:50%;background:#fff;animation:blink 1.2s infinite;}
+  @keyframes blink{50%{opacity:.25;}}
+  .float-live{position:absolute;right:10px;bottom:10px;background:rgba(0,0,0,.5);color:#fff;font-size:10.5px;padding:4px 9px;border-radius:20px;display:flex;align-items:center;gap:4px;}
+  .succ{display:flex;flex-direction:column;align-items:center;padding:26px 0 10px;}
+  .succ .cir{width:62px;height:62px;border-radius:50%;background:var(--gl);display:flex;align-items:center;justify-content:center;color:var(--g);margin-bottom:12px;}
+  .ell2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .ell3{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+  .lvbar{display:flex;align-items:center;gap:6px;background:linear-gradient(90deg,#3d5a4a,#20362b);color:#e9d9b6;font-size:10.5px;padding:3px 8px;border-radius:20px;}
+  .notebox{background:#f7f9fb;border:1px solid var(--line);border-radius:10px;padding:11px 12px;font-size:12px;color:#5b646d;line-height:1.8;}
+  .grid-line{border-top:1px solid var(--line);}
+  .feedimg{height:170px;border-radius:10px;}
+  .cover13{height:130px;}
+  .w100{width:100%;}
+  .ctr{text-align:center;}
+  .pad16{padding:0 16px;}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="guide" id="guide"></aside>
+  <div style="flex:0 0 auto;">
+    <div class="phonecase">
+      <div class="phone" id="phone">
+        <div class="statusbar">
+          <span id="clock">21:03</span>
+          <span class="sb-r">5G &nbsp;<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 20h.01M7 20v-4M12 20v-9M17 20V6M22 20V3"/></svg>&nbsp;<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="6" width="18" height="12" rx="2"/><path d="M22 10v4"/></svg><span class="batter"><i></i></span></span>
+        </div>
+        <div class="navbar" id="navbar">
+          <div class="back" id="btnBack"></div>
+          <div class="title" id="navTitle">首页</div>
+          <div class="rt" id="navRt"></div>
+        </div>
+        <div class="scroll" id="scroll"></div>
+        <div class="tabbar" id="tabbar"></div>
+        <div class="toast" id="toast"></div>
+        <div class="mask" id="mask"></div>
+        <div class="sheet" id="sheet"></div>
+      </div>
+    </div>
+    <div class="tipbar" style="margin-top:12px;justify-content:center;">
+      <span>47 个页面 · 含托管模式与农资商城</span><span>手机内可正常返回／切 Tab</span><span>Esc 键 = 返回</span><span>纯离线 · 无外部依赖</span>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   认养农业 SaaS · 消费者小程序 演示原型 v2
+   纯前端单文件，数据驱动路由渲染
+   ============================================================ */
+const $=(s,r=document)=>r.querySelector(s);
+const esc=s=>String(s);
+
+/* ---------- 图标 ---------- */
+const P={
+  home:'M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z',
+  grid:'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z',
+  book:'M4 5a2 2 0 0 1 2-2h11v15H6a2 2 0 0 0-2 2zM8 7h6M8 11h5',
+  user:'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8',
+  back:'M15 18l-6-6 6-6',
+  right:'M9 18l6-6-6-6',
+  down:'M6 9l6 6 6-6',
+  search:'M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3',
+  loc:'M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0zM12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6',
+  heart:'M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8z',
+  share:'M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7M16 6l-4-4-4 4M12 2v14',
+  camera:'M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2zM12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8',
+  play:'M6 4l14 8-14 8z',
+  bell:'M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0',
+  ticket:'M3 9V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4z',
+  gift:'M20 12v9H4v-9M2 7h20v5H2zM12 21V7M12 7H7.5a2.5 2.5 0 1 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 1 0 0-5C13 2 12 7 12 7z',
+  truck:'M1 4h13v12H1zM14 8h4l3 4v4h-7zM5.5 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM18 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4z',
+  shield:'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z',
+  check:'M20 6L9 17l-5-5',
+  leaf:'M11 20A7 7 0 0 1 4 13c0-6 8-10 16-10 0 8-4 14-9 14zM4 21c0-4 3-8 9-10',
+  star:'M12 2l3 6.5 7 .9-5 4.8 1.2 7L12 17.8 5.8 21.2 7 14.2 2 9.4l7-.9z',
+  plus:'M12 5v14M5 12h14',
+  filter:'M3 5h18M7 12h10M11 19h2',
+  chat:'M21 11.5a8.4 8.4 0 0 1-9 8.4 9 9 0 0 1-3.9-.9L3 20l1.5-3.9A8.4 8.4 0 0 1 12 3a8.4 8.4 0 0 1 9 8.5z',
+  doc:'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M8 13h8M8 17h5',
+  cal:'M4 6h16v15H4zM4 10h16M9 3v4M15 3v4',
+  clock:'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3 2',
+  more:'M5 12h.01M12 12h.01M19 12h.01',
+  close:'M18 6L6 18M6 6l12 12',
+  qr:'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h2v2h-2zM18 14h2v2h-2zM14 18h2v2h-2zM18 18h2v2h-2z',
+  video:'M23 7l-7 5 7 5zM1 5h15v14H1z',
+  trend:'M3 17l6-6 4 4 8-8M21 7h-6M21 7v6',
+  pen:'M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z',
+  refresh:'M23 12a11 11 0 1 1-3.4-7.9M23 4v5h-5',
+  cog:'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 7.9 19l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.6 1.6 0 0 0 3 13.4H3a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 4.6 6.7l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.6 1.6 0 0 0 10.6 3V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 2.6 1.1l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0 1.1 2.6H21a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1.4z',
+  arrowUp:'M12 19V5M5 12l7-7 7 7',
+  water:'M12 2.7s6 6.1 6 10.3a6 6 0 0 1-12 0c0-4.2 6-10.3 6-10.3z',
+  sun:'M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10zM12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4',
+  box:'M21 8l-9-5-9 5v8l9 5 9-5zM3 8l9 5 9-5M12 13v8',
+  sutra:'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01',
+  medal:'M12 15a5 5 0 1 0 0-10 5 5 0 0 0 0 10zM8.2 14.6L7 22l5-2.5L17 22l-1.2-7.4',
+  users:'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8',
+  flag:'M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7',
+  warn:'M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0zM12 9v4M12 17h.01'
+};
+const I=(n,c='',s=21)=>'<svg viewBox="0 0 24 24" width="'+s+'" height="'+s+'" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="display:block;'+(c?'color:'+c+';':'')+'">'+(P[n]||'')+'</svg>';
+const PH=(g,e,t,h)=>'<div class="ph '+g+'" style="height:'+(h||140)+'px;width:100%"><span>'+e+'</span><b>'+(t||'')+'</b></div>';
+
+/* ---------- 数据模型 ---------- */
+const D={
+  farms:[
+    {id:1,name:'阳光谷生态农场',city:'浙江 · 湖州',dist:'32km',score:4.9,orders:'2,318',live:true,tags:['实地核验','全程直播','保险承保'],area:'280亩',years:6,desc:'长三角亲子认养标杆基地，2019 年运营至今，服务家庭 3000+，配备 24 路高清监控与物联网气象站。',lat:'HX001'},
+    {id:2,name:'云顶山居养殖场',city:'浙江 · 安吉',dist:'58km',score:4.8,orders:'1,204',live:true,tags:['林区散养','脚环溯源','无抗养殖'],area:'120亩',years:4,desc:'海拔 600 米竹林散养土鸡，每只佩戴 RFID 脚环，运动量与觅食轨迹全程可查。',lat:'HX002'},
+    {id:3,name:'稻香里合作社',city:'江苏 · 无锡',dist:'76km',score:4.7,orders:'860',live:false,tags:['稻鸭共生','有机认证'],area:'520亩',years:9,desc:'稻鸭共生生态种植，连续 6 年通过有机认证，年产出大米 260 吨。',lat:'HX003'}
+  ],
+  cats:[
+    {id:'all',n:'全部'},{id:'land',n:'土地认养'},{id:'poultry',n:'家禽认养'},
+    {id:'tree',n:'果树认养'},{id:'livestock',n:'畜牧认养'},{id:'water',n:'水产认养'},
+    {id:'gift',n:'礼品卡'},{id:'exp',n:'体验活动'}
+  ],
+  products:[
+    {id:1,cat:'land',name:'认养一分地 · 家庭菜园',sub:'66㎡ 独立地块 · 全年 12 次配送',price:1280,oprice:1680,farm:1,sold:826,total:1000,cover:'g1',emoji:'🥬',
+     tags:['可实地考察','全程直播','病虫害保险'],cycle:'12个月',unit:'66㎡/份',
+     specs:[{n:'标准版',p:1280,d:'基础农事托管 + 12 次配送'},{n:'亲子版',p:1980,d:'含 6 次亲子研学活动 + 农具套装'},{n:'尊享版',p:2680,d:'专属管家 + 24 次配送 + 民宿 2 晚'}],
+     cycles:[{n:'12个月',p:0},{n:'6个月',p:-380},{n:'24个月',p:2100}],
+     out:'预计年产蔬菜 240-300 斤（20+ 品种）',intro:'每一份菜地配备独立编号铭牌与 24 小时直播摄像头，您可以通过小程序随时查看长势；所有农事由基地管家执行并记录，投入品（种子/肥料/生物农药）全程留痕。'},
+    {id:2,cat:'poultry',name:'认养一只土鸡 · 竹林散养',sub:'1 只 · 180 天 · 每周鲜蛋配送',price:168,oprice:228,farm:2,sold:1560,total:2000,cover:'g3',emoji:'🐓',
+     tags:['RFID脚环','无抗养殖','死亡包赔'],cycle:'180天',unit:'1只/份',
+     specs:[{n:'单只体验',p:168,d:'1 只母鸡 + 每周 6 枚蛋'},{n:'家庭装',p:598,d:'4 只（2公2母）+ 每周 24 枚蛋'}],
+     cycles:[{n:'180天',p:0},{n:'365天',p:180}],
+     out:'预计产蛋 180-220 枚 · 出栏净重 2.3-2.8 斤',intro:'每只鸡佩戴 RFID 脚环记录运动轨迹与觅食时长，林下散养密度 ≤ 50 只/亩，全程无抗饲养，出具第三方检测报告。'},
+    {id:3,cat:'tree',name:'认养一棵果树 · 阳光水蜜桃',sub:'1 棵树 · 1 年 · 保底 30 斤',price:368,oprice:498,farm:1,sold:412,total:600,cover:'g4',emoji:'🍑',
+     tags:['保底产量','可到园采摘','专属树牌'],cycle:'12个月',unit:'1棵/份',
+     specs:[{n:'标准版',p:368,d:'保底 30 斤 + 快递到家'},{n:'尊享版',p:568,d:'保底 50 斤 + 采摘体验 2 人'}],
+     cycles:[{n:'12个月',p:0}],
+     out:'保底 30 斤（不足按市价补偿）',intro:'果树挂专属树牌，您可扫码查看全年的修剪/疏果/套袋/采摘记录，花期与结果期支持到园参观。'},
+    {id:4,cat:'livestock',name:'合养一头黑猪 · 山林放养',sub:'份额认养 · 1/20 头 · 年猪分割',price:988,oprice:1288,farm:2,sold:186,total:240,cover:'g7',emoji:'🐖',
+     tags:['山林放养','屠宰检疫','冷链直配'],cycle:'10个月',unit:'1/20 头',
+     specs:[{n:'1/20 份额',p:988,d:'约出肉 6 斤'},{n:'1/10 份额',p:1888,d:'约出肉 12 斤'}],
+     cycles:[{n:'10个月',p:0}],
+     out:'预计出栏 240-280 斤，份额比例分配',intro:'山林放养 10 个月出栏，屠宰过程全程视频记录，检疫证随货，冷链分割直配到家。'},
+    {id:5,cat:'water',name:'认养一亩稻 · 稻鸭共生',sub:'1 分水田 · 全年新米 120 斤',price:2380,oprice:2880,farm:3,sold:98,total:200,cover:'g8',emoji:'🌾',
+     tags:['有机认证','稻鸭共生','新米直供'],cycle:'12个月',unit:'0.1亩/份',
+     specs:[{n:'标准版',p:2380,d:'120 斤新米 + 2 次插秧收割体验'}],
+     cycles:[{n:'12个月',p:0}],
+     out:'预计产出新米 120-150 斤',intro:'稻鸭共生生态种植，鸭子在田间除虫除草，全程不使用化学除草剂，秋季新米脱壳后 7 日内直达。'},
+    {id:6,cat:'exp',name:'周末农夫 · 单次体验卡',sub:'1 大 1 小 · 含午餐与采摘',price:298,oprice:398,farm:1,sold:2130,total:3000,cover:'g6',emoji:'🧺',
+     tags:['随时预约','含餐','可退改'],cycle:'单次',unit:'1大1小',
+     specs:[{n:'周末场',p:298,d:'周六/周日 任选'},{n:'节假日场',p:398,d:'法定节假日通用'}],
+     cycles:[{n:'单次',p:0}],
+     out:'含采摘 3 斤时蔬 + 农家午餐 2 份',intro:'适合先体验再决定认养的入门产品，到园参与翻土、播种、采摘全流程，含午餐与采摘带走份额。'},
+    {id:7,cat:'gift',name:'认养礼品卡 · 电子卡 ¥500',sub:'好友自助兑换任意认养产品',price:500,oprice:500,farm:1,sold:640,total:9999,cover:'g2',emoji:'🎁',
+     tags:['电子配送','可指定使用','长期有效'],cycle:'长期',unit:'1张',
+     specs:[{n:'¥500 面值',p:500,d:'全区通用'},{n:'¥1000 面值',p:1000,d:'全区通用'}],
+     cycles:[{n:'长期',p:0}],
+     out:'好友可兑换任意认养或到园体验产品',intro:'合规设计的社交礼品场景：赠送实物认养权益，不涉及现金收益，可生成专属祝福海报。'},
+    {id:8,cat:'land',name:'认养二分地 · 有机菜园升级版',sub:'132㎡ · 全年 24 次配送',price:2380,oprice:2980,farm:1,sold:246,total:400,cover:'g1',emoji:'🥕',
+     tags:['可实地考察','全程直播','病虫害保险'],cycle:'12个月',unit:'132㎡/份',
+     specs:[{n:'标准版',p:2380,d:'24 次配送 + 双季轮作'}],
+     cycles:[{n:'12个月',p:0}],
+     out:'预计年产蔬菜 500-600 斤',intro:'面积翻倍、配送翻倍，适合 3-5 口之家，支持自定义种植清单（20+ 品种任选）。'}
+  ],
+  /* ---------- 托管模式（土地认养专属） ---------- */
+  careModes:[
+    {id:'full',n:'全托管',e:'🛡️',delta:0,slogan:'农场全包，您只管收货',
+     who:'全部农事由管家完成',
+     incl:['土地 / 水电 / 基础设施','种子种苗与全部投入品','整地·播种·浇水·施肥·防治·采收','病虫害统防统治 + 农业保险','12 次冷链配送到家'],
+     buy:['特殊品种种苗（自选升级）','加购亲子研学活动'],
+     out:'承诺最低产出 240 斤，不足按合同补足',
+     todo:'0 项待办',fit:'异地认养 / 没时间打理 / 想要稳定产出',
+     risk:'产出不足由农场按合同补足，自然灾害走保险',
+     priceNote:'含全周期农事人工与投入品'},
+    {id:'semi',n:'半托管',e:'🤝',delta:-420,slogan:'关键农事管家做，日常您来',
+     who:'整地/播种/防治/采收由管家做；浇水·除草·搭架·追肥由您做',
+     incl:['整地起垄与底肥','播种定植（种苗需自备或加购）','病虫害统防统治','采收与 12 次冷链配送','管家农事提醒 + 远程指导'],
+     buy:['种子 / 肥料 / 农具等农资','日常代管服务包（浇水·除草可付费委托）'],
+     out:'按实际产出交付，不承诺保底（可加购「保底服务包」）',
+     todo:'每周约 2 项待办',fit:'周末能来 / 想参与又想省费用 / 亲子体验',
+     risk:'日常管护不到位造成的减产由认养人自行承担',
+     priceNote:'省去日常人工，农资按需自购'},
+    {id:'self',n:'不托管',e:'🧑‍🌾',delta:-780,slogan:'全程自己种，农场提供地和技术',
+     who:'全部农事由您自己完成，农场只提供土地与基础服务',
+     incl:['地块与水电接入','基础农具借用','土壤检测 1 次 / 年','管家技术指导与问诊','24h 监控与生长档案'],
+     buy:['全部农资（种子·肥料·防治投入品）','采收与配送服务（可选加购）','农业保险（建议自购）'],
+     out:'产出全部归您，风险自担',
+     todo:'每周约 5 项待办',fit:'有种植经验 / 想完整体验 / 追求最低门槛',
+     risk:'全部种植风险由认养人承担，农场不承担产出责任',
+     priceNote:'仅含土地租金与基础服务'}
+  ],
+  /* ---------- 农资与服务商城 ---------- */
+  supplyCats:[
+    {id:'seed',n:'种子种苗'},{id:'fert',n:'肥料基质'},{id:'tool',n:'农具耗材'},
+    {id:'bio',n:'绿色防控'},{id:'svc',n:'代管服务'},{id:'ins',n:'保险加装'}
+  ],
+  supplies:[
+    {id:101,cat:'seed',n:'有机秋冬蔬菜种子套装',sub:'12 品种 · 够 66㎡ 用一年',price:98,oprice:138,cover:'g1',e:'🌱',unit:'套',sold:1268,stock:312,
+     tags:['非转基因','有机认证','发芽率≥92%'],fit:['semi','self'],batch:'SEED-2026-0921-A',
+     desc:'含上海青、菠菜、茼蒿、萝卜、香菜、生菜、油麦菜、小白菜、芥蓝、胡萝卜、豌豆、大蒜共 12 个秋冬适宜品种，每袋独立标注播种期、密度与采收期。',
+     spec:['适用：66㎡ 地块（132㎡ 建议购 2 套）','发芽率承诺 ≥92%，低于承诺免费补发','购买后自动写入该地块投入品台账']},
+    {id:102,cat:'seed',n:'番茄 / 黄瓜 嫁接苗',sub:'10 株装 · 带基质坨',price:36,oprice:48,cover:'g4',e:'🍅',unit:'10株',sold:2043,stock:640,
+     tags:['嫁接抗病','带土坨易活','可快递'],fit:['semi','self'],batch:'SEED-2026-0815-B',
+     desc:'嫁接苗抗青枯病与根结线虫，成活率 95% 以上，附定植要点卡片。',
+     spec:['10 株 / 组，可混搭番茄与黄瓜','建议 4 月中旬或 8 月下旬定植','到基地自提或同城冷链配送']},
+    {id:103,cat:'fert',n:'腐熟羊粪有机肥',sub:'20kg / 袋 · 底肥',price:45,oprice:58,cover:'g3',e:'💩',unit:'20kg',sold:3312,stock:820,
+     tags:['充分腐熟','有机质≥45%','无重金属'],fit:['semi','self'],batch:'FERT-2026-0711-C',
+     desc:'高温堆肥发酵 60 天以上，有机质含量 45%，NPK 2-1-2，适用于各类蔬菜底肥与追肥。',
+     spec:['66㎡ 建议用量 2 袋（80kg）','可与基质混用','施用后需在生长档案中登记批次']},
+    {id:104,cat:'fert',n:'海藻酸水溶肥',sub:'1kg / 瓶 · 滴灌追肥',price:68,oprice:88,cover:'g8',e:'🧪',unit:'1kg',sold:1876,stock:430,
+     tags:['水溶速效','可滴灌','绿色投入品'],fit:['semi','self'],batch:'FERT-2026-0602-D',
+     desc:'深海泡叶藻提取，含海藻多糖与微量元素，稀释 800 倍滴灌，促根壮苗。',
+     spec:['稀释 800-1000 倍','苗期与花果期各追 1 次','1kg 可用约 5 次（66㎡）']},
+    {id:105,cat:'tool',n:'家庭农具五件套',sub:'锄/铲/耙/剪/浇水壶',price:129,oprice:179,cover:'g2',e:'🧰',unit:'套',sold:864,stock:150,
+     tags:['可寄存基地','碳钢锻造','含收纳袋'],fit:['semi','self'],batch:'TOOL-2026-0301',
+     desc:'含小锄头、移植铲、三齿耙、修枝剪、5L 浇水壶，可免费寄存在基地工具房，免去每次携带。',
+     spec:['可寄存基地工具房（带姓名牌）','碳钢材质，正常使用 3 年以上','基地提供免费借用，此为自购版']},
+    {id:106,cat:'tool',n:'滴灌套件（含定时器）',sub:'66㎡ 全套 · 可手机控',price:198,oprice:268,cover:'g6',e:'💧',unit:'套',sold:512,stock:96,
+     tags:['智能定时','节水 40%','含安装'],fit:['semi','self'],batch:'TOOL-2026-0512',
+     desc:'含主管、滴箭、过滤器与蓝牙定时器，手机设定浇水时长，节水 40%，可配合基地 IoT 墒情数据自动提醒。',
+     spec:['含上门安装（限基地内）','接入 IoT 后可联动土壤墒情','半托管用户推荐，可显著减少日常浇水']},
+    {id:107,cat:'bio',n:'智利小植绥螨（生物防治）',sub:'2000 头 / 瓶',price:88,oprice:118,cover:'g8',e:'🐞',unit:'瓶',sold:736,stock:88,
+     tags:['以虫治虫','零农残间隔','农场代施'],fit:['semi','self'],batch:'BIO-2026-0918',
+     desc:'捕食螨防治叶螨与蓟马，释放后 7 天内见效，无安全间隔期，采摘前亦可使用。',
+     spec:['仅限农场技术人员代施（不单独零售）','购买后自动生成「代施工单」给管家','用药记录自动写入溯源档案']},
+    {id:108,cat:'svc',n:'日常浇水代管 · 月卡',sub:'30 天 · 每周 2 次',price:180,oprice:240,cover:'g1',e:'🚿',unit:'30天',sold:1245,stock:9999,
+     tags:['半托管专属','管家执行','含照片回传'],fit:['semi'],batch:'SVC-WATER-M',
+     desc:'您没时间来浇水时，管家按墒情数据代浇，每次拍照回传至生长档案。',
+     spec:['每周 2 次，超过部分 30 元/次','可按周暂停','含墒情数据截图与现场照片']},
+    {id:109,cat:'svc',n:'整地起垄代耕服务',sub:'单次 · 66㎡',price:120,oprice:160,cover:'g3',e:'🚜',unit:'次',sold:688,stock:9999,
+     tags:['机械作业','含底肥施入','1 天完成'],fit:['semi','self'],batch:'SVC-TILL-1',
+     desc:'微耕机整地起垄，深翻 25cm，同步施入您自备的底肥，1 个工作日内完成。',
+     spec:['需提前 2 天预约','含底肥施入（肥料自备或加购）','作业前后各拍 1 组照片']},
+    {id:110,cat:'svc',n:'采收 + 冷链配送代劳',sub:'单次 · 8 斤以内',price:45,oprice:60,cover:'g4',e:'📦',unit:'次',sold:2130,stock:9999,
+     tags:['代采代发','顺丰冷运','当日发出'],fit:['self','semi'],batch:'SVC-PICK-1',
+     desc:'您种的菜管家帮您采收、分拣、打包并冷链发出，解决自管用户"种得出、运不回"的痛点。',
+     spec:['8 斤以内 45 元，超出 3 元/斤','当日 16:00 前下单当日发出','含采收前照片确认']},
+    {id:111,cat:'ins',n:'自管地块农业保险',sub:'1 年 · 保额 3000 元',price:96,oprice:96,cover:'g5',e:'🛡️',unit:'年',sold:342,stock:9999,
+     tags:['PICC 承保','旱涝病虫害','建议自管必购'],fit:['self','semi'],batch:'INS-2026-PICC',
+     desc:'针对不托管 / 半托管地块的政策性农业保险，覆盖旱灾、涝灾、病虫害导致的减产损失。',
+     spec:['保额 3000 元，费率 3.2%','线上理赔，15 个工作日到账','自管模式强烈建议投保']}
+  ],
+  mySupplies:[
+    {id:'M1',sid:101,n:'有机秋冬蔬菜种子套装',q:1,price:98,t:'2026-09-21',land:'C 区 12 号地',st:'已使用',use:'2026-09-28 播种 · 管家代播',batch:'SEED-2026-0921-A'},
+    {id:'M2',sid:103,n:'腐熟羊粪有机肥',q:2,price:90,t:'2026-09-21',land:'C 区 12 号地',st:'已使用',use:'2026-09-22 整地底肥 · 管家代施',batch:'FERT-2026-0711-C'},
+    {id:'M3',sid:107,n:'智利小植绥螨（生物防治）',q:1,price:88,t:'2026-09-25',land:'C 区 12 号地',st:'已使用',use:'2026-09-25 释放 · 技术员陈工',batch:'BIO-2026-0918'},
+    {id:'M4',sid:106,n:'滴灌套件（含定时器）',q:1,price:198,t:'2026-08-11',land:'C 区 12 号地',st:'已安装',use:'2026-08-12 安装 · 接入 IoT 墒情联动',batch:'TOOL-2026-0512'}
+  ],
+  /* ---------- 自管 / 半托管待办（由作物日历 + IoT 触发） ---------- */
+  selfTasks:[
+    {id:'S1',t:'浇水',land:'C 区 12 号地',due:'今天 18:00 前',pri:'高',st:'待办',mode:'semi',
+     tip:'连续 3 天无降雨，0-20cm 土壤墒情 18%（低于 22% 阈值），建议滴灌 40 分钟。',
+     opts:[['我自己去','到访预约 · 免费'],['委托管家代浇','¥30 / 次'],['开通浇水月卡','¥180 / 30 天']]},
+    {id:'S2',t:'除草 + 松土',land:'C 区 12 号地',due:'10-15 前',pri:'中',st:'待办',mode:'semi',
+     tip:'第二茬出苗后杂草同步萌发，建议人工拔除行间杂草并浅松土一次。',
+     opts:[['我自己去','到访预约 · 免费'],['委托管家代管','¥60 / 次'],['购买除草服务包','¥240 / 4 次']]},
+    {id:'S3',t:'追肥（花果期）',land:'C 区 12 号地',due:'10-18 前',pri:'中',st:'可延后',mode:'semi',
+     tip:'番茄进入第二穗花期，建议滴灌追施海藻酸水溶肥 1 次（您已购 1 瓶，库存 1kg）。',
+     opts:[['我自己施','查看施用说明'],['委托管家代施','¥25 / 次'],['加购水溶肥','¥68 / 瓶']]},
+    {id:'S4',t:'搭架绑蔓',land:'C 区 12 号地',due:'已完成',pri:'—',st:'已完成',mode:'semi',
+     tip:'2026-09-16 由李管家完成（该事项属半托管含服务范围，不额外收费）。',
+     opts:[]},
+    {id:'S5',t:'第二茬播种',land:'C 区 12 号地',due:'已完成',pri:'—',st:'已完成',mode:'semi',
+     tip:'2026-09-28 使用您购买的自选种子套装完成播种（含服务范围内，不额外收费）。',
+     opts:[]}
+  ],
+  adoptions:[
+    {id:'A2026-1001',pid:1,farm:1,name:'认养一分地 · 家庭菜园',block:'C 区 12 号地',spec:'亲子版',cycle:'12个月',start:'2026-04-18',end:'2027-04-17',status:'growing',
+     prog:62,left:132,delivered:9,totalDeliver:12,outTotal:'146.5 / 300 斤',keeper:'李管家',cams:['C区全景','12号地特写','气象站'],care:1},
+    {id:'A2026-0988',pid:2,farm:2,name:'认养一只土鸡 · 竹林散养',block:'B 林 3 号群',spec:'单只体验',cycle:'180天',start:'2026-08-01',end:'2027-01-27',status:'growing',
+     prog:44,left:80,delivered:11,totalDeliver:26,outTotal:'66 / 180 枚',keeper:'王管家',cams:['B林全景','饮水点','觅食区']},
+    {id:'A2025-0766',pid:3,farm:1,name:'认养一棵果树 · 阳光水蜜桃',block:'桃园 D7',spec:'标准版',cycle:'12个月',start:'2025-03-10',end:'2026-03-09',status:'done',
+     prog:100,left:0,delivered:6,totalDeliver:6,outTotal:'32 / 30 斤',keeper:'李管家',cams:['桃园全景']}
+  ],
+  archives:[
+    {d:'10-08',t:'秋季补种 · 第二茬播撒',by:'李管家',g:'g1',e:'🥬',txt:'今日完成 12 号地翻耕，播种第二茬：上海青、菠菜、茼蒿共 3 个品种，施入腐熟羊粪 80kg 作底肥。',iot:{t:'24.5℃',h:'62%',s:'3.1h'},rec:3},
+    {d:'10-02',t:'第一茬收尾 · 采收入库',by:'李管家',g:'g3',e:'🧺',txt:'本茬累计采收番茄 24.6 斤、黄瓜 18.2 斤、辣椒 9.4 斤，已随第 9 次配送发出。',iot:{t:'26.1℃',h:'58%',s:'5.4h'},rec:2},
+    {d:'09-25',t:'生物防治 · 释放捕食螨',by:'技术员 · 陈工',g:'g8',e:'🐞',txt:'发现叶螨初期危害，按绿色防控方案释放智利小植绥螨 2000 头，未使用化学农药。',iot:{t:'27.4℃',h:'64%',s:'4.2h'},rec:2},
+    {d:'09-16',t:'搭架绑蔓 · 番茄整枝',by:'李管家',g:'g1',e:'🍅',txt:'完成番茄第二穗花以上整枝，加固吊蔓绳，摘除老叶改善通风。',iot:{t:'29.2℃',h:'66%',s:'5.8h'},rec:4},
+    {d:'09-03',t:'土壤检测 · 出具报告',by:'第三方 · 中检',g:'g2',e:'🧪',txt:'随机取 5 点土样送检，重金属与农残均符合 GB 15618 标准，报告已归档至溯源档案。',iot:{t:'30.1℃',h:'60%',s:'6.2h'},rec:1},
+    {d:'08-20',t:'追肥 · 有机水溶肥',by:'李管家',g:'g3',e:'💧',txt:'滴灌追施海藻酸水溶肥，用量 5kg/亩，灌溉 2 小时。',iot:{t:'32.4℃',h:'57%',s:'7.1h'},rec:2}
+  ],
+  diaries:[
+    {id:1,farm:1,who:'李管家',avatar:'李',g:'g1',e:'🌱',t:'10-08',txt:'12 号地第二茬已经出苗啦！这周温度适宜，上海青和菠菜都冒头了～认养 C 区的朋友可以在直播间看看，镜头正对着您家地块。',likes:126,cmts:18,pics:['g1','g3']},
+    {id:2,farm:2,who:'王管家',avatar:'王',g:'g3',e:'🐓',t:'10-07',txt:'今天的捡蛋大赛：B 林 3 号群产蛋 47 枚，创了本周新高！散养密度低，鸡群状态好，蛋黄色度都在 12 以上。',likes:203,cmts:31,pics:['g3','g6']},
+    {id:3,farm:1,who:'农场主 · 老周',avatar:'周',g:'g5',e:'🌾',t:'10-05',txt:'秋收季的第一批新米下来了。稻鸭共生第三年，田里的鸭子功不可没。感谢 1000 多位认养家庭，是你们让我们敢坚持不用除草剂。',likes:512,cmts:76,pics:['g8','g6','g3']},
+    {id:4,farm:1,who:'会员 · 小雨妈妈',avatar:'雨',g:'g4',e:'👨‍👩‍👧',t:'10-03',txt:'周末带娃来收了第三茬菜，小朋友第一次知道番茄是长在架子上的 😂 回来自己炒了一盘，吃了两碗饭。明年继续认养！',likes:388,cmts:52,pics:['g4','g1']}
+  ],
+  coupons:[
+    {id:1,n:'新客认养券',v:100,min:1000,d:'2026-12-31'},
+    {id:2,n:'老客复购券',v:180,min:1800,d:'2026-11-30'},
+    {id:3,n:'到园体验券',v:30,min:298,d:'2026-10-31'}
+  ],
+  addresses:[
+    {id:1,n:'张先生',ph:'138****6721',a:'杭州市西湖区文三路 259 号 昌地数码大厦 A 座 1802',def:true},
+    {id:2,n:'张太太',ph:'186****3390',a:'杭州市余杭区良渚街道 文化村竹径茶语 7-102',def:false}
+  ],
+  points:[
+    {d:'10-08',n:'农事打卡浏览',v:'+5'},{d:'10-06',n:'发布农场日记',v:'+20'},
+    {d:'10-02',n:'认养续期',v:'+200'},{d:'09-28',n:'邀请好友注册',v:'+50'}
+  ],
+  msgs:[
+    {t:'系统',g:'b',i:'bell',n:'认养合同已签署完成',c:'您的《认养服务合同 A2026-1001》已完成双方签署，可在「我的-合约中心」随时调阅。',d:'10-08'},
+    {t:'物流',g:'o',i:'truck',n:'第 9 次配送已发货',c:'顺丰冷运 SF7 1 8 2 6 6 3，预计明日 18:00 前送达。',d:'10-02'},
+    {t:'农事',g:'g',i:'leaf',n:'12 号地完成第二茬播种',c:'李管家刚刚上传了 3 张现场照片，点击查看生长档案。',d:'10-08'},
+    {t:'互动',g:'r',i:'heart',n:'您的日记获得了 38 个赞',c:'会员「豆豆妈」等 38 人为您的日记点赞。',d:'10-04'}
+  ],
+  deliveries:[
+    {no:9,date:'10-02',stat:'已签收',exp:'顺丰冷运 SF7182663',items:'番茄 2.4斤 / 黄瓜 3.1斤 / 辣椒 1.2斤 / 茄子 2.0斤',w:'8.7斤'},
+    {no:8,date:'09-18',stat:'已签收',exp:'顺丰冷运 SF6821097',items:'空心菜 2.0斤 / 苋菜 1.8斤 / 四季豆 2.5斤',w:'6.3斤'},
+    {no:7,date:'09-04',stat:'已签收',exp:'顺丰冷运 SF6507731',items:'丝瓜 3.2斤 / 苦瓜 2.1斤 / 小白菜 1.9斤',w:'7.2斤'}
+  ],
+  keeperMsg:[
+    {who:'me',t:'李管家，下周想去地里看看，方便吗？'},
+    {who:'kp',t:'方便！周六我在 C 区，10 点左右最好，我带您看看新播的那茬菜 😊'},
+    {who:'me',t:'好，那我带上孩子一起。'},
+    {who:'kp',t:'太好了，小朋友可以参加我们的采摘小课堂。已为您登记到访预约。'}
+  ]
+};
+
+/* ---------- 全局状态 ---------- */
+const S={
+  pid:1,fid:1,aid:'A2026-1001',spec:0,cycle:0,ship:0,addr:1,coupon:1,usePoint:false,agreed:false,signed:false,
+  atab:'overview',cam:0,cat:'all',malsort:'hot',robotTab:'home',dTab:'rec',msgTab:'all',aTab:'all',payMode:'wx',
+  refundReason:'',visitDate:2,newAddr:false,
+  /* 托管模式与农资 */
+  care:0,scat:'all',sid:101,sqty:1,sLand:'C 区 12 号地',sTab:'todo',sMode:'all'
+};
+/* 土地类商品支持三档托管模式；其他品类（畜禽/果树）不开放 */
+function careOn(p){ return p.cat==='land'; }
+function curCare(p){ return careOn(p)?D.careModes[S.care]:null; }
+const PAGES={};
+const ROOTS=['home','mall','diary','mine'];
+let stack=[{n:'home'}];
+
+/* ---------- 路由 ---------- */
+function cur(){return stack[stack.length-1];}
+function go(n,p){
+  if(!PAGES[n]){toast('页面未完成：'+n);return;}
+  stack.push({n:n,p:p});render();scrollTop();
+}
+function back(){ if(stack.length>1){stack.pop();render();} }
+function tabTo(n){ stack=[{n:n}];render();scrollTop(); }
+function scrollTop(){ $('#scroll').scrollTop=0; }
+
+function render(){
+  const c=cur(), pg=PAGES[c.n]||PAGES.home;
+  $('#scroll').innerHTML=pg.render(c.p);
+  const isRoot=ROOTS.indexOf(c.n)>=0;
+  $('#tabbar').style.display=pg.noTab?'none':'flex';
+  $('#navbar').style.display=pg.hideNav?'none':'flex';
+  $('#phone').classList.toggle('full',!!pg.full);
+  $('#navTitle').textContent=pg.title||'';
+  $('#btnBack').innerHTML=(isRoot||pg.noBack)?'':I('back','',23);
+  $('#navRt').innerHTML=pg.rt||'';
+  renderTabs(isRoot?c.n:'');
+  if(pg.onShow)pg.onShow();
+}
+function renderTabs(active){
+  const items=[['home','home','首页'],['grid','mall','认养'],['book','diary','日记'],['user','mine','我的']];
+  $('#tabbar').innerHTML=items.map(function(x){
+    return '<div class="tb '+(active===x[2]?'active':'')+'" data-tab="'+x[2]+'">'+I(x[0],'',22)+'<span>'+x[2]+'</span></div>';
+  }).join('');
+}
+
+/* ---------- UI 反馈 ---------- */
+let tt;
+function toast(m){
+  const el=$('#toast');el.textContent=m;el.classList.add('show');
+  clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('show'),1600);
+}
+let sheetCb=null;
+function sheet(title,html,cb){
+  const s=$('#sheet');
+  s.innerHTML='<div class="sh-hd"><span>'+title+'</span><span data-act="closeSheet" style="cursor:pointer;color:#999">'+I('close','',20)+'</span></div><div class="sh-bd">'+html+'</div>';
+  s.classList.add('show');$('#mask').classList.add('show');
+}
+function closeSheet(){$('#sheet').classList.remove('show');$('#mask').classList.remove('show');}
+
+/* ---------- 事件 ---------- */
+document.addEventListener('click',function(e){
+  const el=e.target.closest('[data-go],[data-act],[data-tab]');
+  if(!el)return;
+  if(el.dataset.tab){tabTo(el.dataset.tab);return;}
+  /* 先执行动作，再执行跳转：支持「重置流程并进入下单页」这类组合 */
+  if(el.dataset.act){
+    const v=el.dataset.act.split(':');
+    if(ACT[v[0]])ACT[v[0]](v[1],el);
+  }
+  if(el.dataset.go){
+    const v=el.dataset.go.split(':');
+    go(v[0],v[1]||el.dataset.p);
+  }
+});
+$('#btnBack').addEventListener('click',back);
+$('#mask').addEventListener('click',closeSheet);
+
+const ACT={
+  closeSheet:closeSheet,
+  back:()=>back(),
+  toast:(m)=>toast(m),
+  ticked:(k)=>{S[k]=!S[k];render();},
+  pickSpec:(i)=>{S.spec=+i;render();},
+  pickCycle:(i)=>{S.cycle=+i;render();},
+  pickShip:(i)=>{S.ship=+i;render();},
+  pickAddr:(i)=>{S.addr=+i;closeSheet();toast('已切换收货地址');render();},
+  pickCoupon:(i)=>{S.coupon=(i==='0')?0:+i;closeSheet();render();},
+  pickCam:(i)=>{S.cam=+i;render();},
+  atab:(t)=>{S.atab=t;render();},
+  product:(i)=>{S.pid=+i;S.spec=0;S.cycle=0;go('product');},
+  adoption:(i)=>{S.aid=i;S.atab='overview';go('adoption');},
+  farm:(i)=>{S.fid=+i;go('farmDetail');},
+  diary:(i)=>{S.diaryId=+i;go('diaryDetail');},
+  cat:(c)=>{S.cat=c;render();scrollTop();},
+  like:(x)=>{const el=document.querySelector('[data-like="'+x+'"]');if(el){const on=el.dataset.on==='1';el.dataset.on=on?'0':'1';el.style.color=on?'#8b9199':'#e5484d';el.querySelector('span').textContent=String(+el.querySelector('span').textContent+(on?-1:1));toast(on?'已取消点赞':'点赞成功');}},
+  pay:()=>{ if(!S.agreed){toast('请先阅读并勾选《认养服务合同》');return;} go('payResult'); },
+  sign:()=>{ S.signed=true; toast('签名完成 · 合同已归档'); setTimeout(()=>{S.agreed=true;go('payResult');},600); },
+  addCart:()=>toast('已加入心愿单'),
+  notImp:()=>toast('演示原型：该入口需在后台配置'),
+  setDefaultDemo:()=>toast('已设为默认地址'),
+  callKeeper:()=>toast('正在呼叫 李管家 · 158****2210'),
+  copyNo:()=>toast('认养编号已复制'),
+  refresh0:()=>toast('监控画面已刷新'),
+  bookDone:()=>{closeSheet();toast('预约成功 · 管家将与您确认');},
+  resetFlow:()=>{S.spec=0;S.cycle=0;S.ship=0;S.coupon=1;S.usePoint=false;S.agreed=false;S.signed=false;}
+};
+
+/* ---------- 演示导航 ---------- */
+const GUIDE=[
+  ['演示主路径（建议顺序点击）','flow',[
+    ['home','1 · 首页浏览'],['mall','2 · 认养商城'],['product','3 · 商品详情'],
+    ['order','4 · 确认订单'],['contract','5 · 电子合同'],['payResult','6 · 支付成功'],
+    ['adoption','7 · 认养详情'],['live','8 · 实时监控'],['harvest','9 · 收获配送'],
+    ['selfTask','10 · 自管任务'],['supply','11 · 农资商城']
+  ]],
+  ['底部 Tab','',[['home','首页'],['mall','认养商城'],['diary','农场日记'],['mine','我的']]],
+  ['浏览 · 选购','',[['search','搜索结果'],['farmList','基地列表'],['farmDetail','基地详情'],['favorites','我的收藏'],['notice','平台公告 / 合规说明']]],
+  ['交易 · 合约','',[['order','确认订单'],['contract','电子合同'],['payResult','支付结果'],['orderList','订单列表'],['refund','退款 / 售后'],['myContract','合约中心']]],
+  ['认养管理（核心）','',[['myAdoption','我的认养'],['adoption','认养详情·概览'],['live','实时监控'],['archive','生长档案'],['trace','溯源档案'],['harvest','收获配送'],['iot','IoT 环境数据'],['record','农事记录详情'],['report','质检报告'],['logistics','物流详情'],['transfer','认养转赠'],['review','发表评价']]],
+  ['托管 · 农资（新）','',[['careGuide','托管方式对比'],['supply','农资 / 服务商城'],['supplyDetail','农资详情'],['supplyOrder','农资结算'],['mySupplies','我的农资'],['selfTask','自管 / 半托管任务']]],
+  ['到访 · 服务','',[['visit','到访预约'],['service','在线管家'],['care','作物问诊'],['task','任务中心']]],
+  ['农场日记','',[['diary','日记列表'],['diaryDetail','日记详情'],['publish','发布动态']]],
+  ['个人中心','',[['mine','我的'],['member','会员中心'],['point','积分明细'],['coupon','优惠券'],['address','收货地址'],['invite','邀请有礼'],['message','消息中心'],['settings','设置']]]
+];
+const GN=[];
+$('#guide').innerHTML='<h1><span class="dot"></span>演示导航 · '+ (0) +' 页面</h1><div class="sub">认养农业 SaaS｜消费者小程序 高保真原型<br>点击任意按钮直接跳转，手机内可正常回退／切 Tab</div>'+
+  GUIDE.map(g=>{
+    const isFlow=g[1]==='flow';
+    return '<div class="ggrp"><div class="gt">'+g[0]+'</div><div class="gb">'+
+      g[2].map(b=>{
+        GN.push(b[0]);
+        return isFlow
+          ? '<div class="gstep" data-go="'+b[0]+'"><span class="n">'+b[1].charAt(0)+'</span><span>'+b[1]+'</span></div>'
+          : '<div class="gbtn'+(isFlow?' flow':'')+'" data-go="'+b[0]+'">'+b[1]+'</div>';
+      }).join('')+'</div></div>';
+  }).join('');
+$('#guide').querySelector('h1').innerHTML='<span class="dot"></span>演示导航 · '+new Set(GN).size+' 个页面';
+
+function now(){const d=new Date();return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');}
+$('#clock').textContent=now();
+
+/* ============================================================
+   公共组件
+   ============================================================ */
+function pcard(p){
+  return '<div class="card tight" data-go="product:'+p.id+'" style="cursor:pointer">'+
+    '<div class="row" style="align-items:flex-start;gap:11px">'+
+      '<div class="ph '+p.cover+'" style="width:106px;height:106px;flex:0 0 106px"><span style="font-size:30px">'+p.emoji+'</span></div>'+
+      '<div style="flex:1;min-width:0">'+
+        '<div class="t15 ell2">'+p.name+'</div>'+
+        '<div class="t12 ofh" style="margin-top:4px">'+p.sub+'</div>'+
+        '<div class="row" style="gap:5px;margin-top:7px;flex-wrap:wrap">'+
+          p.tags.slice(0,2).map(function(t){return '<span class="chip">'+t+'</span>';}).join('')+
+        '</div>'+
+        '<div class="row bw" style="margin-top:9px">'+
+          '<div class="price" style="font-size:13px"><b style="font-size:19px">'+p.price+'</b> 元<span class="strk" style="margin-left:5px">'+p.oprice+'</span></div>'+
+          '<div class="t12">已认养 '+p.sold+'</div>'+
+        '</div>'+
+      '</div>'+
+    '</div></div>';
+}
+function pvcard(p){
+  const rate=Math.round(p.sold/p.total*100);
+  return '<div style="flex:0 0 168px;background:#fff;border-radius:13px;overflow:hidden;box-shadow:var(--sh);cursor:pointer" data-go="product:'+p.id+'">'+
+    '<div class="ph '+p.cover+'" style="height:104px;position:relative"><span style="font-size:28px">'+p.emoji+'</span>'+
+      (p.total<9999?'<div style="position:absolute;right:0;bottom:0;background:rgba(0,0,0,.42);color:#fff;font-size:10px;padding:2px 6px;border-radius:6px 0 0 0">剩 '+(p.total-p.sold)+' 份</div>':'')+
+    '</div>'+
+    '<div style="padding:8px 10px 10px">'+
+      '<div class="t14 ofh">'+p.name+'</div>'+
+      '<div class="t12 ofh" style="margin-top:3px">'+p.sub+'</div>'+
+      '<div class="row bw" style="margin-top:7px"><span class="price" style="font-size:16px;font-weight:700">¥'+p.price+'</span><span class="t12">'+p.cycle+'</span></div>'+
+      '<div class="prog" style="margin-top:7px"><i style="width:'+rate+'%"></i></div>'+
+      '<div class="t12" style="margin-top:4px;font-size:10.5px">已认养 '+rate+'%</div>'+
+    '</div></div>';
+}
+function feedCard(d){
+  const pics=d.pics.map(function(g){return '<div class="ph '+g+'" style="flex:0 0 106px;height:106px"><span style="font-size:22px">'+d.e+'</span></div>';}).join('');
+  return '<div class="card tight" style="cursor:pointer" data-go="diaryDetail:'+d.id+'">'+
+    '<div class="row" style="gap:9px">'+
+      '<div class="avatar" style="width:34px;height:34px;font-size:13px">'+d.avatar+'</div>'+
+      '<div style="flex:1"><div class="t14">'+d.who+'</div><div class="t12" style="font-size:11px">'+d.t+' · '+D.farms.find(function(f){return f.id===d.farm;}).name+'</div></div>'+
+      '<span class="chip gy">'+I('loc','',12)+'</span>'+
+    '</div>'+
+    '<div class="t13" style="margin:9px 0">'+d.txt+'</div>'+
+    '<div class="row" style="gap:6px;overflow:hidden">'+pics+'</div>'+
+    '<div class="row bw" style="margin-top:11px;padding-top:9px;border-top:1px solid var(--line)">'+
+      '<div class="row" style="gap:16px">'+
+        '<span class="t12" data-like="'+d.id+'" data-on="0" data-act="like:'+d.id+'" style="display:flex;align-items:center;gap:4px;cursor:pointer">'+I('heart','',15)+'<span>'+d.likes+'</span></span>'+
+        '<span class="t12" style="display:flex;align-items:center;gap:4px">'+I('chat','',15)+d.cmts+'</span>'+
+        '<span class="t12" style="display:flex;align-items:center;gap:4px">'+I('share','',15)+'分享</span>'+
+      '</div>'+
+      '<span class="t12" style="font-size:11px">'+I('more','',15)+'</span>'+
+    '</div></div>';
+}
+
+/* ============================================================
+   页面组 A：浏览与发现
+   ============================================================ */
+PAGES.home={
+  hideNav:true,title:'',
+  render:function(){
+    const hot=D.products.slice(0,5);
+    const liveFarms=D.farms.filter(function(f){return f.live;});
+    return '<div style="background:linear-gradient(160deg,#f2fbf6,#ffffff 60%)">'+
+    /* 顶部：农场选择 + 搜索 */
+    '<div style="padding:6px 14px 9px">'+
+      '<div class="row bw">'+
+        '<div class="row" style="gap:5px;cursor:pointer" data-go="farmList">'+I('loc','var(--g)',17)+
+          '<span class="t15">阳光谷生态农场</span>'+I('down','#8b9199',13)+
+          '<span class="chip gy" style="margin-left:4px">32km</span>'+
+        '</div>'+
+        '<div class="row" style="gap:13px">'+
+          '<span data-go="search" style="color:#4b5259;cursor:pointer">'+I('search','',19)+'</span>'+
+          '<span data-go="message" style="color:#4b5259;cursor:pointer;position:relative">'+I('bell','',19)+
+            '<i style="position:absolute;right:-3px;top:-2px;width:7px;height:7px;border-radius:50%;background:#e5484d"></i>'+
+          '</span>'+
+        '</div>'+
+      '</div>'+
+      '<div class="searchbar" style="margin-top:10px" data-go="search">'+I('search','#b3b8bf',15)+'<span>搜索「一分地」「土鸡」「亲子研学」</span></div>'+
+    '</div>'+
+
+    /* 金刚区 */
+    '<div class="card" style="margin-top:2px;padding:14px 8px">'+
+      '<div class="g5">'+
+        [['🥬','一分地','land'],['🐓','一只鸡','poultry'],['🍑','果树','tree'],['🐖','畜牧','livestock'],['🌾','水田','water']].map(function(x){
+          return '<div class="gcol" data-act="catJump:'+x[2]+'"><i style="background:var(--gl)">'+x[0]+'</i><span>'+x[1]+'</span></div>';
+        }).join('')+
+      '</div>'+
+      '<div class="g5" style="margin-top:13px">'+
+        [['🎁','礼品卡','gift'],['🧺','到园玩','exp'],['📹','看直播','LIVE'],['🗺','找基地','FARM'],['🧰','买农资','SUPPLY']].map(function(x){
+          return '<div class="gcol" data-act="catJump:'+x[2]+'"><i style="background:var(--ol)">'+x[0]+'</i><span>'+x[1]+'</span></div>';
+        }).join('')+
+      '</div>'+
+    '</div>'+
+
+    /* 合规信任条 */
+    '<div style="margin:10px 12px;background:#fff;border-radius:12px;padding:10px 4px;display:flex;box-shadow:var(--sh)">'+
+      [['shield','实地核验'],['doc','电子合同'],['truck','冷链直配'],['warn','资金公示']].map(function(x){
+        return '<div style="flex:1;text-align:center;cursor:pointer" data-go="notice"><div style="color:var(--g);display:flex;justify-content:center">'+I(x[0],'',18)+'</div><div class="t12" style="font-size:11px;margin-top:3px">'+x[1]+'</div></div>';
+      }).join('')+
+    '</div>'+
+
+    /* Banner */
+    '<div class="card" style="margin:10px 12px;padding:0;overflow:hidden">'+
+      '<div class="ph g1" style="height:126px;align-items:flex-start;padding:16px;border-radius:14px">'+
+        '<div style="font-size:16px;font-weight:700;letter-shadow:.5px">🥬 秋播季 · 认养一分地</div>'+
+        '<div style="font-size:12px;opacity:.92;margin-top:5px">现在认养，赶上第二茬播种 · 立减 ¥180</div>'+
+        '<div style="margin-top:9px;background:#fff;color:var(--gd);font-size:11.5px;padding:4px 11px;border-radius:20px;font-weight:600">立即查看 →</div>'+
+      '</div>'+
+    '</div>'+
+
+    /* 今日直播 / 正在进行 */
+    '<div class="hd"><h3>基地直播中</h3><span class="more" data-go="farmList">全部基地'+I('right','',12)+'</span></div>'+
+    '<div class="row" style="padding:0 12px;gap:9px;overflow-x:auto">'+
+      liveFarms.map(function(f){
+        return '<div style="flex:0 0 210px;background:#fff;border-radius:12px;overflow:hidden;box-shadow:var(--sh);cursor:pointer" data-go="farmDetail:'+f.id+'">'+
+          '<div class="ph g5" style="height:96px;position:relative"><span style="font-size:24px">📹</span>'+
+            '<div class="badge-live">LIVE</div>'+
+            '<div class="float-live">'+I('video','',11)+' 1,204 人在看</div></div>'+
+          '<div style="padding:9px 11px"><div class="t14 ofh">'+f.name+'</div>'+
+          '<div class="row" style="gap:6px;margin-top:5px"><span class="chip" style="font-size:10.5px">'+f.tags[0]+'</span><span class="chip gy" style="font-size:10.5px">'+f.dist+'</span></div></div>'+
+        '</div>';
+      }).join('')+
+    '</div>'+
+
+    /* 热门认养 */
+    '<div class="hd"><h3>热门认养</h3><span class="more" data-go="mall">进商城'+I('right','',12)+'</span></div>'+
+    '<div class="row" style="padding:0 12px;gap:10px;overflow-x:auto">'+hot.map(pvcard).join('')+'</div>'+
+
+    /* 推荐基地 */
+    '<div class="hd"><h3>推荐基地</h3><span class="more" data-go="farmList">全部'+I('right','',12)+'</span></div>'+
+    '<div class="sec">'+D.farms.map(function(f){
+      return '<div class="card tight row bw" style="cursor:pointer" data-go="farmDetail:'+f.id+'">'+
+        '<div class="row" style="gap:10px">'+
+          '<div class="ph '+(f.id===2?'g3':f.id===3?'g8':'g1')+'" style="width:52px;height:52px;flex:0 0 52px;border-radius:10px"><span style="font-size:20px">'+(f.id===2?'🐓':f.id===3?'🌾':'🥬')+'</span></div>'+
+          '<div><div class="t15">'+f.name+'</div>'+
+            '<div class="t12" style="margin-top:3px">'+f.city+' · '+f.area+' · 经营 '+f.years+' 年</div>'+
+            '<div class="row" style="gap:5px;margin-top:5px">'+f.tags.map(function(t){return '<span class="chip gy" style="font-size:10.5px">'+t+'</span>';}).join('')+'</div>'+
+          '</div>'+
+        '</div>'+
+        '<div style="text-align:right"><div style="color:var(--o);font-weight:700">'+f.score+'</div><div class="t12" style="font-size:10.5px">'+f.orders+'单</div></div>'+
+      '</div>';
+    }).join('')+'</div>'+
+
+    /* 精选日记 */
+    '<div class="hd"><h3>农友动态</h3><span class="more" data-go="diary">看更多'+I('right','',12)+'</span></div>'+
+    '<div class="sec">'+feedCard(D.diaries[0])+'</div>'+
+    '<div class="noticebar" style="margin:12px;border-radius:10px">'+I('shield','',13)+'本平台所有资金进入银行监管账户 + 第三方支付通道，不设充值钱包、不承诺收益</div>'+
+    '<div style="height:18px"></div>'+
+    '</div>';
+  }
+};
+
+PAGES.search={
+  title:'搜索',
+  render:function(){
+    const hot=['一分地','土鸡','亲子菜园','水蜜桃','稻田蟹','礼品卡'];
+    const res=D.products.filter(function(p){return true;}).slice(0,3);
+    return '<div style="padding:10px 12px;background:#fff">'+
+      '<div class="row" style="gap:8px">'+
+        '<div class="row" style="flex:1;background:var(--bg);border-radius:20px;padding:8px 12px;gap:6px">'+I('search','#b3b8bf',15)+'<span class="t13" style="color:var(--tx3)">认养一分地</span></div>'+
+        '<span class="t14" style="color:var(--g)" data-act="back">取消</span>'+
+      '</div>'+
+    '</div>'+
+    '<div class="card">'+
+      '<div class="t15" style="margin-bottom:9px">热门搜索</div>'+
+      '<div class="row" style="gap:7px;flex-wrap:wrap">'+hot.map(function(h){return '<span class="chip gy" style="font-size:12px;padding:5px 11px">'+h+'</span>';}).join('')+'</div>'+
+    '</div>'+
+    '<div class="hd"><h3>为你找到 6 个认养项目</h3><span class="more">'+I('filter','',13)+' 筛选</span></div>'+
+    '<div class="sec">'+res.map(pcard).join('')+'</div>'+
+    '<div class="hd"><h3>相关基地</h3></div>'+
+    '<div class="sec">'+D.farms.slice(0,2).map(function(f){
+      return '<div class="card tight row bw" data-go="farmDetail:'+f.id+'"><div class="row"><div class="ph g1" style="width:44px;height:44px;border-radius:9px"><span style="font-size:18px">🥬</span></div><div><div class="t14">'+f.name+'</div><div class="t12">'+f.dist+' · '+f.city+'</div></div></div>'+I('right','#b3b8bf',16)+'</div>';
+    }).join('')+'</div><div style="height:16px"></div>';
+  }
+};
+
+PAGES.mall={
+  hideNav:true,
+  render:function(){
+    const list=(S.cat==='all'?D.products:D.products.filter(function(p){return p.cat===S.cat;}));
+    return '<div style="padding:10px 12px;background:#fff"><div class="searchbar" data-go="search">'+I('search','#b3b8bf',15)+'<span>搜索认养项目 / 基地</span></div></div>'+
+    '<div style="display:flex;flex:1;background:#fff">'+
+      '<div style="width:86px;flex:0 0 86px;background:var(--bg)">'+
+        D.cats.map(function(c){
+          const on=S.cat===c.id;
+          return '<div data-act="cat:'+c.id+'" style="padding:13px 0;text-align:center;font-size:12.5px;cursor:pointer;'+(on?'background:#fff;color:var(--gd);font-weight:600;box-shadow:inset 3px 0 0 var(--g)':'color:#5b6169')+'">'+c.n+'</div>';
+        }).join('')+
+      '</div>'+
+      '<div style="flex:1;min-width:0;background:#fff;padding:8px 10px">'+
+        '<div class="row bw" style="margin-bottom:8px">'+
+          '<div class="t12">共 <b style="color:var(--gd)">'+list.length+'</b> 个项目</div>'+
+          '<div class="row" style="gap:12px"><span class="t12" data-act="sort">综合 '+I('down','',11)+'</span><span class="t12">'+I('filter','',13)+' 筛选</span></div>'+
+        '</div>'+
+        (list.length?list.map(pcard).join(''):'<div style="text-align:center;padding:60px 0;color:var(--tx3)">该分类暂无项目</div>')+
+        '<div style="height:16px"></div>'+
+      '</div>'+
+    '</div>';
+  }
+};
+
+PAGES.farmList={
+  title:'基地列表',rt:'<span>'+I('filter','',17)+'</span>',
+  render:function(){
+    return D.farms.map(function(f,i){
+      const c=i===1?'g3':i===2?'g8':'g1', e=i===1?'🐓':i===2?'🌾':'🥬';
+      return '<div class="card" style="cursor:pointer" data-go="farmDetail:'+f.id+'">'+
+        '<div class="ph '+c+'" style="height:126px;position:relative">'+'<span style="font-size:32px">'+e+'</span>'+
+          (f.live?'<div class="badge-live">LIVE 直播中</div>':'')+
+          '<div style="position:absolute;right:8px;top:8px;background:rgba(0,0,0,.4);color:#fff;font-size:10.5px;padding:2px 8px;border-radius:20px">'+f.dist+'</div>'+
+        '</div>'+
+        '<div class="row bw" style="margin-top:10px"><span class="t16">'+f.name+'</span><span style="color:var(--o);font-weight:700">'+f.score+'</span></div>'+
+        '<div class="t12" style="margin-top:4px">'+I('loc','',12)+' '+f.city+' · 占地 '+f.area+' · 累计 '+f.orders+' 单</div>'+
+        '<div class="row" style="gap:5px;margin-top:8px;flex-wrap:wrap">'+f.tags.map(function(t){return '<span class="chip">'+t+'</span>';}).join('')+'</div>'+
+      '</div>';
+    }).join('')+'<div style="height:14px"></div>';
+  }
+};
+
+PAGES.farmDetail={
+  title:'基地详情',rt:'<span>'+I('share','',17)+'</span>',
+  render:function(){
+    const f=D.farms.find(function(x){return x.id===S.fid;})||D.farms[0];
+    const ps=D.products.filter(function(p){return p.farm===f.id;});
+    const c=f.id===2?'g3':f.id===3?'g8':'g1', e=f.id===2?'🐓':f.id===3?'🌾':'🥬';
+    return '<div class="ph '+c+'" style="height:172px;position:relative;border-radius:0"><span style="font-size:40px">'+e+'</span>'+
+        (f.live?'<div class="badge-live">LIVE</div><div class="float-live">'+I('video','',11)+' 点击进入监控</div>':'')+
+      '</div>'+
+      '<div class="card" style="margin-top:-16px;border-radius:16px 16px 0 0">'+
+        '<div class="row bw"><span class="t16">'+f.name+'</span><span class="chip'+(f.live?' o':' gy')+'">'+(f.live?'直播覆盖':'暂无直播')+'</span></div>'+
+        '<div class="t12" style="margin-top:6px">'+f.desc+'</div>'+
+        '<div class="row" style="gap:14px;margin-top:11px;padding-top:11px;border-top:1px solid var(--line)">'+
+          '<div style="text-align:center;flex:1"><div style="color:var(--o);font-weight:700;font-size:16px">'+f.score+'</div><div class="t12" style="font-size:10.5px">综合评分</div></div>'+
+          '<div style="text-align:center;flex:1"><div style="font-weight:700;font-size:16px">'+f.years+'年</div><div class="t12" style="font-size:10.5px">经营年限</div></div>'+
+          '<div style="text-align:center;flex:1"><div style="font-weight:700;font-size:16px">'+f.orders+'</div><div class="t12" style="font-size:10.5px">累计认养</div></div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="card row bw tight" data-go="visit" style="cursor:pointer">'+
+        '<div class="row">'+I('loc','var(--g)',18)+'<div style="margin-left:2px"><div class="t14">'+f.city+' 竹海镇云谷路 88 号</div><div class="t12" style="font-size:11px">距您 '+f.dist+' · 驾车约 42 分钟</div></div></div>'+
+        '<span class="chip">预约到访'+I('right','',11)+'</span>'+
+      '</div>'+
+      /* 资质 */
+      '<div class="hd"><h3>基地资质</h3><span class="more">均已核验'+I('right','',12)+'</span></div>'+
+      '<div class="card row" style="gap:0;justify-content:space-between;padding:12px 6px">'+
+        [['营业执照','doc'],['土地流转合同','sutra'],['农产品质量检测','shield'],['农业保险保单','warn']].map(function(x){
+          return '<div style="flex:1;text-align:center;cursor:pointer" data-act="notImp"><div style="color:var(--gd);display:flex;justify-content:center">'+I(x[1],'',19)+'</div><div class="t12" style="font-size:10.5px;margin-top:4px">'+x[0]+'</div></div>';
+        }).join('')+
+      '</div>'+
+      '<div class="hd"><h3>在售认养（'+ps.length+'）</h3></div>'+
+      '<div class="sec">'+(ps.length?ps.map(pcard).join(''):'<div class="card ctr t12">该基地暂无在售项目</div>')+'</div>'+
+      '<div class="hd"><h3>来自该基地的动态</h3></div>'+
+      '<div class="sec">'+D.diaries.filter(function(d){return d.farm===f.id;}).slice(0,2).map(feedCard).join('')+'</div>'+
+      '<div style="height:16px"></div>';
+  }
+};
+
+PAGES.favorites={
+  title:'我的收藏',
+  render:function(){
+    return '<div class="sec" style="padding-top:10px">'+[D.products[2],D.products[1],D.products[5]].map(pcard).join('')+'</div>'+
+      '<div class="ctr t12" style="padding:16px 0 24px">—— 共 3 个收藏 ——</div>';
+  }
+};
+
+PAGES.notice={
+  title:'平台合规说明',
+  render:function(){
+    return '<div class="noticebar" style="margin:10px 12px;border-radius:10px">'+I('shield','',13)+'本页内容同步展示于「合规中心」，所有经营者需完成核验后方可上线</div>'+
+    '<div class="card">'+
+      '<div class="row" style="gap:8px;margin-bottom:10px">'+I('shield','var(--g)',22)+'<span class="t16">我们不是理财，是农产品预售</span></div>'+
+      '<div class="t13">认养农业的本质是<b>农产品预售 + 农业生产服务</b>：您支付的是土地/畜禽的使用与托管服务费，农场交付的是实物农产品与到园体验。</div>'+
+      '<div class="split" style="margin:12px -14px"></div>'+
+      [['❌ 不承诺收益','任何形式承诺年化收益、到期回购、保本付息的行为，均属违规'],
+       ['❌ 不设钱包','平台不提供充值钱包、余额提现，不存在资金池'],
+       ['❌ 不带拉人头','不设多级分销返佣，仅提供一次性实物权益赠送'],
+       ['✅ 真实标的','每份认养对应唯一编号地块/畜禽，可实地考察核验'],
+       ['✅ 实物交割','交付物为蔬菜/蛋/肉/果等实物，产出随自然条件浮动'],
+       ['✅ 资金合规','款项进入经营者对公账户，由第三方支付机构监管结算'],
+       ['✅ 合同保障','每笔认养签署电子合同，CA 认证，可在合约中心调阅'],
+       ['✅ 保险兜底','已对接政策性农业保险，自然灾害导致的减产按条款赔付']
+      ].map(function(x){
+        const bad=x[0].indexOf('❌')>=0;
+        return '<div class="row" style="align-items:flex-start;gap:9px;margin-bottom:10px">'+
+          '<span class="chip '+(bad?'r':'')+'" style="flex:0 0 auto;font-size:11.5px">'+x[0]+'</span>'+
+          '<span class="t13" style="flex:1">'+x[1]+'</span></div>';
+      }).join('')+
+    '</div>'+
+    '<div class="card">'+
+      '<div class="t16" style="margin-bottom:8px">资金流向说明</div>'+
+      '<div style="display:flex;align-items:center;gap:8px;margin:10px 0">'+
+        ['消费者支付','第三方支付通道','经营者对公账户','按生产进度结算'].map(function(s,i){
+          return '<div style="flex:1;text-align:center"><div style="background:var(--gl);border-radius:9px;padding:9px 4px;font-size:11px;color:var(--gd);line-height:1.5">'+s+'</div></div>'+(i<3?'<span style="color:var(--g)">→</span>':'');
+        }).join('')+
+      '</div>'+
+      '<div class="notebox">资金不进入平台账户；平台仅收取软件服务费，由支付机构按约定比例自动分账，全程可查。</div>'+
+    '</div>'+
+    '<div class="card">'+
+      '<div class="t16" style="margin-bottom:8px">常见问题</div>'+
+      [['收成不好怎么办？','自然灾害导致减产，按农业保险条款赔付；非灾害性减产，经营者按合同补足或延期。'],
+       ['可以退款吗？','认养开始前可全额退；开始后按已发生的农事投入比例扣除后退剩余部分，合同有明确公式。'],
+       ['怎么确认我的地是真的？','每份认养有唯一编号与 GPS 定位，可到园核验；24 小时直播 + 生长档案双重佐证。'],
+       ['能转让给朋友吗？','支持认养权益转赠，在「认养详情 - 转赠」中操作，需受赠人完成实名。']
+      ].map(function(q){
+        return '<div style="padding:9px 0;border-bottom:1px solid var(--line)"><div class="t14">Q：'+q[0]+'</div><div class="t13" style="margin-top:4px">A：'+q[1]+'</div></div>';
+      }).join('')+
+    '</div>'+
+    '<div style="height:16px"></div>';
+  }
+};
+
+/* ---------- 农场日记 ---------- */
+PAGES.diary={
+  hideNav:true,
+  render:function(){
+    const tabs=[['rec','推荐'],['focus','关注'],['city','同城']];
+    return '<div style="padding:10px 12px 6px;background:#fff;border-bottom:1px solid var(--line)"><div class="searchbar">'+I('search','#b3b8bf',15)+'<span>搜索农场动态 / 农友</span></div>'+
+      '<div class="row" style="gap:0;margin-top:8px">'+tabs.map(function(t){
+        const on=S.dTab===t[0];
+        return '<div data-act="dTab:'+t[0]+'" style="flex:1;text-align:center;padding:8px 0;font-size:13.5px;cursor:pointer;'+(on?'color:var(--gd);font-weight:600;':'color:var(--tx3)')+'">'+t[1]+(on?'<div style="height:2.5px;width:24px;background:var(--g);margin:5px auto 0;border-radius:2px"></div>':'')+'</div>';
+      }).join('')+'</div></div>'+
+      '<div class="sec" style="padding-top:10px">'+D.diaries.map(feedCard).join('')+'</div>'+
+      '<div style="height:70px"></div>'+
+      '<div class="fab" data-go="publish">'+I('pen','',20)+'</div>';
+  }
+};
+PAGES.diaryDetail={
+  title:'动态详情',rt:'<span>'+I('more','',17)+'</span>',
+  render:function(){
+    const d=D.diaries.find(function(x){return x.id===(S.diaryId||1);})||D.diaries[0];
+    return '<div class="card">'+
+      '<div class="row bw">'+
+        '<div class="row" style="gap:9px"><div class="avatar" style="width:40px;height:40px;font-size:15px">'+d.avatar+'</div>'+
+          '<div><div class="t15">'+d.who+'</div><div class="t12" style="font-size:11px">'+d.t+'</div></div></div>'+
+        '<span class="btn sec" style="padding:5px 14px;font-size:12px">关注</span>'+
+      '</div>'+
+      '<div class="t14" style="margin-top:12px;line-height:1.85">'+d.txt+'</div>'+
+      '<div style="margin-top:11px">'+d.pics.map(function(g,i){return '<div class="ph '+g+'" style="height:'+(i?108:150)+'px;margin-bottom:6px"><span style="font-size:28px">'+d.e+'</span></div>';}).join('')+'</div>'+
+      '<div class="row" style="gap:14px;margin-top:11px">'+
+        '<span class="chip gy">'+I('loc','',12)+' '+D.farms.find(function(f){return f.id===d.farm;}).name+'</span>'+
+        '<span class="chip gy">'+I('leaf','',12)+' 关联认养 '+d.farm+'</span>'+
+      '</div>'+
+      '<div class="row bw" style="margin-top:12px;padding-top:11px;border-top:1px solid var(--line)">'+
+        '<div class="row" style="gap:18px">'+
+          '<span data-like="d'+d.id+'" data-on="0" data-act="like:d'+d.id+'" style="display:flex;align-items:center;gap:4px;cursor:pointer" class="t12">'+I('heart','',17)+'<span>'+d.likes+'</span></span>'+
+          '<span class="t12" style="display:flex;align-items:center;gap:4px">'+I('chat','',17)+d.cmts+'</span>'+
+        '</div>'+
+        '<span class="t12" style="display:flex;align-items:center;gap:4px">'+I('share','',17)+'分享</span>'+
+      '</div>'+
+    '</div>'+
+    '<div class="card">'+
+      '<div class="t15" style="margin-bottom:10px">全部评论（'+d.cmts+'）</div>'+
+      [['小雨','内容真实有价值，准备国庆带孩子去','杭州','雨'],['阿May','李管家拍照技术越来越好了 👏','上海','M'],['豆豆爸','我们家的地也在 C 区，昨天刚去过','杭州','豆']].map(function(c){
+        return '<div class="row" style="align-items:flex-start;gap:9px;margin-bottom:13px">'+
+          '<div class="avatar" style="width:30px;height:30px;font-size:12px;background:linear-gradient(135deg,#8ec5f7,#4d8fd6)">'+c[3]+'</div>'+
+          '<div style="flex:1"><div class="t13" style="font-weight:600">'+c[0]+'</div><div class="t13">'+c[1]+'</div><div class="t12" style="font-size:10.5px;margin-top:3px">'+c[2]+' · 2小时前</div></div>'+
+          '<span class="t12" style="display:flex;align-items:center;gap:3px">'+I('heart','',13)+'12</span>'+
+        '</div>';
+      }).join('')+
+    '</div>'+
+    '<div class="footbar"><div class="row" style="flex:1;background:var(--bg);border-radius:20px;padding:9px 14px;gap:6px">'+I('pen','#b3b8bf',15)+'<span class="t13" style="color:var(--tx3)">说点什么…</span></div>'+
+      '<span class="t12" style="display:flex;align-items:center;gap:4px">'+I('heart','',18)+'</span></div>';
+  }
+};
+PAGES.publish={
+  title:'发布动态',rt:'<span style="color:var(--g)">发布</span>',
+  render:function(){
+    return '<div class="card">'+
+      '<textarea style="width:100%;border:none;outline:none;font-family:inherit;font-size:14.5px;line-height:1.8;resize:none;height:110px" placeholder="分享一下您的认养日常、到园体验或收获喜悦…"></textarea>'+
+      '<div class="g3" style="gap:7px;margin-top:8px">'+
+        [['plus','g8','添加图片'],['camera','g2','拍摄'],['loc','g6','位置'],['leaf','g1','关联认养']].map(function(x){
+          return '<div class="row" style="flex-direction:column;gap:5px;cursor:pointer" data-act="notImp"><div class="ph '+x[1]+'" style="height:74px;border-radius:10px"><span style="font-size:22px">'+I(x[0],'#fff',24)+'</span></div><span class="t12" style="font-size:11px">'+x[2]+'</span></div>';
+        }).join('')+
+      '</div>'+
+    '</div>'+
+    '<div class="card tight row bw" data-act="notImp"><div class="row" style="gap:8px">'+I('leaf','var(--g)',18)+'<span class="t14">关联到我的认养</span></div><span class="t12">一分地 · C区12号 '+I('right','',12)+'</span></div>'+
+    '<div class="card tight row bw"><span class="t14">谁可以看</span><span class="t12">公开 '+I('right','',12)+'</span></div>'+
+    '<div class="noticebar" style="margin:10px 12px;border-radius:10px">'+I('warn','',13)+'发布内容需为真实体验，禁止发布收益承诺、拉人头等违规信息</div>'+
+    '<div style="height:16px"></div>';
+  }
+};
+
+/* ============================================================
+   页面组 B：交易 · 合约 · 支付
+   ============================================================ */
+ACT.openCoupon=function(){S.couponFrom='order';go('coupon');};
+S.pointBalance=4200;S.pointCut=42;S.couponFrom='';
+ACT.catJump=function(k){
+  if(k==='LIVE'){go('live');return;}
+  if(k==='FARM'){go('farmList');return;}
+  if(k==='COUPON'){go('coupon');return;}
+  if(k==='SUPPLY'){go('supply');return;}
+  if(k==='SELF'){go('selfTask');return;}
+  S.cat=k;S.malsort='hot';tabTo('mall');
+};
+ACT.dTab=function(t){S.dTab=t;render();};
+ACT.sort=function(){toast('排序：按人气 / 价格 / 距离');};
+ACT.setTab=function(t){S.aTab=t;render();};
+ACT.msgTab=function(t){S.msgTab=t;render();};
+ACT.payMode=function(m){S.payMode=m;render();};
+ACT.visitDate=function(i){S.visitDate=+i;render();};
+ACT.openSpec=function(){
+  const p=D.products.find(function(x){return x.id===S.pid;});
+  sheet('选择认养规格',
+    p.specs.map(function(s,i){
+      const on=S.spec===i;
+      return '<div class="row bw card tight" style="margin:0 0 9px;'+(on?'box-shadow:inset 0 0 0 2px var(--g)':'')+'" data-act="pickSpec:'+i+'">'+
+        '<div><div class="t15">'+s.n+'</div><div class="t12" style="margin-top:3px">'+s.d+'</div></div>'+
+        '<div class="row" style="gap:8px"><span class="price">¥'+s.p+'</span>'+(on?I('check','var(--g)',18):'')+'</div></div>';
+    }).join('')+
+    '<div class="t15" style="margin:14px 0 8px">认养周期</div>'+
+    '<div class="row" style="gap:8px;flex-wrap:wrap">'+p.cycles.map(function(c,i){
+      const on=S.cycle===i;
+      return '<div data-act="pickCycle:'+i+'" class="chip" style="font-size:12.5px;padding:7px 13px;'+(on?'background:var(--g);color:#fff':'')+'">'+c.n+(c.p?'（'+(c.p>0?'+¥'+c.p:'-¥'+(-c.p))+'）':'')+'</div>';
+    }).join('')+'</div>'+
+    (careOn(p)?
+      '<div class="t15" style="margin:15px 0 8px">托管方式</div>'+
+      '<div class="row" style="gap:8px;flex-wrap:wrap">'+D.careModes.map(function(m,i){
+        const on=S.care===i;
+        return '<div data-act="pickCare:'+i+'" class="chip" style="font-size:12.5px;padding:7px 13px;'+(on?'background:var(--g);color:#fff':'')+'">'+m.e+' '+m.n+(m.delta?'（'+(m.delta<0?'-¥'+(-m.delta):'+¥'+m.delta)+'）':'')+'</div>';
+      }).join('')+'</div>'+
+      '<div class="t12" style="margin-top:9px;line-height:1.75;padding:9px 10px;background:#f7faf8;border-radius:8px">'+D.careModes[S.care].who+'</div>'
+      :'')+
+    '<div class="btn pri full" style="margin-top:18px" data-act="closeSheet">确定</div>'
+  );
+};
+
+function calcPrice(){
+  const p=D.products.find(function(x){return x.id===S.pid;});
+  const sp=p.specs[S.spec]||p.specs[0], cy=p.cycles[S.cycle]||p.cycles[0];
+  const cm=curCare(p);
+  const base=Math.max(0,sp.p+(cy.p||0)+(cm?cm.delta:0));
+  const cp=S.coupon?D.coupons.find(function(c){return c.id===S.coupon;}):null;
+  const cut=(cp&&base>=cp.min)?cp.v:0;
+  const pt=S.usePoint?Math.min(S.pointCut,Math.floor(base/100)):0;
+  return {p:p,sp:sp,cy:cy,cm:cm,base:base,cut:cut,pt:pt,total:base-cut-pt};
+}
+
+/* ---------- 托管方式选择区块（土地认养专属） ---------- */
+function supplyEntry(cm){
+  const mid=(cm.id==='self')?'self':'semi';
+  const rec=D.supplies.filter(function(s){return s.fit.indexOf(mid)>=0&&s.cat!=='ins';}).slice(0,4);
+  return '<div style="margin-top:11px;background:linear-gradient(135deg,#fff8ec,#fff);border:1px solid #f2e3c6;border-radius:11px;padding:11px 12px">'+
+      '<div class="row bw"><div class="row" style="gap:8px">'+I('box','#e0932a',18)+
+        '<div><div class="t14" style="font-weight:600">「'+cm.n+'」需自备农资</div>'+
+        '<div class="t12" style="font-size:10.5px;margin-top:2px">基地直供 · 批次溯源 · 可寄存基地工具房</div></div></div>'+
+        '<span class="chip o" data-go="supply" style="flex:0 0 auto">去选购'+I('right','',11)+'</span></div>'+
+      '<div class="row" style="gap:8px;margin-top:10px;overflow-x:auto">'+rec.map(function(s){
+        return '<div style="flex:0 0 96px;cursor:pointer" data-go="supplyDetail:'+s.id+'">'+
+          '<div class="ph '+s.cover+'" style="height:70px;border-radius:9px"><span style="font-size:20px">'+s.e+'</span></div>'+
+          '<div class="t12 ofh" style="margin-top:5px">'+s.n+'</div>'+
+          '<div class="price" style="font-size:13px;font-weight:700">¥'+s.price+'</div></div>';
+      }).join('')+'</div>'+
+    '</div>';
+}
+function careBlock(p,c){
+  const cm=D.careModes[S.care];
+  return '<div class="card">'+
+      '<div class="row bw"><div style="flex:1">'+
+          '<div class="t16">'+I('shield','var(--g)',15)+' 选择托管方式</div>'+
+          '<div class="t12" style="margin-top:3px">三档价格 / 服务 / 责任不同，认养后每周期可申请切换 1 次</div></div>'+
+        '<span class="chip" data-go="careGuide" style="flex:0 0 auto">对比说明'+I('right','',11)+'</span></div>'+
+      '<div style="margin-top:11px">'+D.careModes.map(function(m,i){
+        const on=S.care===i;
+        const pr=c.sp.p+(c.cy.p||0)+m.delta;
+        return '<div data-act="pickCare:'+i+'" style="border:1.5px solid '+(on?'var(--g)':'var(--line)')+';border-radius:11px;padding:11px 12px;margin-bottom:9px;background:'+(on?'#f2fbf6':'#fff')+';cursor:pointer">'+
+            '<div class="row bw">'+
+              '<div class="row" style="gap:9px"><span style="font-size:21px">'+m.e+'</span>'+
+                '<div><div class="row" style="gap:6px"><span class="t15" style="font-weight:600">'+m.n+'</span>'+
+                  (on?'<span class="chip" style="font-size:10px;padding:2px 7px">已选</span>':'')+'</div>'+
+                  '<div class="t12" style="font-size:11px;margin-top:2px">'+m.slogan+'</div></div></div>'+
+              '<div style="text-align:right;flex:0 0 auto"><div class="price" style="font-size:15px;font-weight:700">¥'+pr+'</div>'+
+                '<div class="t12" style="font-size:10px;color:'+(m.delta<0?'var(--g)':'var(--tx3)')+'">'+(m.delta<0?'省 ¥'+(-m.delta):'含全服务')+'</div></div>'+
+            '</div>'+
+            '<div class="row" style="gap:5px;margin-top:8px;flex-wrap:wrap">'+
+              '<span class="chip gy" style="font-size:10.5px">'+I('clock','',10)+m.todo+'</span>'+
+              '<span class="chip gy" style="font-size:10.5px">'+(i===0?'含投入品':(i===1?'农资自购':'农资全自购'))+'</span>'+
+              '<span class="chip '+(i===0?'':'gy')+'" style="font-size:10.5px">'+(i===0?'保底产出':(i===1?'不保底':'风险自担'))+'</span>'+
+            '</div>'+
+          '</div>';
+      }).join('')+'</div>'+
+      '<div class="split" style="margin:12px -14px"></div>'+
+      '<div class="t14" style="font-weight:600;margin-bottom:7px">「'+cm.n+'」服务边界</div>'+
+      '<div class="t12" style="line-height:1.85">'+I('check','var(--g)',12)+' <b>已包含：</b>'+cm.incl.join('、')+'</div>'+
+      '<div class="t12" style="line-height:1.85;margin-top:4px">'+I('warn','#e0932a',12)+' <b>需自备 / 可加购：</b>'+cm.buy.join('、')+'</div>'+
+      '<div class="notebox" style="margin:9px 0 0">'+I('doc','',12)+' <b>产出与责任：</b>'+cm.out+'。'+cm.risk+'。</div>'+
+      (S.care>0?supplyEntry(cm):'')+
+    '</div>';
+}
+
+PAGES.product={
+  title:'认养详情',rt:'<span>'+I('share','',17)+'</span>',
+  render:function(){
+    const p=D.products.find(function(x){return x.id===S.pid;});
+    const f=D.farms.find(function(x){return x.id===p.farm;});
+    const rate=Math.round(p.sold/p.total*100);
+    const c=calcPrice();
+    return '<div class="ph '+p.cover+'" style="height:238px;border-radius:0;position:relative"><span style="font-size:52px">'+p.emoji+'</span>'+
+        '<div style="position:absolute;right:10px;bottom:10px;background:rgba(0,0,0,.4);color:#fff;font-size:11px;padding:4px 10px;border-radius:20px">1 / 5</div>'+
+      '</div>'+
+      '<div class="row" style="padding:10px 12px;gap:7px;overflow-x:auto">'+
+        [p.cover,'g1','g3','g2','g5'].map(function(g,i){return '<div class="ph '+g+'" style="width:56px;height:56px;flex:0 0 56px;'+(i?'opacity:.65':'')+'"><span style="font-size:18px">'+p.emoji+'</span></div>';}).join('')+
+      '</div>'+
+      '<div class="card" style="margin-top:-4px">'+
+        '<div class="row bw"><div><span class="price" style="font-size:18px"><b style="font-size:26px">'+c.base+'</b> 元</span><span class="strk" style="margin-left:7px">'+p.oprice+'</span></div>'+
+          '<span class="chip r">限时立减 '+(p.oprice-c.base)+'</span></div>'+
+        '<div class="t16" style="margin-top:7px">'+p.name+'</div>'+
+        '<div class="t13" style="margin-top:5px">'+p.sub+'</div>'+
+        '<div class="row" style="gap:6px;margin-top:9px;flex-wrap:wrap">'+p.tags.map(function(t){return '<span class="chip">'+I('check','',11)+t+'</span>';}).join('')+'</div>'+
+        '<div class="row bw" style="margin-top:11px"><span class="t12">已认养 <b style="color:var(--gd)">'+p.sold+'</b> 份</span><span class="t12">剩余 '+(p.total-p.sold)+' 份</span></div>'+
+        '<div class="prog" style="margin-top:6px"><i style="width:'+rate+'%"></i></div>'+
+      '</div>'+
+      /* 托管方式（仅土地认养） */
+      (careOn(p)?careBlock(p,c):'')+
+      /* 合规提示 */
+      '<div class="legend">'+I('shield','',13)+'<b>合规认养 · 实物交付承诺</b>'+
+        '本产品为农产品预购 + 农业生产托管服务，交付物为实物农产品，<b>不承诺任何形式的资金收益、回购或保本</b>；款项进入经营者对公账户并由第三方支付机构监管。自然灾害等不可抗力导致的减产，按农业保险条款处理。'+
+      '</div>'+
+      /* 规格 */
+      '<div class="card tight row bw" data-act="openSpec" style="cursor:pointer">'+
+        '<div class="row" style="gap:8px"><span class="t14" style="color:var(--tx2)">已选</span><span class="t14">'+c.sp.n+' · '+c.cy.n+(c.cm?' · '+c.cm.n:'')+'</span></div>'+I('right','#b3b8bf',16)+
+      '</div>'+
+      '<div class="card tight">'+
+        '<div class="row" style="gap:9px">'+I('shield','var(--g)',17)+'<div style="flex:1">'+
+          '<div class="row bw"><span class="t14">投入品安全承诺</span><span class="t12">'+I('right','',12)+'</span></div>'+
+          '<div class="t12" style="margin-top:3px">种子 / 肥料 / 生物农药全程留痕，可查批次</div></div></div>'+
+        '<div class="split" style="margin:11px -14px"></div>'+
+        '<div class="row" style="gap:9px">'+I('warn','var(--o)',17)+'<div style="flex:1">'+
+          '<div class="row bw"><span class="t14">自然灾害免责</span><span class="t12">'+I('right','',12)+'</span></div>'+
+          '<div class="t12" style="margin-top:3px">已投保农业保险 '+(p.farm===2?'PICC-2026-0231':'PICC-2026-0188')+'，减产按条款赔付</div></div></div>'+
+        '<div class="split" style="margin:11px -14px"></div>'+
+        '<div class="row" style="gap:9px">'+I('users','var(--g)',17)+'<div style="flex:1">'+
+          '<div class="row bw"><span class="t14">专属管家服务</span><span class="t12">'+I('right','',12)+'</span></div>'+
+          '<div class="t12" style="margin-top:3px">1 对 1 农事播报，可随时到访 / 视频看地</div></div></div>'+
+      '</div>'+
+      /* 农场 */
+      '<div class="card row bw tight" data-go="farmDetail:'+f.id+'" style="cursor:pointer">'+
+        '<div class="row"><div class="ph '+(f.id===2?'g3':'g1')+'" style="width:44px;height:44px;border-radius:9px"><span style="font-size:19px">'+(f.id===2?'🐓':'🥬')+'</span></div>'+
+        '<div style="margin-left:2px"><div class="t15">'+f.name+'</div><div class="t12">'+f.city+' · '+f.dist+' · 评分 '+f.score+'</div></div></div>'+
+        '<span class="chip">进入基地'+I('right','',11)+'</span>'+
+      '</div>'+
+      /* 产出说明 */
+      '<div class="card"><div class="t16" style="margin-bottom:8px">'+I('leaf','var(--g)',15)+' 产出与履约</div>'+
+        '<div class="kv"><span class="k">标的规模</span><span>'+p.unit+'</span></div>'+
+        '<div class="kv"><span class="k">认养周期</span><span>'+p.cycle+'</span></div>'+
+        '<div class="kv"><span class="k">预计产出</span><span style="text-align:right;max-width:60%">'+p.out+'</span></div>'+
+        '<div class="kv"><span class="k">交付方式</span><span>冷链快递 / 基地自提</span></div>'+
+        '<div class="kv"><span class="k">收益属性</span><span style="color:var(--r)">无资金收益 · 实物交付</span></div>'+
+        '<div class="t13" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line);line-height:1.85">'+p.intro+'</div>'+
+      '</div>'+
+      /* 评价 */
+      '<div class="hd"><h3>认养评价（'+ (Math.floor(p.sold/12)) +'）</h3><span class="more">全部'+I('right','',12)+'</span></div>'+
+      '<div class="sec">'+[
+        ['陈','杭州','孩子在自家地里摘的第一颗番茄，开心坏了。管家每周都会发照片，真的能感受到地被照顾着。','2 月前'],
+        ['林','上海','第一次认养有点忐忑，五一去看了一次，地界、编号、摄像头都对得上，这才放心续了第二年。','1 月前']
+      ].map(function(c){
+        return '<div class="card tight"><div class="row" style="gap:8px"><div class="avatar" style="width:30px;height:30px;font-size:12px">'+c[0]+'</div>'+
+          '<div style="flex:1"><div class="t14">'+c[0]+'**</div><div class="t12" style="font-size:10.5px">'+c[1]+' · '+c[3]+'</div></div>'+
+          '<div class="row" style="gap:2px;color:var(--o)">'+[1,2,3,4,5].map(function(){return I('star','#ff8f1f',11);}).join('')+'</div></div>'+
+          '<div class="t13" style="margin-top:8px">'+c[2]+'</div>'+
+          '<div class="row" style="gap:6px;margin-top:9px">'+['g1','g3'].map(function(g){return '<div class="ph '+g+'" style="width:64px;height:64px;border-radius:8px"><span style="font-size:16px">🌱</span></div>';}).join('')+'</div>'+
+        '</div>';
+      }).join('')+'</div>'+
+      '<div class="footbar">'+
+        '<div class="row" style="gap:14px;color:#5b6169">'+
+          '<div style="text-align:center" data-go="service">'+I('chat','',19)+'<div class="t12" style="font-size:10px">管家</div></div>'+
+          '<div style="text-align:center" data-go="farmDetail:'+f.id+'">'+I('loc','',19)+'<div class="t12" style="font-size:10px">基地</div></div>'+
+          '<div style="text-align:center" data-act="addCart">'+I('heart','',19)+'<div class="t12" style="font-size:10px">收藏</div></div>'+
+        '</div>'+
+        '<div class="btn pri" data-act="resetFlow" data-go="order" style="margin-left:6px">立即认养</div>'+
+      '</div>';
+  }
+};
+
+PAGES.order={
+  title:'确认订单',
+  render:function(){
+    const c=calcPrice();
+    const a=D.addresses.find(function(x){return x.id===S.addr;});
+    const ships=[['冷链快递到家','免费 · 每月 2 次'],['基地自提','随时 · 可顺丰到付'],['月度集中配送','每月 1 次 · 免运费']];
+    return '<div class="card tight row bw" data-act="openAddr" style="cursor:pointer">'+
+        '<div class="row" style="gap:8px">'+I('loc','var(--g)',19)+
+          '<div><div class="t15">'+a.n+' <span class="t12">'+a.ph+'</span></div><div class="t12" style="margin-top:2px">'+a.a+'</div></div></div>'+I('right','#b3b8bf',16)+
+      '</div>'+
+      '<div class="card tight">'+
+        '<div class="row" style="gap:10px">'+
+          '<div class="ph '+c.p.cover+'" style="width:66px;height:66px;flex:0 0 66px"><span style="font-size:24px">'+c.p.emoji+'</span></div>'+
+          '<div style="flex:1"><div class="t15">'+c.p.name+'</div>'+
+            '<div class="t12" style="margin-top:4px">'+c.sp.n+' · '+c.cy.n+(c.cm?' · '+c.cm.n:'')+'</div>'+
+            '<div class="row" style="gap:6px;margin-top:6px"><span class="chip gy" style="font-size:11px">'+D.farms.find(function(f){return f.id===c.p.farm;}).name+'</span><span class="chip gy" style="font-size:11px">预计 '+c.p.out.split('（')[0]+'</span></div>'+
+          '</div>'+
+          '<div class="price">¥'+c.base+'</div>'+
+        '</div>'+
+        '<div class="split" style="margin:11px -14px"></div>'+
+        '<div class="row bw" data-act="openSpec" style="cursor:pointer"><span class="t14">认养规格 / 托管方式</span><span class="t13">'+c.sp.n+' · '+c.cy.n+(c.cm?' · '+c.cm.n:'')+' '+I('right','',12)+'</span></div>'+
+        '<div class="kv"><span class="k">认养人</span><span>张先生（已实名）</span></div>'+
+        '<div class="kv"><span class="k">联系电话</span><span>138****6721</span></div>'+
+      '</div>'+
+      (c.cm&&S.care>0?
+        '<div class="card tight" style="background:linear-gradient(135deg,#fff8ec,#fff);border:1px solid #f2e3c6">'+
+          '<div class="row bw"><div class="row" style="gap:8px">'+I('box','#e0932a',17)+
+            '<div><div class="t14" style="font-weight:600">「'+c.cm.n+'」农资待备</div>'+
+            '<div class="t12" style="font-size:11px;margin-top:2px">种子 / 肥料等可在认养后随时选购，也支持寄存基地</div></div></div>'+
+            '<span class="chip o" data-go="supply" style="flex:0 0 auto">去选购'+I('right','',11)+'</span></div>'+
+          '<div class="t12" style="margin-top:9px;padding-top:9px;border-top:1px dashed #f0dfc0;line-height:1.7">'+I('warn','#e0932a',12)+' 本单<b>不含</b>日常农资与代管人工，产出按实际交付，可在「我的认养 - 自管任务」中一键委托管家代办。</div>'+
+        '</div>':'')+
+      '<div class="card tight">'+
+        '<div class="t15" style="margin-bottom:8px">交付方式</div>'+
+        ships.map(function(s,i){
+          const on=S.ship===i;
+          return '<div class="row bw" style="padding:9px 0;cursor:pointer" data-act="pickShip:'+i+'">'+
+            '<div class="row" style="gap:8px"><span style="width:18px;flex:0 0 18px"></span>'+
+              '<div><div class="t14">'+s[0]+'</div><div class="t12" style="font-size:11px">'+s[1]+'</div></div></div>'+
+            '<span style="width:18px;height:18px;border-radius:50%;border:1.5px solid '+(on?'var(--g)':'#d5d9de')+';display:flex;align-items:center;justify-content:center">'+(on?'<span style="width:9px;height:9px;border-radius:50%;background:var(--g)"></span>':'')+'</span>'+
+          '</div>';
+        }).join('')+
+      '</div>'+
+      '<div class="card tight">'+
+        '<div class="row bw" data-act="openCoupon" style="cursor:pointer;padding:2px 0"><span class="t14">优惠券</span>'+
+          '<span class="t13" style="color:'+(c.cut?'var(--r)':'var(--tx2)')+'">'+(c.cut?'-¥'+c.cut:'不使用')+' '+I('right','',12)+'</span></div>'+
+        '<div class="split" style="margin:9px -14px"></div>'+
+        '<div class="row bw"><div><span class="t14">积分抵扣</span><div class="t12" style="font-size:11px">可用 '+S.pointBalance+' 分，本单最多抵 ¥'+Math.min(S.pointCut,Math.floor(c.base/100))+'</div></div>'+
+          '<span data-act="ticked:usePoint" style="width:42px;height:24px;border-radius:20px;background:'+(S.usePoint?'var(--g)':'#dfe3e7')+';position:relative;cursor:pointer;transition:.2s">'+
+            '<i style="position:absolute;top:2px;left:'+(S.usePoint?20:2)+'px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)"></i></span></div>'+
+        '<div class="split" style="margin:9px -14px"></div>'+
+        '<div class="kv"><span class="k">商品金额</span><span>¥'+c.base+'</span></div>'+
+        (c.cut?'<div class="kv"><span class="k">优惠券</span><span style="color:var(--r)">-¥'+c.cut+'</span></div>':'')+
+        (c.pt?'<div class="kv"><span class="k">积分抵扣</span><span style="color:var(--r)">-¥'+c.pt+'</span></div>':'')+
+        '<div class="row bw" style="margin-top:8px;padding-top:9px;border-top:1px solid var(--line)"><span class="t14">应付金额</span><span class="price" style="font-size:17px"><b style="font-size:22px">'+c.total+'</b> 元</span></div>'+
+      '</div>'+
+      '<div class="legend">'+I('shield','',13)+'<b>下单前请确认</b>认养为农产品预购行为，交付以实物为准，产出受气候、病虫害等自然条件影响；平台与经营者均不提供资金收益、回购或保本承诺。</div>'+
+      '<div class="card tight row" style="align-items:flex-start;gap:9px;cursor:pointer" data-act="ticked:agreed">'+
+        '<span style="width:19px;height:19px;flex:0 0 19px;border-radius:5px;border:1.5px solid '+(S.agreed?'var(--g)':'#cfd4d9')+';background:'+(S.agreed?'var(--g)':'#fff')+';display:flex;align-items:center;justify-content:center;margin-top:1px">'+(S.agreed?I('check','#fff',13):'')+'</span>'+
+        '<span class="t13">我已阅读并同意 <b style="color:var(--gd)">《认养服务合同》</b>、<b style="color:var(--gd)">《产出浮动告知书》</b> 与 <b style="color:var(--gd)">《免责条款》</b>，知悉本项目为实物交付、无资金收益。</span>'+
+      '</div>'+
+      '<div class="footbar"><div style="text-align:right;margin-right:4px"><div class="t12">应付</div><div class="price" style="font-size:16px"><b style="font-size:21px">'+c.total+'</b></div></div>'+
+        '<div class="btn '+(S.agreed?'pri':'dis')+'" style="flex:0 0 140px" data-act="pay">'+'去签署合同'+'</div></div>';
+  }
+};
+
+PAGES.contract={
+  title:'电子合同',
+  render:function(){
+    const c=calcPrice();
+    return '<div class="noticebar" style="margin:10px 12px;border-radius:10px">'+I('shield','',13)+'本合同由 CA 机构存证，签署即生效，可在「我的 - 合约中心」调阅</div>'+
+      '<div class="card">'+
+        '<div class="ctr" style="padding-bottom:10px;border-bottom:1px dashed var(--line)">'+
+          '<div class="t16">农产品认养服务合同</div>'+
+          '<div class="t12" style="margin-top:4px">合同编号：HT-2026-10-1001-AF</div>'+
+        '</div>'+
+        '<div class="t13" style="margin-top:12px;line-height:1.95">'+
+          '<b>甲方（认养人）：</b>张先生 &nbsp;&nbsp;身份证：330***********2314<br>'+
+          '<b>乙方（经营者）：</b>阳光谷生态农场（个体工商户 · 统一社会信用代码 9233***********A）<br>'+
+          '<b>平台方：</b>本 SaaS 平台（提供技术服务与资金结算监督）<br><br>'+
+          '<b>第一条 认养标的</b><br>甲方认养乙方 '+c.p.name+'（'+c.sp.n+'），标的编号为 '+D.adoptions[0].block+'，认养周期 '+c.cy.n+'，自 2026-10-11 起算。乙方为该标的建立独立台账，甲方可通过平台查看实时生长档案、监控视频与投入品记录。<br><br>'+
+          '<b>第二条 服务内容与费用</b><br>甲方支付认养服务费 ¥'+c.base+'（已抵扣 '+c.cut+' 元优惠券、'+c.pt+' 元积分），该费用对应土地托管、种苗、投入品、人工、包装与物流等农业生产服务成本，<b>不构成任何形式的投资、存款或借贷</b>。<br><br>'+
+          '<b>第三条 交付约定</b><br>乙方向甲方交付的是乙方所产出的实物农产品（'+c.p.out+'）。因气候、病虫害、自然灾害等不可抗力导致产出减少或绝收的，乙方不承担出资责任，但应按第四条处理。<br><br>'+
+          '<b>第四条 减产与保险</b><br>乙方已为本标的投保政策性农业保险（保单号 '+(c.p.farm===2?'PICC-2026-0231':'PICC-2026-0188')+'）。发生保险责任范围内的损失，由保险公司按条款赔付，赔付所得优先用于向甲方补足同类农产品或按合同约定的折算标准处理。<br><br>'+
+          '<b>第五条 特别声明（反欺诈条款）</b><br>5.1 本合同不涉及任何资金收益、利息、分红、回购承诺；<br>5.2 甲方不因本合同取得任何理财性质权益，不得转让为投资凭证；<br>5.3 双方均不得利用本认养关系开展传销、非法集资等违法活动；<br>5.4 认养权益可依规转赠一次，转赠不得折价交易。<br><br>'+
+          '<b>第六条 退款规则</b><br>认养开始前，甲方可申请全额退款；认养开始后，按已发生农事投入比例扣除后退还余款，计算公式以平台公示规则为准。<br><br>'+
+          '<b>第七条 争议解决</b><br>协商不成的，提交乙方所在地人民法院诉讼解决。本合同电子件与纸质件具有同等法律效力。'+
+        '</div>'+
+        '<div class="row bw" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line)">'+
+          '<div style="text-align:center"><div class="t12">甲方签章</div><div style="margin-top:6px;font-family:cursive;color:var(--gd);font-size:19px">'+(S.signed?'张 ** 明':'待签署')+'</div></div>'+
+          '<div style="text-align:center"><div class="t12">乙方签章</div><div style="margin-top:6px;color:var(--tx3)">已盖章</div><div class="t12" style="font-size:10px">2026-10-11</div></div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="card tight row" style="align-items:flex-start;gap:9px;cursor:pointer" data-act="ticked:agreed">'+
+        '<span style="width:19px;height:19px;flex:0 0 19px;border-radius:5px;border:1.5px solid '+(S.agreed?'var(--g)':'#cfd4d9')+';background:'+(S.agreed?'var(--g)':'#fff')+';display:flex;align-items:center;justify-content:center;margin-top:1px">'+(S.agreed?I('check','#fff',13):'')+'</span>'+
+        '<span class="t13">我已完整阅读上述条款，特别是第五条反欺诈条款与第三条产出浮动说明，理解并自愿签署。</span>'+
+      '</div>'+
+      '<div class="footbar"><div style="flex:1;text-align:center" class="t13">应付：<span class="price">¥'+c.total+'</span></div>'+
+        '<div class="btn '+(S.agreed?'pri':'dis')+'" style="flex:0 0 170px" data-act="sign">'+(S.signed?'已完成签名 · 去支付':'手写签名并支付 ¥'+c.total)+'</div></div>';
+  }
+};
+
+PAGES.payResult={
+  title:'支付结果',noBack:true,
+  render:function(){
+    const c=calcPrice();
+    return '<div class="card" style="margin:12px">'+
+      '<div class="succ"><div class="cir">'+I('check','',34)+'</div>'+
+        '<div class="t16" style="font-size:19px">认养成功</div>'+
+        '<div class="price" style="margin-top:6px;font-size:26px"><b>'+c.total+'</b> 元</div>'+
+        '<div class="t12" style="margin-top:4px">微信支付 · 已付至经营者对公监管账户</div>'+
+      '</div>'+
+      '<div class="split" style="margin:12px -14px"></div>'+
+      '<div class="kv"><span class="k">认养编号</span><span style="font-weight:600">A2026-1001</span></div>'+
+      '<div class="kv"><span class="k">认养标的</span><span>'+c.p.name+'</span></div>'+
+      '<div class="kv"><span class="k">地块编号</span><span>C 区 12 号地（66㎡）</span></div>'+
+      '<div class="kv"><span class="k">服务周期</span><span>2026-10-11 至 2027-10-10</span></div>'+
+      '<div class="kv"><span class="k">专属管家</span><span>李管家 · 158****2210</span></div>'+
+      '<div class="split" style="margin:8px -14px"></div>'+
+      '<div class="row bw" style="padding:9px 0"><div class="row" style="gap:7px">'+I('doc','var(--g)',17)+'<span class="t14">电子合同已归档</span></div><span class="chip">CA 存证</span></div>'+
+      '<div class="row bw" style="padding:9px 0"><div class="row" style="gap:7px">'+I('shield','var(--o)',17)+'<span class="t14">农业保险已投保</span></div><span class="chip o">PICC-2026-0188</span></div>'+
+      '<div class="row bw" style="padding:9px 0"><div class="row" style="gap:7px">'+I('qr','var(--g)',17)+'<span class="t14">溯源码已生成</span></div><span class="chip">点击查看</span></div>'+
+      '<div class="notebox" style="margin-top:10px">资金已进入经营者对公账户并由第三方支付机构监管，平台不触碰资金；后续每一笔农事、每一次配送都会推送给您。</div>'+
+    '</div>'+
+    '<div class="row" style="padding:0 12px;gap:10px">'+
+      '<div class="btn gy" data-go="home">返回首页</div>'+
+      '<div class="btn pri" data-go="adoption">查看我的认养</div>'+
+    '</div>'+
+    '<div class="hd"><h3>认养后你可以</h3></div>'+
+    '<div class="card row" style="justify-content:space-between;padding:14px 6px">'+
+      [['video','看监控','live'],['camera','生长档案','archive'],['truck','预约配送','harvest'],['cal','预约到访','visit']].map(function(x){
+        return '<div style="flex:1;text-align:center;cursor:pointer" data-go="'+x[2]+'"><div style="color:var(--gd);display:flex;justify-content:center">'+I(x[0],'',20)+'</div><div class="t12" style="font-size:11px;margin-top:4px">'+x[1]+'</div></div>';
+      }).join('')+
+    '</div>'+
+    '<div style="height:16px"></div>';
+  }
+};
+
+PAGES.orderList={
+  title:'我的订单',
+  render:function(){
+    const tabs=[['all','全部'],['pay','待付款'],['doing','认养中'],['done','已完成'],['refund','退款']];
+    return '<div class="tabs">'+tabs.map(function(t){return '<div class="tab '+(S.aTab===t[0]?'on':'')+'" data-act="setTab:'+t[0]+'">'+t[1]+'</div>';}).join('')+'</div>'+
+      [D.adoptions[0],D.adoptions[1],D.adoptions[2]].map(function(a){
+        const done=a.status==='done';
+        return '<div class="card tight" style="cursor:pointer" data-go="adoption:'+a.id+'">'+
+          '<div class="row bw"><span class="t12">订单号 '+a.id+'</span><span class="chip '+(done?'gy':'')+'">'+(done?'已完成':'认养中')+'</span></div>'+
+          '<div class="row" style="gap:10px;margin-top:9px">'+
+            '<div class="ph g1" style="width:60px;height:60px;flex:0 0 60px"><span style="font-size:22px">🥬</span></div>'+
+            '<div style="flex:1"><div class="t15">'+a.name+'</div><div class="t12" style="margin-top:3px">'+a.spec+' · '+a.block+'</div>'+
+            '<div class="t12" style="margin-top:3px">'+a.start+' ~ '+a.end+'</div></div>'+
+            '<div style="text-align:right"><div class="price">¥'+(a===D.adoptions[0]?1980:a===D.adoptions[1]?168:368)+'</div></div>'+
+          '</div>'+
+          '<div class="row bw" style="margin-top:10px;padding-top:9px;border-top:1px solid var(--line)">'+
+            '<span class="t12">已交付 '+a.delivered+' / '+a.totalDeliver+' 次</span>'+
+            '<div class="row" style="gap:7px">'+
+              '<span class="btn gy" style="padding:5px 13px;font-size:12px" data-go="logistics">查看物流</span>'+
+              (done?'<span class="btn sec" style="padding:5px 13px;font-size:12px" data-go="review">去评价</span>':'<span class="btn sec" style="padding:5px 13px;font-size:12px" data-go="adoption:'+a.id+'">看长势</span>')+
+            '</div>'+
+          '</div>'+
+        '</div>';
+      }).join('')+'<div style="height:14px"></div>';
+  }
+};
+
+PAGES.refund={
+  title:'退款 / 售后',
+  render:function(){
+    const a=D.adoptions[0];
+    return '<div class="legend">'+I('clock','',13)+'<b>退款规则（合同第六条）</b>认养开始前全额退款；开始后按已发生农事投入比例扣除，余款 3 个工作日内退回原支付账户。</div>'+
+      '<div class="card tight row" style="gap:10px">'+
+        '<div class="ph g1" style="width:60px;height:60px;flex:0 0 60px"><span style="font-size:22px">🥬</span></div>'+
+        '<div style="flex:1"><div class="t15">'+a.name+'</div><div class="t12" style="margin-top:3px">'+a.block+' · 已认养 176 天</div></div>'+
+      '</div>'+
+      '<div class="card">'+
+        '<div class="t15" style="margin-bottom:10px">退款原因</div>'+
+        [['认养计划变更','pa'],['农产品品质不符','qa'],['产出未达约定','gb'],['到园体验不满意','ex'],['其他原因','ot']].map(function(r,i){
+          const on=S.refundReason===r[1];
+          return '<div class="row bw" style="padding:10px 0;cursor:pointer;border-bottom:1px solid var(--line)" data-act="setReason:'+r[1]+'">'+
+            '<span class="t14">'+r[0]+'</span>'+
+            '<span style="width:18px;height:18px;border-radius:50%;border:1.5px solid '+(on?'var(--g)':'#d5d9de')+';display:flex;align-items:center;justify-content:center">'+(on?'<span style="width:9px;height:9px;border-radius:50%;background:var(--g)"></span>':'')+'</span>'+
+          '</div>';
+        }).join('')+
+        '<div class="t15" style="margin:14px 0 8px">补充说明</div>'+
+        '<textarea style="width:100%;height:80px;border:1px solid var(--line);border-radius:10px;padding:10px;font-family:inherit;font-size:13.5px;outline:none;resize:none" placeholder="请描述具体情况，便于管家与经营者核实（选填）"></textarea>'+
+        '<div class="row" style="gap:7px;margin-top:10px">'+['g1','g3'].map(function(g){return '<div class="ph '+g+'" style="width:66px;height:66px;border-radius:8px"><span style="font-size:17px">📷</span></div>';}).join('')+
+          '<div class="ph g8" style="width:66px;height:66px;border-radius:8px;opacity:.6"><span style="font-size:20px">'+I('plus','#fff',20)+'</span></div></div>'+
+      '</div>'+
+      '<div class="card">'+
+        '<div class="t15" style="margin-bottom:8px">退款金额试算</div>'+
+        '<div class="kv"><span class="k">实付金额</span><span>¥1980</span></div>'+
+        '<div class="kv"><span class="k">已发生农事投入</span><span>-¥412</span></div>'+
+        '<div class="kv"><span class="k">已交付农产品</span><span>-¥268</span></div>'+
+        '<div class="row bw" style="margin-top:8px;padding-top:9px;border-top:1px solid var(--line)"><span class="t14">预计退回</span><span class="price" style="font-size:17px"><b style="font-size:21px">1300</b> 元</span></div>'+
+        '<div class="t12" style="margin-top:6px;font-size:11px">最终金额以经营者核实后为准，退款原路返回</div>'+
+      '</div>'+
+      '<div class="row" style="padding:0 12px;gap:10px"><div class="btn gy" data-go="service">先问管家</div><div class="btn pri" data-act="refundDone">提交申请</div></div>'+
+      '<div style="height:16px"></div>';
+  }
+};
+ACT.setReason=function(r){S.refundReason=r;render();};
+ACT.refundDone=function(){toast('退款申请已提交 · 管家将在 24h 内确认');setTimeout(function(){stack=[{n:'mine'}];render();},900);};
+
+PAGES.myContract={
+  title:'合约中心',
+  render:function(){
+    return '<div class="noticebar" style="margin:10px 12px;border-radius:10px">'+I('shield','',13)+'所有合同经 CA 机构 + 区块链双重存证，可随时下载与验真</div>'+
+      ['A2026-1001','A2026-0988','A2025-0766'].map(function(no,i){
+        return '<div class="card tight">'+
+          '<div class="row bw"><div class="row" style="gap:8px">'+I('doc','var(--g)',18)+'<div><div class="t15">农产品认养服务合同</div><div class="t12" style="font-size:11px">编号 HT-2026-'+('0'+(i+1)) +'-100X · 2026-0'+(9-i)+'-11</div></div></div>'+
+            '<span class="chip'+(i===2?' gy':'')+'">'+(i===2?'已届满':'生效中')+'</span></div>'+
+          '<div class="row bw" style="margin-top:10px;padding-top:9px;border-top:1px solid var(--line)">'+
+            '<div class="row" style="gap:12px"><span class="chip gy">CA 认证</span><span class="chip gy">区块链存证</span></div>'+
+            '<div class="row" style="gap:6px"><span class="btn gy" style="padding:5px 12px;font-size:12px" data-act="notImp">下载</span><span class="btn sec" style="padding:5px 12px;font-size:12px" data-act="notImp">查看原文</span></div>'+
+          '</div>'+
+        '</div>';
+      }).join('')+
+      '<div class="hd"><h3>附属单据</h3></div>'+
+      '<div class="card">'+
+        [['农业保险保单','PICC-2026-0188','承保至 2027-10'],['产出浮动告知书','已签署 2026-10-11','固本作物的产出波动说明'],['第三方检测报告','CNAS-2026-0918','农残未检出'],['土地权属证明','核验通过 · 2026-03','村集体流转合同']].map(function(x){
+          return '<div class="row bw" style="padding:11px 0;border-bottom:1px solid var(--line)"><div><div class="t14">'+x[0]+'</div><div class="t12" style="font-size:11px;margin-top:2px">'+x[2]+'</div></div>'+
+            '<div class="row" style="gap:8px"><span class="t12">'+x[1]+'</span>'+I('right','#b3b8bf',15)+'</div></div>';
+        }).join('')+
+      '</div>'+
+      '<div style="height:16px"></div>';
+  }
+};
+
+/* ============================================================
+   页面组 C：我的 · 服务
+   ============================================================ */
+PAGES.mine={
+  hideNav:true,
+  render:function(){
+    const u={n:'张先生',id:'NO.8826 认证认养人',lv:'V3 田园庄主',grow:6820,next:8000};
+    return '<div style="background:linear-gradient(150deg,#2f9e63,#1b7a4c);padding:16px 16px 22px;color:#fff">'+
+      '<div class="row bw">'+
+        '<div class="row" style="gap:11px">'+
+          '<div class="avatar" style="width:54px;height:54px;font-size:20px;background:linear-gradient(135deg,#ffe4a8,#f0b95c);color:#7a4a10">张</div>'+
+          '<div><div class="t16" style="font-size:17px">'+u.n+'</div><div style="font-size:11px;opacity:.85;margin-top:3px">'+u.id+'</div>'+
+          '<div class="lvbar" style="margin-top:5px;display:inline-flex">'+I('medal','',11)+' '+u.lv+'</div></div>'+
+        '</div>'+
+        '<div class="row" style="gap:14px"><span data-go="message" style="position:relative;cursor:pointer">'+I('bell','#fff',20)+'<i style="position:absolute;right:-2px;top:-2px;width:7px;height:7px;border-radius:50%;background:#ff5a5f"></i></span>'+
+        '<span data-go="settings" style="cursor:pointer">'+I('cog','#fff',20)+'</span></div>'+
+      '</div>'+
+      '<div class="row" style="margin-top:14px;gap:8px">'+
+        [['认养','2','myAdoption'],['积分','4200','point'],['优惠券','3','coupon'],['日记','8','diary']].map(function(x){
+          return '<div style="flex:1;text-align:center;cursor:pointer" data-go="'+x[2]+'"><div style="font-size:16px;font-weight:700">'+x[1]+'</div><div style="font-size:11px;opacity:.85;margin-top:1px">'+x[0]+'</div></div>';
+        }).join('')+
+      '</div>'+
+    '</div>'+
+    '<div class="card" style="margin-top:-14px">'+
+      '<div class="row bw" style="padding-bottom:10px"><span class="t15">我的认养</span><span class="t12" data-go="myAdoption">全部'+I('right','',12)+'</span></div>'+
+      '<div class="row" style="gap:6px">'+
+        [['g1','看长势','adoption'],['truck','收获配送','harvest'],['cal','到访预约','visit'],['doc','合约中心','myContract']].map(function(x){
+          return '<div style="flex:1;text-align:center;cursor:pointer" data-go="'+x[2]+'"><div class="ph '+x[0]+'" style="height:42px;border-radius:11px"><span style="font-size:17px">🥬</span></div><div class="t12" style="font-size:11px;margin-top:5px">'+x[1]+'</div></div>';
+        }).join('')+
+      '</div>'+
+    '</div>'+
+    '<div class="card">'+
+      '<div class="t15" style="margin-bottom:6px">我的服务</div>'+
+      '<div class="g4" style="gap:14px 0;padding-top:8px">'+
+        [['box','我的订单','orderList'],['heart','我的收藏','favorites'],['loc','收货地址','address'],['gift','邀请有礼','invite'],
+         ['medal','会员中心','member'],['users','在线管家','service'],['cog','作物问诊','care'],['flag','任务中心','task'],
+         ['grid','农资商城','supply'],['box','我的农资','mySupplies'],['check','自管任务','selfTask'],['water','代管服务','supply']].map(function(x){
+          return '<div class="gcol" data-go="'+x[2]+'"><span style="color:var(--gd);display:flex">'+I(x[0],'',21)+'</span><span>'+x[1]+'</span></div>';
+        }).join('')+
+      '</div>'+
+    '</div>'+
+    '<div class="card tight row bw" data-go="notice" style="cursor:pointer">'+
+      '<div class="row" style="gap:9px">'+I('shield','var(--g)',19)+'<div><div class="t15">合规与资金安全</div><div class="t12" style="font-size:11px">了解我们如何隔离相关联风险</div></div></div>'+I('right','#b3b8bf',16)+
+    '</div>'+
+    '<div class="hd"><h3>猜你想认养</h3><span class="more" data-go="mall">去商城'+I('right','',12)+'</span></div>'+
+    '<div class="row" style="padding:0 12px;gap:10px;overflow-x:auto">'+[D.products[2],D.products[4],D.products[6]].map(pvcard).join('')+'</div>'+
+    '<div style="height:18px"></div>';
+  }
+};
+PAGES.member={
+  title:'会员中心',
+  render:function(){
+    return '<div class="card" style="background:linear-gradient(140deg,#3d5a4a,#20362b);color:#fff">'+
+      '<div class="row bw"><div><div style="font-size:17px;font-weight:700">V3 田园庄主</div><div style="font-size:11.5px;opacity:.8;margin-top:4px">成长值 6820 / 8000，再得 1180 升级 V4</div></div>'+
+      '<span class="lvbar" style="font-size:11px;padding:5px 10px">'+I('medal','',12)+' 权益卡</span></div>'+
+      '<div class="prog" style="margin-top:11px;background:rgba(255,255,255,.22)"><i style="width:85%;background:linear-gradient(90deg,#f3d9a4,#e5b45c)"></i></div>'+
+    '</div>'+
+    '<div class="hd"><h3>V3 专属权益</h3></div>'+
+    '<div class="card">'+
+      [['gift','生日当月赠送 5 斤时蔬礼盒'],['ticket','每月 2 张专属认养券（¥50）'],['cal','优先预约到访与亲子活动'],['users','专属管家 1 对 1 服务'],['truck','全年免运费（限 12 次）'],['flag','新品内测与种植清单定制']].map(function(x){
+        return '<div class="row" style="gap:10px;padding:10px 0;border-bottom:1px solid var(--line)"><div class="ph g8" style="width:34px;height:34px;flex:0 0 34px;border-radius:9px"><span style="font-size:15px">'+I(x[0],'#fff',16)+'</span></div>'+
+          '<span class="t14">'+x[1]+'</span></div>';
+      }).join('')+
+    '</div>'+
+    '<div class="hd"><h3>成长值明细</h3></div>'+
+    '<div class="card">'+[['每日浏览农事记录','+5','10-08'],['完成一笔认养','+500','10-02'],['发布动态被精选','+100','09-28'],['邀请好友完成认养','+300','09-21']].map(function(x){
+      return '<div class="row bw" style="padding:10px 0;border-bottom:1px solid var(--line)"><div><div class="t14">'+x[0]+'</div><div class="t12" style="font-size:11px">'+x[2]+'</div></div><span style="color:var(--gd);font-weight:700">'+x[1]+'</span></div>';
+    }).join('')+'</div>'+
+    '<div style="height:16px"></div>';
+  }
+};
+PAGES.point={
+  title:'我的积分',
+  render:function(){
+    return '<div class="card" style="background:linear-gradient(140deg,var(--g),var(--gd));color:#fff">'+
+      '<div style="font-size:12px;opacity:.85">可用积分</div><div style="font-size:32px;font-weight:700;margin-top:4px">4,200</div>'+
+      '<div class="row bw" style="margin-top:12px;padding-top:11px;border-top:1px solid rgba(255,255,255,.25)"><span style="font-size:12px">今年即将到期 320 分</span><span class="btn" style="background:#fff;color:var(--gd);padding:6px 16px;font-size:12.5px">去兑换</span></div>'+
+    '</div>'+
+    '<div class="hd"><h3>积分明细</h3></div>'+
+    '<div class="card">'+D.points.map(function(p){
+      return '<div class="row bw" style="padding:11px 0;border-bottom:1px solid var(--line)"><div><div class="t14">'+p.n+'</div><div class="t12" style="font-size:11px">'+p.d+'</div></div><span style="color:var(--gd);font-weight:700">'+p.v+'</span></div>';
+    }).join('')+'</div>'+
+    '<div class="hd"><h3>积分兑换</h3></div>'+
+    '<div class="g2 sec">'+[['🚚','免运费券','300 分'],['🧺','采摘篮兑换','500 分'],['🌱','种子盲盒','200 分'],['🎟','50 元认养券','4500 分']].map(function(x){
+      return '<div class="card tight ctr" data-act="notImp"><div class="ph g1" style="height:64px"><span style="font-size:22px">'+x[0]+'</span></div><div class="t14" style="margin-top:7px">'+x[1]+'</div><div class="t12" style="margin-top:2px">'+x[2]+'</div></div>';
+    }).join('')+'</div>'+
+    '<div style="height:16px"></div>';
+  }
+};
+PAGES.coupon={
+  title:'优惠券',
+  render:function(){
+    const pick=S.couponFrom==='order';
+    return (pick?'<div class="row bw card tight" data-act="pickCoupon:0" style="cursor:pointer"><span class="t14">不使用优惠券</span><span style="width:18px;height:18px;border-radius:50%;border:1.5px solid '+(S.coupon?'#d5d9de':'var(--g)')+';display:flex;align-items:center;justify-content:center">'+(S.coupon?'':'<i style="width:9px;height:9px;border-radius:50%;background:var(--g)"></i>')+'</span></div>':'')+
+    D.coupons.map(function(c){
+      const on=S.coupon===c.id;
+      return '<div class="card row bw" style="margin:8px 12px;padding:0;overflow:hidden;gap:0;'+(pick?'cursor:pointer':'')+'" '+(pick?'data-act="pickCoupon:'+c.id+'"':'')+'>'+
+        '<div style="width:104px;flex:0 0 104px;background:linear-gradient(150deg,#ff9a3d,#f4601f);color:#fff;text-align:center;padding:16px 6px;display:flex;flex-direction:column;justify-content:center">'+
+          '<div style="font-size:26px;font-weight:700">'+c.v+'<span style="font-size:13px">元</span></div>'+
+          '<div style="font-size:10.5px;opacity:.9;margin-top:2px">满 '+c.min+' 可用</div>'+
+        '</div>'+
+        '<div style="flex:1;padding:12px 13px"><div class="t15">'+c.n+'</div><div class="t12" style="margin-top:4px">有效期至 '+c.d+'</div>'+
+          '<div class="t12" style="font-size:11px;margin-top:4px">全区认养项目通用</div></div>'+
+        (pick?'<div style="padding-right:14px"><span style="width:18px;height:18px;border-radius:50%;border:1.5px solid '+(on?'var(--g)':'#d5d9de')+';display:flex;align-items:center;justify-content:center">'+(on?'<i style="width:9px;height:9px;border-radius:50%;background:var(--g)"></i>':'')+'</span></div>':'<div style="padding-right:14px"><span class="btn '+(on?'sec':'gy')+'" style="padding:5px 13px;font-size:12px">去使用</span></div>')+
+      '</div>';
+    }).join('')+
+    '<div class="ctr t12" style="padding:14px 0 22px" data-act="notImp">查看失效优惠券 →</div>';
+  }
+};
+PAGES.address={
+  title:'收货地址',
+  render:function(){
+    return '<div style="padding:10px 12px 0">'+D.addresses.map(function(a){
+      return '<div class="card tight" style="cursor:pointer" data-act="pickAddr:'+a.id+'">'+
+        '<div class="row bw"><div class="row" style="gap:7px"><span class="t15">'+a.n+'</span><span class="t13">'+a.ph+'</span>'+(a.def?'<span class="chip">默认</span>':'')+'</div>'+I('pen','#8b9199',15)+'</div>'+
+        '<div class="t13" style="margin-top:5px">'+a.a+'</div>'+
+        '<div class="row bw" style="margin-top:9px;padding-top:9px;border-top:1px solid var(--line)">'+
+          '<span class="t12" data-act="setDefaultDemo">'+(a.def?'默认地址':'设为默认')+'</span>'+
+          '<div class="row" style="gap:14px"><span class="t12">编辑</span><span class="t12" style="color:var(--r)">删除</span></div>'+
+        '</div></div>';
+    }).join('')+'</div>'+
+    '<div class="row" style="padding:12px"><div class="btn pri full" data-act="notImp">'+I('plus','',17)+' 新增收货地址</div></div>';
+  }
+};
+PAGES.invite={
+  title:'邀请有礼',
+  render:function(){
+    return '<div class="card" style="background:linear-gradient(140deg,#ff9a3d,#f4601f);color:#fff">'+
+      '<div class="ctr"><div style="font-size:17px;font-weight:700">邀好友认养 · 各得 ¥100</div>'+
+      '<div style="font-size:12px;opacity:.9;margin-top:6px;line-height:1.7">好友完成首笔认养，双方各得 100 元认养券<br>仅限一次性实物权益赠送，不涉及返佣层级</div></div>'+
+    '</div>'+
+    '<div class="card">'+
+      '<div class="row bw" style="padding-bottom:10px"><span class="t15">我的邀请</span><span class="t12">已成功 3 人</span></div>'+
+      [['王**','2026-10-06','已返 ¥100 券'],['李**','2026-09-22','已返 ¥100 券'],['赵**','2026-09-03','进行中']].map(function(x){
+        return '<div class="row bw" style="padding:10px 0;border-bottom:1px solid var(--line)"><div class="row" style="gap:9px"><div class="avatar" style="width:32px;height:32px;font-size:13px">'+x[0].charAt(0)+'</div>'+
+          '<div><div class="t14">'+x[0]+'</div><div class="t12" style="font-size:11px">'+x[1]+'</div></div></div>'+
+          '<span class="chip'+(x[2].indexOf('进行')>=0?' gy':'')+'">'+x[2]+'</span></div>';
+      }).join('')+
+    '</div>'+
+    '<div class="card ctr">'+
+      '<div class="t15" style="margin-bottom:10px">我的专属海报</div>'+
+      '<div class="ph g1" style="height:210px"><div style="text-align:center"><span style="font-size:34px">🎫</span><b style="display:block;margin-top:6px">认养邀请海报</b><b style="display:block;font-size:10px;margin-top:3px">长按保存 · 分享朋友圈</b></div></div>'+
+      '<div class="row" style="gap:9px;margin-top:11px"><div class="btn gy" data-act="notImp">保存海报</div><div class="btn pri" data-act="notImp">分享给好友</div></div>'+
+    '</div>'+
+    '<div class="noticebar" style="margin:10px 12px;border-radius:10px">'+I('warn','',13)+'邀请奖励为一次性实物权益，不设多级分销、不返现金</div>'+
+    '<div style="height:16px"></div>';
+  }
+};
+PAGES.message={
+  title:'消息中心',
+  render:function(){
+    const tabs=[['all','全部'],['sys','系统'],['logi','物流'],['farm','农事'],['soc','互动']];
+    return '<div class="tabs">'+tabs.map(function(t){return '<div class="tab '+(S.msgTab===t[0]?'on':'')+'" data-act="msgTab:'+t[0]+'">'+t[1]+'</div>';}).join('')+'</div>'+
+      D.msgs.map(function(m){
+        return '<div class="card tight row" style="gap:11px;align-items:flex-start;cursor:pointer" data-go="'+(m.t==='物流'?'logistics':m.t==='农事'?'archive':'myContract')+'">'+
+          '<div class="ph g'+(m.g==='r'?'4':m.g==='o'?'6':m.g==='b'?'2':'8')+'" style="width:38px;height:38px;flex:0 0 38px;border-radius:11px"><span style="font-size:15px">'+I(m.i,'#fff',17)+'</span></div>'+
+          '<div style="flex:1"><div class="row bw"><span class="t15">'+m.n+'</span><span class="t12" style="font-size:11px">'+m.d+'</span></div>'+
+          '<div class="t13" style="margin-top:3px;color:var(--tx2)">'+m.c+'</div></div>'+
+        '</div>';
+      }).join('')+
+      '<div class="ctr t12" style="padding:16px 0">—— 没有更多消息 ——</div>';
+  }
+};
+PAGES.settings={
+  title:'设置',
+  render:function(){
+    return [['flag','实名与安全','已完成身份证实名'],['bell','消息推送','已开启'],['shield','隐私设置','管理'],['doc','关于平台','v2.4.1']].map(function(x,i){
+      return '<div class="list-item" data-act="notImp"><span style="color:var(--gd);display:flex">'+I(x[0],'',19)+'</span><div style="flex:1"><div class="t14">'+x[1]+'</div><div class="t12" style="font-size:11px">'+x[2]+'</div></div>'+I('right','#b3b8bf',16)+'</div>';
+    }).join('')+
+    '<div class="split"></div>'+
+    '<div class="list-item" data-act="notImp"><span style="color:var(--gd);display:flex">'+I('warn','',19)+'</span><div style="flex:1"><div class="t14">清空缓存</div></div><span class="t12">12.4MB</span>'+I('right','#b3b8bf',16)+'</div>'+
+    '<div class="split"></div>'+
+    '<div class="row" style="padding:20px 12px"><div class="btn gy full" data-act="notImp">退出登录</div></div>';
+  }
+};
+
+/* ============================================================
+   页面组 D：认养管理（核心差异模块）
+   ============================================================ */
+ACT.openAddr=function(){
+  sheet('选择收货地址',D.addresses.map(function(a){
+    return '<div class="row bw card tight" style="margin-bottom:9px;cursor:pointer" data-act="pickAddr:'+a.id+'">'+
+      '<div style="flex:1"><div class="t15">'+a.n+' <span class="t12">'+a.ph+'</span>'+(a.def?'<span class="chip">默认</span>':'')+'</div>'+
+      '<div class="t12" style="margin-top:3px">'+a.a+'</div></div>'+
+      (S.addr===a.id?I('check','var(--g)',19):'')+'</div>';
+  }).join(''));
+};
+function getA(){return D.adoptions.find(function(x){return x.id===S.aid;})||D.adoptions[0];}
+
+/* ============================================================
+   页面组 E：托管方式 · 农资商城 · 自管任务
+   ============================================================ */
+PAGES.careGuide={
+  title:'托管方式对比',rt:'<span>'+I('chat','',17)+'</span>',
+  render:function(){
+    const rows=[
+      ['土地与基础设施','农场','农场','农场'],
+      ['整地起垄与底肥','农场','农场','自己 / 加购'],
+      ['种子种苗','农场','自购','自购'],
+      ['播种定植','农场','农场','自己'],
+      ['日常浇水','农场','自己 / 可委托','自己'],
+      ['中耕除草','农场','自己 / 可委托','自己'],
+      ['搭架整枝','农场','自己 / 可委托','自己'],
+      ['追肥','农场','自购 + 自己施','自购 + 自己施'],
+      ['病虫害防治','农场','农场统防统治','自己 / 加购'],
+      ['采收与配送','含 12 次','含 12 次','加购代采代发'],
+      ['农业保险','含','含统防部分','建议自购'],
+      ['产出承诺','保底 240 斤','按实际交付','风险自担'],
+      ['每周待办','0 项','约 2 项','约 5 项']
+    ];
+    return '<div class="card">'+
+        '<div class="t16" style="margin-bottom:4px">'+I('shield','var(--g)',15)+' 三种托管方式，选你要的参与感</div>'+
+        '<div class="t13" style="line-height:1.85">同样的地，可以「全交给农场」，也可以「自己下地种」。参与越多，认养费越低；农场承担的责任也相应越少 —— 价格、服务、责任三者一一对应，全部写进电子合同。</div>'+
+      '</div>'+
+      '<div class="card" style="padding:12px 10px">'+
+        '<div style="display:flex;font-size:12px;color:var(--tx2);padding:0 4px 8px;border-bottom:1px solid var(--line)">'+
+          '<div style="flex:1.15">服务项</div><div style="flex:.62;text-align:center">全托管</div><div style="flex:.62;text-align:center">半托管</div><div style="flex:.62;text-align:center">不托管</div>'+
+        '</div>'+
+        rows.map(function(r,i){
+          return '<div style="display:flex;font-size:12px;padding:9px 4px;'+(i%2?'background:#fafbfc':'')+';align-items:center">'+
+            '<div style="flex:1.15;color:var(--tx2)">'+r[0]+'</div>'+
+            [1,2,3].map(function(k){
+              const v=r[k];
+              const isFarm=(v==='农场'||v==='含 12 次'||v==='含');
+              const isSelf=(v.indexOf('自己')>=0||v.indexOf('自购')>=0||v==='风险自担');
+              const col=isFarm?'var(--g)':(isSelf?'var(--o)':'var(--tx)');
+              return '<div style="flex:.62;text-align:center;font-size:11px;color:'+col+';line-height:1.4">'+v+'</div>';
+            }).join('')+
+          '</div>';
+        }).join('')+
+      '</div>'+
+      '<div class="hd"><h3>参考价格（66㎡ / 12 个月）</h3></div>'+
+      '<div class="card">'+D.careModes.map(function(m){
+        return '<div class="row bw" style="padding:10px 0;border-bottom:1px solid var(--line)">'+
+          '<div class="row" style="gap:9px"><span style="font-size:19px">'+m.e+'</span>'+
+            '<div><div class="t14" style="font-weight:600">'+m.n+'</div><div class="t12" style="font-size:11px">'+m.priceNote+'</div></div></div>'+
+          '<span class="price" style="font-size:15px;font-weight:700">¥'+(1280+m.delta)+'</span></div>';
+      }).join('')+
+      '<div class="notebox" style="margin-top:10px">'+I('doc','',12)+' 认养后每周期可申请切换 1 次托管方式：由低托管转高托管需补差价，由高转低按剩余周期折算退还（扣除已发生的农事投入）。</div>'+
+      '</div>'+
+      '<div class="hd"><h3>我适合哪种？</h3></div>'+
+      '<div class="sec">'+D.careModes.map(function(m,i){
+        return '<div class="card tight" style="border-left:3px solid '+(i===0?'var(--g)':(i===1?'#e0932a':'#8b9199'))+'">'+
+          '<div class="row bw"><span class="t15" style="font-weight:600">'+m.e+' '+m.n+'</span><span class="chip gy">'+m.todo+'</span></div>'+
+          '<div class="t13" style="margin-top:6px">'+m.fit+'</div>'+
+          '<div class="t12" style="margin-top:6px;font-size:11px;line-height:1.7">'+I('warn','',11)+' '+m.risk+'</div>'+
+        '</div>';
+      }).join('')+'</div>'+
+      '<div class="footbar"><div class="btn gy" data-go="service" style="flex:0 0 120px">问管家建议</div>'+
+        '<div class="btn pri" data-act="back" style="flex:1">返回商品</div></div>';
+  }
+};
+
+PAGES.supply={
+  title:'农资与服务商城',rt:'<span data-go="mySupplies">我的农资</span>',
+  render:function(){
+    const mode=D.careModes[S.care]||D.careModes[1];
+    const list=(S.scat==='all')?D.supplies:D.supplies.filter(function(s){return s.cat===S.scat;});
+    return '<div class="noticebar" style="margin:10px 12px;border-radius:10px">'+I('leaf','',13)+
+        '当前地块 <b>'+S.sLand+'</b> · '+mode.n+'　购买后自动写入该地块投入品台账，与生长档案、溯源报告打通</div>'+
+      '<div class="card tight row bw" data-act="openLand" style="cursor:pointer">'+
+        '<div class="row" style="gap:8px">'+I('loc','var(--g)',17)+'<div><div class="t14">配送到</div>'+
+        '<div class="t12" style="font-size:11px">'+S.sLand+' · 可寄存基地工具房 / 寄到家</div></div></div>'+I('right','#b3b8bf',16)+
+      '</div>'+
+      '<div class="card" style="padding:11px 10px">'+
+        '<div class="row" style="gap:7px;overflow-x:auto">'+[{id:'all',n:'全部'}].concat(D.supplyCats).map(function(c){
+          const on=S.scat===c.id;
+          return '<span class="chip'+(on?'':' gy')+'" data-act="scat:'+c.id+'" style="flex:0 0 auto;font-size:12px;padding:6px 13px;cursor:pointer">'+c.n+'</span>';
+        }).join('')+'</div>'+
+      '</div>'+
+      '<div class="hd"><h3>共 '+list.length+' 件商品</h3><span class="more">按销量'+I('down','',11)+'</span></div>'+
+      '<div class="sec">'+list.map(function(s){
+        const fitMode=mode.id==='self'?'self':'semi';
+        const ok=s.fit.indexOf(fitMode)>=0;
+        return '<div class="card tight" style="cursor:pointer" data-go="supplyDetail:'+s.id+'">'+
+          '<div class="row" style="gap:11px;align-items:flex-start">'+
+            '<div class="ph '+s.cover+'" style="width:82px;height:82px;flex:0 0 82px"><span style="font-size:26px">'+s.e+'</span></div>'+
+            '<div style="flex:1;min-width:0">'+
+              '<div class="row" style="gap:6px"><span class="t14 ofh" style="font-weight:600">'+s.n+'</span>'+
+                (ok?'<span class="chip" style="font-size:10px;padding:2px 6px;flex:0 0 auto">适用我的模式</span>':'')+'</div>'+
+              '<div class="t12 ofh" style="margin-top:3px">'+s.sub+'</div>'+
+              '<div class="row" style="gap:5px;margin-top:6px;flex-wrap:wrap">'+
+                s.tags.slice(0,2).map(function(t){return '<span class="chip gy" style="font-size:10.5px">'+t+'</span>';}).join('')+
+              '</div>'+
+              '<div class="row bw" style="margin-top:8px">'+
+                '<span class="price" style="font-size:15px;font-weight:700">¥'+s.price+'</span>'+
+                '<span class="t12" style="font-size:10.5px">已售 '+s.sold+' · 批次 '+s.batch.split('-').slice(0,2).join('-')+'</span>'+
+              '</div>'+
+            '</div>'+
+          '</div>'+
+        '</div>';
+      }).join('')+'</div>'+
+      '<div class="legend">'+I('shield','',13)+'<b>投入品合规提示</b>：本商城仅销售种子、肥料、农具与生物防治产品；化学农药不向个人零售，统防统治由基地持证人员统一施用（购买生物防治产品自动生成代施工单）。</div>'+
+      '<div style="height:70px"></div>';
+  }
+};
+
+PAGES.supplyDetail={
+  title:'农资详情',rt:'<span>'+I('share','',17)+'</span>',
+  render:function(p){
+    const id=+(p||S.sid);
+    const s=D.supplies.find(function(x){return x.id===id;})||D.supplies[0];
+    S.sid=s.id;S.sqty=1;
+    const cn=(D.supplyCats.find(function(c){return c.id===s.cat;})||{n:'农资'}).n;
+    return '<div class="ph '+s.cover+'" style="height:190px;border-radius:0"><span style="font-size:48px">'+s.e+'</span></div>'+
+      '<div class="card" style="margin-top:-4px">'+
+        '<div class="row bw"><span class="price" style="font-size:18px"><b style="font-size:25px">'+s.price+'</b> 元 / '+s.unit+'</span>'+
+          '<span class="chip gy">'+cn+'</span></div>'+
+        '<div class="t16" style="margin-top:6px">'+s.n+'</div>'+
+        '<div class="t13" style="margin-top:4px">'+s.sub+'</div>'+
+        '<div class="row" style="gap:6px;margin-top:9px;flex-wrap:wrap">'+s.tags.map(function(t){return '<span class="chip">'+I('check','',11)+t+'</span>';}).join('')+'</div>'+
+        '<div class="row bw" style="margin-top:10px"><span class="t12">已售 '+s.sold+' 件</span><span class="t12">库存 '+s.stock+' 件</span></div>'+
+      '</div>'+
+      '<div class="card">'+
+        '<div class="t15" style="margin-bottom:8px">'+I('doc','var(--g)',14)+' 商品说明</div>'+
+        '<div class="t13" style="line-height:1.85">'+s.desc+'</div>'+
+        '<div class="split" style="margin:12px -14px"></div>'+
+        '<div class="t15" style="margin-bottom:8px">'+I('check','var(--g)',14)+' 规格与承诺</div>'+
+        s.spec.map(function(x){return '<div class="t13" style="line-height:1.9">'+I('check','var(--g)',12)+' '+x+'</div>';}).join('')+
+      '</div>'+
+      '<div class="card">'+
+        '<div class="t15" style="margin-bottom:8px">'+I('qr','var(--g)',14)+' 批次与溯源</div>'+
+        '<div class="kv"><span class="k">生产批次</span><span style="font-family:monospace;font-size:11.5px">'+s.batch+'</span></div>'+
+        '<div class="kv"><span class="k">适用模式</span><span>'+s.fit.map(function(f){return f==='self'?'不托管':'半托管';}).join(' / ')+'</span></div>'+
+        '<div class="kv"><span class="k">绑定地块</span><span>'+S.sLand+'</span></div>'+
+        '<div class="kv"><span class="k">留痕方式</span><span>购买即写入投入品台账</span></div>'+
+      '</div>'+
+      '<div class="legend">'+I('shield','',13)+'购买后该批次号将同步至地块的<b>投入品清单</b>与<b>溯源档案</b>，施用时间与用量由管家或您本人在农事打卡中登记。</div>'+
+      '<div class="footbar">'+
+        '<div class="row" style="gap:12px;color:#5b6169">'+
+          '<div style="text-align:center" data-go="service">'+I('chat','',19)+'<div class="t12" style="font-size:10px">问管家</div></div>'+
+          '<div style="text-align:center" data-go="supply">'+I('grid','',19)+'<div class="t12" style="font-size:10px">继续挑</div></div>'+
+        '</div>'+
+        '<div class="row" style="gap:6px;margin-left:4px;flex:0 0 auto">'+
+          '<span style="width:28px;height:28px;border-radius:50%;border:1px solid #d5d9de;display:flex;align-items:center;justify-content:center;color:#666" data-act="qty:-1">－</span>'+
+          '<span class="t15" style="width:22px;text-align:center">'+S.sqty+'</span>'+
+          '<span style="width:28px;height:28px;border-radius:50%;border:1px solid #d5d9de;display:flex;align-items:center;justify-content:center;color:#666" data-act="qty:1">＋</span>'+
+        '</div>'+
+        '<div class="btn pri" data-go="supplyOrder" style="margin-left:6px">立即购买</div>'+
+      '</div>';
+  }
+};
+
+PAGES.supplyOrder={
+  title:'农资结算',
+  render:function(){
+    const s=D.supplies.find(function(x){return x.id===S.sid;})||D.supplies[0];
+    const ways=[['寄存基地工具房','免费 · 到基地自取，管家代收'],['冷链 / 快递到家','¥12 · 48h 内发出'],['基地自提（当日）','免费 · 需提前联系管家']];
+    const amt=s.price*S.sqty;
+    return '<div class="card tight">'+
+        '<div class="row" style="gap:10px">'+
+          '<div class="ph '+s.cover+'" style="width:64px;height:64px;flex:0 0 64px"><span style="font-size:23px">'+s.e+'</span></div>'+
+          '<div style="flex:1"><div class="t15">'+s.n+'</div>'+
+            '<div class="t12" style="margin-top:3px">'+s.sub+'</div>'+
+            '<div class="t12" style="margin-top:5px;font-size:11px">批次 '+s.batch+'</div></div>'+
+          '<div><div class="price">¥'+s.price+'</div><div class="t12" style="text-align:right">× '+S.sqty+'</div></div>'+
+        '</div>'+
+        '<div class="split" style="margin:11px -14px"></div>'+
+        '<div class="kv"><span class="k">绑定地块</span><span>'+S.sLand+'</span></div>'+
+        '<div class="kv"><span class="k">关联认养</span><span>A2026-1001 · 半托管</span></div>'+
+        '<div class="kv"><span class="k">用途</span><span>投入品（写入溯源台账）</span></div>'+
+      '</div>'+
+      '<div class="card tight">'+
+        '<div class="t15" style="margin-bottom:8px">交付方式</div>'+
+        ways.map(function(w,i){
+          const on=S.ship===i;
+          return '<div class="row bw" style="padding:9px 0;cursor:pointer" data-act="pickShip:'+i+'">'+
+            '<div><div class="t14">'+w[0]+'</div><div class="t12" style="font-size:11px">'+w[1]+'</div></div>'+
+            '<span style="width:18px;height:18px;border-radius:50%;border:1.5px solid '+(on?'var(--g)':'#d5d9de')+';display:flex;align-items:center;justify-content:center">'+(on?'<span style="width:9px;height:9px;border-radius:50%;background:var(--g)"></span>':'')+'</span>'+
+          '</div>';
+        }).join('')+
+      '</div>'+
+      '<div class="card tight">'+
+        '<div class="kv"><span class="k">商品金额</span><span>¥'+amt+'</span></div>'+
+        '<div class="kv"><span class="k">运费</span><span>'+(S.ship===1?'¥12':'免运费')+'</span></div>'+
+        '<div class="row bw" style="margin-top:8px;padding-top:9px;border-top:1px solid var(--line)"><span class="t14">应付</span>'+
+          '<span class="price" style="font-size:17px"><b style="font-size:21px">'+(amt+(S.ship===1?12:0))+'</b> 元</span></div>'+
+      '</div>'+
+      '<div class="legend">'+I('shield','',13)+'<b>农资为实物商品</b>：一经售出非质量问题不退换；施用后剩余部分可寄存基地，认养周期内可继续使用。</div>'+
+      '<div class="footbar"><div style="text-align:right;margin-right:4px"><div class="t12">应付</div>'+
+        '<div class="price" style="font-size:16px"><b style="font-size:20px">'+(amt+(S.ship===1?12:0))+'</b></div></div>'+
+        '<div class="btn pri" style="flex:0 0 150px" data-act="buySupply">提交并支付</div></div>';
+  }
+};
+
+PAGES.mySupplies={
+  title:'我的农资',rt:'<span data-go="supply">去商城</span>',
+  render:function(){
+    const total=D.mySupplies.reduce(function(a,b){return a+b.price;},0);
+    return '<div class="card row" style="padding:14px 6px">'+
+        [['累计采购','¥'+total],['件数',D.mySupplies.length+' 件'],['已上链','3 条']].map(function(x){
+          return '<div style="flex:1;text-align:center"><div style="font-size:18px;font-weight:700;color:var(--gd)">'+x[1]+'</div>'+
+            '<div class="t12" style="font-size:11px;margin-top:3px">'+x[0]+'</div></div>';
+        }).join('')+
+      '</div>'+
+      '<div class="hd"><h3>采购记录</h3><span class="more">全部批次'+I('right','',12)+'</span></div>'+
+      '<div class="sec">'+D.mySupplies.map(function(m){
+        return '<div class="card tight" data-go="supplyDetail:'+m.sid+'">'+
+          '<div class="row bw"><div class="row" style="gap:8px">'+I('box','var(--g)',16)+
+            '<div><div class="t14" style="font-weight:600">'+m.n+'</div>'+
+            '<div class="t12" style="font-size:11px">'+m.t+' · ×'+m.q+' · ¥'+m.price+'</div></div></div>'+
+            '<span class="chip'+(m.st==='已安装'?'':' gy')+'">'+m.st+'</span></div>'+
+          '<div class="split" style="margin:10px -14px"></div>'+
+          '<div class="row" style="gap:7px;align-items:flex-start">'+I('check','var(--g)',13)+
+            '<div style="flex:1"><div class="t13">'+m.use+'</div>'+
+            '<div class="t12" style="font-size:10.5px;margin-top:3px">批次 '+m.batch+' · 已写入 '+m.land+' 投入品台账</div></div></div>'+
+        '</div>';
+      }).join('')+'</div>'+
+      '<div class="card">'+
+        '<div class="row" style="gap:8px;margin-bottom:9px">'+I('qr','var(--g)',18)+'<span class="t16">投入品溯源</span></div>'+
+        '<div class="t13" style="line-height:1.85">您自行购买的全部农资，批次号、购买时间、施用记录会与农场自有投入品<b>合并展示</b>在认养详情的「溯源档案 - 投入品清单」中，第三方检测时可一并出具。</div>'+
+        '<div class="notebox" style="margin-top:10px">这也是半托管 / 不托管模式仍能维持「全程透明」的关键：农资来源可控、留痕完整，避免认养人自带来源不明的投入品影响整体基地合规。</div>'+
+      '</div>'+
+      '<div style="height:16px"></div>';
+  }
+};
+
+PAGES.selfTask={
+  title:'自管任务',rt:'<span data-go="mySupplies">我的农资</span>',
+  render:function(){
+    const mode=D.careModes[S.care]||D.careModes[1];
+    const todo=D.selfTasks.filter(function(t){return t.st!=='已完成';});
+    const done=D.selfTasks.filter(function(t){return t.st==='已完成';});
+    const list=S.sTab==='todo'?todo:done;
+    return '<div class="noticebar" style="margin:10px 12px;border-radius:10px">'+I('cal','',13)+
+        '任务由「作物生长日历 + IoT 墒情数据」自动生成，'+mode.n+'模式下每周约 '+(S.care===2?'5':'2')+' 项；来不及可一键委托管家</div>'+
+      '<div class="card" style="padding:11px 10px">'+
+        '<div class="row" style="gap:8px">'+[['todo','待办 '+todo.length],['done','已完成 '+done.length]].map(function(t){
+          const on=S.sTab===t[0];
+          return '<div data-act="sTab:'+t[0]+'" style="flex:1;text-align:center;padding:8px 0;border-radius:9px;font-size:13px;cursor:pointer;'+(on?'background:var(--g);color:#fff;font-weight:600':'background:#f4f6f8;color:var(--tx2)')+'">'+t[1]+'</div>';
+        }).join('')+'</div>'+
+      '</div>'+
+      (S.sTab==='todo'&&todo.filter(function(t){return t.pri==='高';}).length?
+        '<div class="card tight" style="border-left:3px solid var(--r)">'+
+          '<div class="row" style="gap:8px">'+I('warn','var(--r)',17)+'<div><div class="t14" style="font-weight:600">'+todo[0].t+' 已逾期风险</div>'+
+          '<div class="t12" style="font-size:11px;margin-top:2px">'+todo[0].due+' · 土壤墒情 18%，低于 22% 阈值</div></div></div>'+
+          '<div class="row" style="gap:8px;margin-top:10px"><div class="btn pri" data-act="entrust:0" style="flex:1">委托管家代浇 ¥30</div>'+
+          '<div class="btn gy" data-go="visit" style="flex:0 0 110px">我自己去</div></div>'+
+        '</div>':'')+
+      '<div class="hd"><h3>'+(S.sTab==='todo'?'待办事项':'已完成')+'</h3><span class="more">'+I('cal','',13)+' 农事日历</span></div>'+
+      '<div class="sec">'+list.map(function(t,i){
+        const isDone=(t.st==='已完成');
+        return '<div class="card tight">'+
+          '<div class="row bw"><div class="row" style="gap:8px">'+
+            '<span style="width:26px;height:26px;border-radius:50%;background:'+(isDone?'var(--g)':'#f0f3f5')+';display:flex;align-items:center;justify-content:center">'+(isDone?I('check','#fff',14):I('leaf','var(--g)',14))+'</span>'+
+            '<div><div class="t15" style="font-weight:600">'+t.t+'</div>'+
+            '<div class="t12" style="font-size:11px;margin-top:2px">'+t.land+' · '+t.due+(t.pri!=='—'?' · '+t.pri+'优先级':'')+'</div></div></div>'+
+            '<span class="chip'+(isDone?' gy':(t.pri==='高'?' r':' o'))+'">'+t.st+'</span></div>'+
+          '<div class="t13" style="margin-top:9px;padding:9px 10px;background:#f7faf8;border-radius:8px;line-height:1.7">'+I('sun','#e0932a',12)+' '+t.tip+'</div>'+
+          (t.opts.length?'<div class="row" style="gap:8px;margin-top:10px;flex-wrap:wrap">'+t.opts.map(function(o){
+            return '<span class="btn '+(o[0].indexOf('委托')>=0||o[0].indexOf('加购')>=0||o[0].indexOf('购买')>=0||o[0].indexOf('开通')>=0?'pri':'gy')+'" style="padding:7px 12px;font-size:12px" data-act="taskOpt:'+i+'|'+o[0]+'">'+o[0]+'<span style="opacity:.75;margin-left:4px;font-size:11px">'+o[1]+'</span></span>';
+          }).join('')+'</div>':'')+
+        '</div>';
+      }).join('')+'</div>'+
+      '<div class="legend">'+I('users','',13)+'<b>委托代办怎么算？</b>管家接单后按次计费，费用经平台分账（管家 70% / 农场 20% / 平台 10%），执行过程拍照上传并写入生长档案。</div>'+
+      '<div style="height:16px"></div>';
+  }
+};
+
+/* ---------- 托管与农资：交互动作 ---------- */
+ACT.pickCare=function(i){
+  S.care=+i;render();
+  toast('已切换为「'+D.careModes[S.care].n+'」· '+D.careModes[S.care].todo);
+};
+ACT.scat=function(c){S.scat=c;render();};
+ACT.qty=function(v){S.sqty=Math.max(1,Math.min(99,S.sqty+(+v)));render();};
+ACT.sTab=function(t){S.sTab=t;render();};
+ACT.buySupply=function(){
+  const s=D.supplies.find(function(x){return x.id===S.sid;})||D.supplies[0];
+  toast('购买成功 · 批次 '+s.batch+' 已写入投入品台账');
+  setTimeout(function(){go('mySupplies');},700);
+};
+ACT.entrust=function(){toast('已派单给李管家 · 执行后拍照回传');};
+ACT.taskOpt=function(v){
+  const a=v.split('|'), t=D.selfTasks[+a[0]], opt=a[1];
+  if(opt.indexOf('委托')>=0){toast('已下单：'+opt+'，管家接单后拍照回传');return;}
+  if(opt.indexOf('加购')>=0||opt.indexOf('购买')>=0||opt.indexOf('开通')>=0){go('supply');toast('可在农资商城完成：'+opt);return;}
+  if(opt.indexOf('查看')>=0){toast('已打开施用说明 · 稀释 800 倍滴灌');return;}
+  go('visit');
+};
+ACT.openLand=function(){
+  sheet('选择地块',
+    ['C 区 12 号地（半托管 · 66㎡）','桃园 D7（全托管 · 1 棵）'].map(function(x,i){
+      const on=S.sLand.indexOf(i?'桃园':'C 区')>=0;
+      return '<div class="row bw card tight" style="margin:0 0 9px;'+(on?'box-shadow:inset 0 0 0 2px var(--g)':'')+'" data-act="pickLand:'+i+'">'+
+        '<div class="t14">'+x+'</div>'+(on?I('check','var(--g)',18):'')+'</div>';
+    }).join('')+
+    '<div class="btn pri full" style="margin-top:14px" data-act="closeSheet">确定</div>');
+};
+ACT.pickLand=function(i){
+  S.sLand=(+i)?'桃园 D7':'C 区 12 号地';closeSheet();render();toast('已切换到 '+S.sLand);
+};
+
+function adoptionHTML(){
+  const a=getA();
+  const tabs=[['overview','概览'],['monitor','实时监控'],['archive','生长档案'],['trace','溯源'],['harvest','收获配送']];
+  const body={
+    overview:function(){
+      return '<div class="card tight">'+
+          '<div class="row bw"><div class="row" style="gap:8px">'+I('leaf','var(--g)',18)+'<span class="t15">今日农事</span></div><span class="t12">10-08</span></div>'+
+          '<div class="t13" style="margin-top:7px">'+D.archives[0].txt.slice(0,42)+'…</div>'+
+          '<div class="row" style="gap:7px;margin-top:9px">'+['g1','g3','g8'].map(function(g){return '<div class="ph '+g+'" style="width:74px;height:74px;border-radius:8px"><span style="font-size:18px">🌱</span></div>';}).join('')+'</div>'+
+        '</div>'+
+        '<div class="card row" style="padding:14px 6px">'+
+          [['已配送',a.delivered+' 次'],['累计产出',a.outTotal.split('/')[0]],['剩余',a.left+' 天']].map(function(x){
+            return '<div style="flex:1;text-align:center"><div style="font-size:18px;font-weight:700;color:var(--gd)">'+x[1]+'</div><div class="t12" style="font-size:11px;margin-top:3px">'+x[0]+'</div></div>';
+          }).join('')+
+        '</div>'+
+        (a.care!=null?careMini(a):'')+
+        '<div class="hd"><h3>认养服务</h3></div>'+
+        '<div class="card"><div class="g4" style="gap:16px 0">'+
+          [['video','实时监控','monitor'],['camera','生长档案','archive'],['qr','溯源查询','trace'],['truck','预约配送','delivery'],
+           ['users','专属管家','service'],['cal','预约到访','visit'],['share','认养转赠','transfer'],['star','发表评价','review'],
+           ['grid','农资商城','supply'],['check','自管任务','selfTask'],['box','我的农资','mySupplies'],['water','代管服务','svc']].map(function(x){
+            return '<div class="gcol" data-act="atabGo:'+x[2]+'"><span style="color:var(--gd);display:flex">'+I(x[0],'',21)+'</span><span>'+x[1]+'</span></div>';
+          }).join('')+'</div></div>'+
+        '<div class="card tight row bw" style="cursor:pointer" data-go="service">'+
+          '<div class="row" style="gap:10px"><div class="avatar" style="width:40px;height:40px;font-size:14px">李</div>'+
+          '<div><div class="t15">'+a.keeper+' · 专属管家</div><div class="t12" style="font-size:11px">在线 · 平均 3 分钟响应</div></div></div>'+
+          '<span class="chip">发消息'+I('right','',11)+'</span></div>'+
+        '<div class="card tight row bw" style="cursor:pointer" data-go="myContract">'+
+          '<div class="row" style="gap:8px">'+I('doc','var(--g)',18)+'<span class="t14">合约 / 保单 / 存证</span></div>'+
+          '<span class="t12">3 份单据'+I('right','',12)+'</span></div>'+
+        '<div class="legend">'+I('clock','',13)+'<b>该认养将在 '+a.left+' 天后到期</b>续期可保留同一地块编号，老客专享 ¥180 复购券（合约到期前 30 天推送提醒）。</div>'+
+        '<div style="height:16px"></div>';
+    },
+    monitor:function(){
+      return '<div class="card" style="padding:0;overflow:hidden">'+
+          '<div class="ph g5" style="height:210px;position:relative;border-radius:14px 14px 0 0"><span style="font-size:38px">📹</span>'+
+            '<div class="badge-live">LIVE · '+a.cams[S.cam]+'</div>'+
+            '<div class="float-live" data-act="refresh0">'+I('refresh','',11)+' 刷新</div>'+
+            '<div style="position:absolute;left:10px;bottom:10px;color:#fff;font-size:10.5px;opacity:.85">2026-10-11 '+now()+' · 画面延迟 3s</div>'+
+          '</div>'+
+          '<div class="row" style="padding:11px 12px;gap:7px;overflow-x:auto">'+
+            a.cams.map(function(c,i){return '<span class="chip'+(S.cam===i?'':' gy')+'" data-act="pickCam:'+i+'" style="flex:0 0 auto;font-size:12px;padding:6px 12px;cursor:pointer">'+c+'</span>';}).join('')+
+          '</div>'+
+        '</div>'+
+        '<div class="row" style="padding:0 12px;gap:9px">'+
+          [['温度计 26.4℃','26.4℃','较昨日 +1.2','sun'],['湿度 62%','62%','适宜','water'],['今日日照 5.2h','5.2h','光照充足','sun']].map(function(x){
+            return '<div class="card tight" style="flex:1;padding:11px 10px"><div class="row" style="gap:5px;color:var(--gd)">'+I(x[3],'',15)+'<span class="t12" style="font-size:10.5px">'+x[0].split(' ')[0]+'</span></div>'+
+              '<div style="font-size:17px;font-weight:700;margin-top:4px">'+x[1]+'</div><div class="t12" style="font-size:10.5px">'+x[2]+'</div></div>';
+          }).join('')+
+        '</div>'+
+        '<div class="card tight row bw" style="cursor:pointer" data-go="iot">'+
+          '<div class="row" style="gap:8px">'+I('trend','var(--g)',18)+'<div><div class="t15">环境数据看板</div><div class="t12" style="font-size:11px">温湿度 / 土壤墒情 / 光照曲线</div></div></div>'+I('right','#b3b8bf',16)+'</div>'+
+        '<div class="hd"><h3>今日快照</h3><span class="more" data-act="notImp">全部'+I('right','',12)+'</span></div>'+
+        '<div class="row" style="padding:0 12px;gap:8px;overflow-x:auto">'+['g1','g3','g8','g2'].map(function(g,i){
+          return '<div style="flex:0 0 92px"><div class="ph '+g+'" style="height:92px;border-radius:9px"><span style="font-size:19px">🌿</span></div><div class="t12" style="font-size:10.5px;text-align:center;margin-top:3px">'+(8+i*2)+':00</div></div>';
+        }).join('')+'</div>'+
+        '<div class="legend">'+I('camera','',13)+'<b>画面来自基地现场摄像头</b>视频流经 CDN 实时分发，云端同时留存 30 天录像，认养人可随时调阅任意历史片段。</div>'+
+        '<div style="height:16px"></div>';
+    },
+    archive:function(){
+      return '<div class="noticebar" style="margin:10px 12px;border-radius:10px">'+I('pen','',13)+'每条记录由管家现场上传，自动关联 GPS、设备号与时间戳</div>'+
+        '<div class="card">'+
+          '<div class="row bw" style="margin-bottom:12px"><span class="t15">共 '+D.archives.length+' 条农事记录</span><span class="t12">'+I('filter','',13)+' 筛选</span></div>'+
+          '<div class="timeline">'+D.archives.map(function(r,i){
+            return '<div class="tl-i'+(i===0?' new':'')+'" data-go="record">'+
+              '<div class="row bw"><span class="t15">'+r.t+'</span><span class="t12" style="font-size:11px">2026-'+r.d+'</span></div>'+
+              '<div class="t13" style="margin-top:4px">'+r.txt.slice(0,46)+'…</div>'+
+              '<div class="row" style="gap:7px;margin-top:8px">'+
+                '<div class="ph '+r.g+'" style="width:64px;height:64px;border-radius:8px"><span style="font-size:17px">'+r.e+'</span></div>'+
+                '<div style="flex:1"><div class="row" style="gap:6px;flex-wrap:wrap">'+
+                  '<span class="chip gy" style="font-size:10.5px">'+I('sun','',10)+' '+r.iot.t+'</span>'+
+                  '<span class="chip gy" style="font-size:10.5px">'+I('water','',10)+' '+r.iot.h+'</span>'+
+                  '<span class="chip gy" style="font-size:10.5px">'+I('users','',10)+' '+r.by+'</span>'+
+                '</div><div class="t12" style="font-size:10.5px;margin-top:5px">'+r.rec+' 张现场照片 · 点击查看</div></div>'+
+              '</div>'+
+            '</div>';
+          }).join('')+'</div>'+
+        '</div>'+
+        '<div class="row" style="padding:0 12px 16px"><div class="btn gy full" data-act="notImp">请管家补充记录</div></div>';
+    },
+    trace:function(){
+      return '<div class="card ctr">'+
+          '<div class="ph g8" style="height:132px;width:132px;margin:0 auto 12px"><span style="font-size:34px">'+I('qr','#fff',40)+'</span></div>'+
+          '<div class="t15">溯源码 SF-2026-C12-1001</div>'+
+          '<div class="t12" style="margin-top:4px">扫码或分享给朋友，可查看完整生产履历</div>'+
+          '<div class="row" style="gap:9px;margin-top:12px"><div class="btn gy" data-act="copyNo">复制溯源码</div><div class="btn pri" data-act="notImp">分享给好友</div></div>'+
+        '</div>'+
+        '<div class="hd"><h3>全链路履历</h3></div>'+
+        '<div class="card"><div class="timeline">'+
+          [['整地起垄','2026-04-18','已腐熟羊粪作底肥，深翻 25cm'],['播种定植','2026-04-26','番茄 / 黄瓜 / 辣椒等 12 个品种'],
+           ['田间管护','2026-05 ~ 09','浇水 / 搭架 / 整枝 / 生物防治，共 26 次'],
+           ['第三方检测','2026-09-03','CNAS 实验室检测，农残未检出'],
+           ['采摘入库','2026-09-16','已交付番茄 24.6 斤、黄瓜 18.2 斤'],
+           ['冷链配送','2026-10-02','顺丰冷运全程 0-4℃，已签收']].map(function(x,i){
+            return '<div class="tl-i"><div class="row bw"><span class="t15">'+x[0]+'</span><span class="t12" style="font-size:11px">'+x[1]+'</span></div>'+
+              '<div class="t13" style="margin-top:3px">'+x[2]+'</div></div>';
+          }).join('')+
+        '</div></div>'+
+        '<div class="hd"><h3>投入品清单</h3><span class="more" data-go="report">检测报告'+I('right','',12)+'</span></div>'+
+        '<div class="card">'+
+          [['有机羊粪肥','2026-04-15','80kg','底肥','农场投入'],['海藻酸水溶肥','2026-08-20','5kg','滴灌追肥','农场投入'],
+           ['智利小植绥螨','2026-09-25','2000头','生物防治','认养人自购'],['生物源杀虫剂','2026-06-02','0.8L','绿色防控','农场投入'],
+           ['秋冬蔬菜种子套装','2026-09-28','1 套','第二茬播种','认养人自购']].map(function(x){
+            const mine=(x[4]==='认养人自购');
+            return '<div class="row bw" style="padding:10px 0;border-bottom:1px solid var(--line)">'+
+              '<div style="flex:1"><div class="row" style="gap:6px"><span class="t14">'+x[0]+'</span>'+
+                '<span class="chip '+(mine?'o':'gy')+'" style="font-size:10px;padding:2px 6px">'+x[4]+'</span></div>'+
+                '<div class="t12" style="font-size:11px;margin-top:3px">'+x[1]+' · '+x[3]+'</div></div>'+
+              '<span class="t13">'+x[2]+'</span></div>';
+          }).join('')+
+          '<div class="notebox" style="margin-top:10px;font-size:12px">'+I('box','',12)+' 半托管 / 不托管模式下，认养人自购农资的<b>批次号与施用记录</b>同样进入本清单与检测报告，来源可控、留痕完整。</div>'+
+        '</div>'+
+        '<div class="card">'+
+          '<div class="row" style="gap:8px;margin-bottom:10px">'+I('shield','var(--g)',19)+'<span class="t16">区块链存证</span></div>'+
+          '<div class="kv"><span class="k">存证哈希</span><span style="font-family:monospace;font-size:11px">0x8f2a…c41b</span></div>'+
+          '<div class="kv"><span class="k">上链时间</span><span>2026-09-03 14:22:07</span></div>'+
+          '<div class="kv"><span class="k">区块高度</span><span>#12,881,406</span></div>'+
+          '<div class="kv"><span class="k">存证机构</span><span>司法鉴定链式平台</span></div>'+
+          '<div class="notebox" style="margin-top:10px">关键农事记录、检测报告与交付凭证在生成时同步上链，任何人无法事后篡改，可用于争议举证。</div>'+
+        '</div>'+
+        '<div style="height:16px"></div>';
+    },
+    harvest:function(){
+      const total=parseFloat(a.outTotal.split('/')[1]);
+      const got=parseFloat(a.outTotal.split('/')[0]);
+      return '<div class="card">'+
+          '<div class="row bw" style="margin-bottom:10px"><span class="t15">产出统计</span><span class="t12">预计总产 '+total+' 斤</span></div>'+
+          '<div class="prog" style="height:9px"><i style="width:'+Math.round(got/total*100)+'%"></i></div>'+
+          '<div class="row bw" style="margin-top:6px"><span class="t13">已交付 '+got+' 斤</span><span class="t13">完成 '+Math.round(got/total*100)+'%</span></div>'+
+          '<div class="row" style="gap:8px;margin-top:12px;overflow-x:auto">'+
+            [['番茄','24.6斤','g4'],['黄瓜','18.2斤','g1'],['辣椒','9.4斤','g4'],['茄子','14.2斤','g3'],['叶菜','32.8斤','g1']].map(function(x){
+              return '<div style="flex:0 0 84px;text-align:center"><div class="ph '+x[2]+'" style="height:60px;border-radius:9px"><span style="font-size:17px">'+x[0].charAt(0)+'</span></div>'+
+                '<div class="t12" style="font-size:11px;margin-top:4px">'+x[0]+'</div><div class="t14" style="font-weight:600">'+x[1]+'</div></div>';
+            }).join('')+
+          '</div>'+
+        '</div>'+
+        '<div class="hd"><h3>配送批次</h3><span class="more" data-act="notImp">'+I('cal','',13)+' 配送日历</span></div>'+
+        D.deliveries.map(function(d){
+          return '<div class="card tight" style="cursor:pointer" data-go="logistics">'+
+            '<div class="row bw"><div class="row" style="gap:8px"><span class="chip'+(d.stat==='已签收'?' gy':' o')+'">第 '+d.no+' 次</span><span class="t12">'+d.date+'</span></div>'+
+              '<span class="t14" style="color:var(--gd)">'+d.stat+'</span></div>'+
+            '<div class="t13" style="margin-top:7px">'+d.items+'</div>'+
+            '<div class="row bw" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line)">'+
+              '<span class="t12">'+d.exp+' · '+d.w+'</span><span class="t12">物流详情'+I('right','',11)+'</span></div>'+
+          '</div>';
+        }).join('')+
+        '<div class="legend">'+I('truck','',13)+'<b>下一批预计 10-16 发出</b>可在下方调整配送方式或申请延后（免费保管 7 天）。</div>'+
+        '<div class="row" style="padding:0 12px 16px;gap:10px">'+
+          '<div class="btn gy" data-act="openDelivery">调整配送</div><div class="btn pri" data-act="notImp">确认收货</div></div>';
+    }
+  };
+  return '<div class="ph g1" style="height:132px;position:relative;border-radius:0"><span style="font-size:38px">🥬</span>'+
+      '<div style="position:absolute;left:14px;bottom:12px;color:#fff"><div style="font-size:16px;font-weight:700">'+a.block+'</div>'+
+      '<div style="font-size:11px;opacity:.9">编号 '+a.id+' · 面积 66㎡</div></div>'+
+      '<div style="position:absolute;right:12px;bottom:12px;display:flex;gap:6px;align-items:center">'+
+        (a.care!=null?'<span class="chip" style="background:rgba(255,255,255,.92)">'+D.careModes[a.care].e+' '+D.careModes[a.care].n+'</span>':'')+
+        '<span class="chip'+(a.status==='done'?' gy':'')+'">'+(a.status==='done'?'已届满':'认养中')+'</span></div>'+
+    '</div>'+
+    '<div class="card" style="margin-top:-14px">'+
+      '<div class="row bw"><span class="t16">'+a.name+'</span><span class="t12">'+a.spec+'</span></div>'+
+      '<div class="row" style="gap:6px;margin-top:7px"><span class="chip '+(a.care===0?'':'o')+'">'+(a.care!=null?D.careModes[a.care].e+' '+D.careModes[a.care].n:'—')+'</span>'+
+        '<span class="chip gy">'+a.block+'</span><span class="chip gy">'+a.cycle+'</span></div>'+
+      '<div class="row bw" style="margin-top:8px"><span class="t12">认养周期 '+a.start+' ~ '+a.end+'</span><span class="t12">已过 '+a.prog+'%</span></div>'+
+      '<div class="prog" style="margin-top:6px"><i style="width:'+a.prog+'%"></i></div>'+
+      (a.status!=='done'?'<div class="row" style="gap:6px;margin-top:9px"><span class="chip o">'+I('clock','',11)+' 距到期 '+a.left+' 天</span><span class="chip">第 '+(a.delivered+1)+' 次配送筹备中</span></div>':'<div class="row" style="gap:6px;margin-top:9px"><span class="chip gy">合约已届满</span><span class="chip">可原地块续期</span></div>')+
+    '</div>'+
+    '<div class="tabs">'+tabs.map(function(t){return '<div class="tab '+(S.atab===t[0]?'on':'')+'" data-act="atab:'+t[0]+'">'+t[1]+'</div>';}).join('')+'</div>'+
+    (body[S.atab]||body.overview)();
+}
+ACT.atabGo=function(t){
+  if(t==='delivery'){ACT.openDelivery();return;}
+  if(t==='monitor'||t==='archive'||t==='trace'){S.atab=t;render();return;}
+  if(t==='svc'){S.scat='svc';S.atab='overview';go('supply');return;}
+  S.atab='overview';go(t);
+};
+/* 认养详情顶部：托管方式 + 待办缩略 */
+function careMini(a){
+  const m=D.careModes[a.care||0];
+  const todo=D.selfTasks.filter(function(t){return t.st!=='已完成';});
+  if(!m)return '';
+  if(a.care===0){
+    return '<div class="card tight row bw" data-go="careGuide" style="cursor:pointer">'+
+        '<div class="row" style="gap:9px"><span style="font-size:19px">'+m.e+'</span>'+
+          '<div><div class="t15" style="font-weight:600">'+m.n+' · 无需您动手</div>'+
+          '<div class="t12" style="font-size:11px;margin-top:2px">全部农事由管家完成，产出保底 240 斤</div></div></div>'+
+        '<span class="t12">规则'+I('right','',11)+'</span></div>';
+  }
+  return '<div class="card tight" style="background:linear-gradient(135deg,#f2fbf6,#fff)">'+
+      '<div class="row bw"><div class="row" style="gap:9px"><span style="font-size:20px">'+m.e+'</span>'+
+        '<div><div class="t15" style="font-weight:600">'+m.n+' · 每周约 '+(a.care===2?5:2)+' 项待办</div>'+
+        '<div class="t12" style="font-size:11px;margin-top:2px">'+m.slogan+'</div></div></div>'+
+        '<span class="chip" data-go="careGuide" style="flex:0 0 auto">规则'+I('right','',11)+'</span></div>'+
+      (todo.length?'<div class="row" style="gap:7px;margin-top:10px;flex-wrap:wrap">'+todo.slice(0,2).map(function(t){
+          return '<span class="chip o" data-go="selfTask" style="font-size:11.5px;cursor:pointer">'+I('clock','',11)+t.t+' · '+t.due+'</span>';
+        }).join('')+'</div>':'')+
+      '<div class="row bw" style="margin-top:10px;padding-top:9px;border-top:1px dashed var(--line)">'+
+        '<span class="t12">'+I('box','',12)+' 已购农资 '+D.mySupplies.length+' 件 · 投入品已留痕</span>'+
+        '<span class="t12" style="color:var(--gd);cursor:pointer" data-go="selfTask">查看待办'+I('right','',11)+'</span></div>'+
+    '</div>';
+}
+ACT.openDelivery=function(){
+  sheet('调整第 10 次配送',
+    '<div class="t14" style="margin:6px 0 9px">配送方式</div>'+
+    [['冷链快递到家','明日 10-16 发出'],['基地自提','自行安排时间'],['延后配送','免费保管 7 天']].map(function(x,i){
+      return '<div class="row bw card tight" style="margin-bottom:9px;cursor:pointer" data-act="notImp"><div><div class="t15">'+x[0]+'</div><div class="t12">'+x[1]+'</div></div>'+I('right','#b3b8bf',16)+'</div>';
+    }).join('')+
+    '<div class="noticebar" style="margin:6px 0;border-radius:10px">'+I('warn','',13)+'生鲜产品建议选择冷链配送，自提请在 24h 内到基地冷库取货</div>'+
+    '<div class="btn pri full" style="margin-top:14px" data-act="bookDone">保存配送设置</div>');
+};
+
+PAGES.myAdoption={
+  title:'我的认养',
+  render:function(){
+    const tabs=[['all','全部'],['growing','认养中'],['done','已届满']];
+    const list=S.aTab==='growing'?D.adoptions.filter(function(a){return a.status==='growing';}):
+                S.aTab==='done'?D.adoptions.filter(function(a){return a.status==='done';}):D.adoptions;
+    return '<div class="tabs">'+tabs.map(function(t){return '<div class="tab '+(S.aTab===t[0]?'on':'')+'" data-act="setTab:'+t[0]+'">'+t[1]+'</div>';}).join('')+'</div>'+
+      list.map(function(a){
+        const c=a.pid===3?'g4':a.pid===2?'g3':'g1', e=a.pid===3?'🍑':a.pid===2?'🐓':'🥬';
+        return '<div class="card" style="cursor:pointer" data-go="adoption:'+a.id+'">'+
+          '<div class="ph '+c+'" style="height:106px;position:relative;border-radius:12px"><span style="font-size:30px">'+e+'</span>'+
+            '<div class="badge-live" style="left:auto;right:8px">'+(a.status==='done'?'已届满':'认养中')+'</div></div>'+
+          '<div class="row bw" style="margin-top:10px"><span class="t16">'+a.name+'</span><span class="t12">'+a.spec+'</span></div>'+
+          '<div class="t12" style="margin-top:4px">'+a.block+' · '+a.cycle+' · '+a.start+' 起</div>'+
+          (a.care!=null?'<div class="row" style="gap:6px;margin-top:7px;flex-wrap:wrap">'+
+            '<span class="chip '+(a.care===0?'':'o')+'" style="font-size:10.5px">'+D.careModes[a.care].e+' '+D.careModes[a.care].n+'</span>'+
+            (a.care>0?'<span class="chip gy" style="font-size:10.5px">'+I('clock','',10)+'本周待办 '+(a.care===2?5:2)+' 项</span>'+
+            '<span class="chip gy" style="font-size:10.5px">'+I('box','',10)+'农资 '+D.mySupplies.length+' 件</span>':'')+
+          '</div>':'')+
+          '<div class="row bw" style="margin-top:8px">'+
+            '<span class="t12">进度 '+a.prog+'%</span>'+
+            (a.status==='done'?'<span class="t12">已交付 '+a.outTotal+'</span>':'<span class="t12">已配送 '+a.delivered+'/'+a.totalDeliver+' 次</span>')+
+          '</div>'+
+          '<div class="prog" style="margin-top:6px"><i style="width:'+a.prog+'%"></i></div>'+
+          '<div class="row bw" style="margin-top:10px;padding-top:9px;border-top:1px solid var(--line)">'+
+            '<div class="row" style="gap:6px"><span class="chip gy">'+a.keeper+'</span><span class="chip gy">剩余 '+a.left+' 天</span></div>'+
+            '<span class="t13" style="color:var(--gd)">查看详情'+I('right','',12)+'</span>'+
+          '</div>'+
+        '</div>';
+      }).join('')+
+      '<div class="card tight row bw" data-go="mall" style="cursor:pointer"><span class="t14">还想认养更多？去看看新项目</span><span class="chip">去商城'+I('right','',11)+'</span></div>'+
+      '<div style="height:14px"></div>';
+  }
+};
+PAGES.adoption={title:'认养详情',rt:'<span>'+I('share','',17)+'</span>',render:adoptionHTML};
+PAGES.live={title:'实时监控',render:function(){S.atab='monitor';return adoptionHTML();}};
+PAGES.archive={title:'生长档案',render:function(){S.atab='archive';return adoptionHTML();}};
+PAGES.trace={title:'溯源档案',render:function(){S.atab='trace';return adoptionHTML();}};
+PAGES.harvest={title:'收获配送',render:function(){S.atab='harvest';return adoptionHTML();}};
+
+PAGES.iot={
+  title:'环境数据看板',rt:'<span>'+I('refresh','',17)+'</span>',
+  render:function(){
+    const mk=function(vals,color,unit){
+      const max=Math.max.apply(null,vals),min=Math.min.apply(null,vals);
+      const pts=vals.map(function(v,i){return (i*(300/(vals.length-1))).toFixed(1)+','+(80-(v-min)/(max-min||1)*56-12).toFixed(1);}).join(' ');
+      return '<svg viewBox="0 0 300 90" preserveAspectRatio="none" style="width:100%;height:88px">'+
+        '<defs><linearGradient id="gr'+color+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="'+color+'" stop-opacity=".28"/><stop offset="100%" stop-color="'+color+'" stop-opacity="0"/></linearGradient></defs>'+
+        '<polyline points="'+pts+'" fill="none" stroke="'+color+'" stroke-width="2.2" stroke-linejoin="round"/>'+
+        '<polygon points="'+pts+' 300,90 0,90" fill="url(#gr'+color+')"/></svg>';
+    };
+    return '<div class="card tight">'+
+        '<div class="row bw"><span class="t15">土壤温度</span><span class="t12">近 7 天</span></div>'+
+        '<div style="font-size:26px;font-weight:700;margin:4px 0">24.8<span style="font-size:14px;color:var(--tx2)">℃</span></div>'+
+        mk([21.2,22.6,24.1,25.4,23.8,24.4,24.8],'#ff8f1f')+
+        '<div class="row bw t12" style="font-size:10.5px"><span>10-05</span><span>10-11</span></div>'+
+      '</div>'+
+      '<div class="card tight">'+
+        '<div class="row bw"><span class="t15">土壤湿度</span><span class="t12">近 7 天</span></div>'+
+        '<div style="font-size:26px;font-weight:700;margin:4px 0">62<span style="font-size:14px;color:var(--tx2)">%</span></div>'+
+        mk([58,64,71,55,49,60,62],'#3f8fd6')+
+        '<div class="row bw t12" style="font-size:10.5px"><span>10-05</span><span>10-11</span></div>'+
+      '</div>'+
+      '<div class="card tight">'+
+        '<div class="row bw"><span class="t15">累计光照</span><span class="t12">近 7 天</span></div>'+
+        '<div style="font-size:26px;font-weight:700;margin:4px 0">5.2<span style="font-size:14px;color:var(--tx2)">h</span></div>'+
+        mk([3.1,5.4,6.8,7.2,2.4,4.6,5.2],'#f0b429')+
+        '<div class="row bw t12" style="font-size:10.5px"><span>10-05</span><span>10-11</span></div>'+
+      '</div>'+
+      '<div class="hd"><h3>设备状态</h3></div>'+
+      '<div class="card">'+[['土壤三参数传感器','CY-0147','在线'],['气象站','WX-0021','在线'],['摄像头 · C区全景','CAM-C-01','在线'],['摄像头 · 12号地','CAM-12','在线']].map(function(x){
+        return '<div class="row bw" style="padding:10px 0;border-bottom:1px solid var(--line)"><div><div class="t14">'+x[0]+'</div><div class="t12" style="font-size:11px">'+x[1]+'</div></div>'+
+          '<span class="chip">'+x[2]+'</span></div>';
+      }).join('')+'</div>'+
+      '<div class="notebox" style="margin:10px 12px">数据由基地物联网网关每 5 分钟上报一次，异常时自动向管家与认养人推送预警。</div>'+
+      '<div style="height:16px"></div>';
+  }
+};
+PAGES.record={
+  title:'农事记录详情',
+  render:function(){
+    const r=D.archives[0];
+    return '<div class="ph '+r.g+'" style="height:180px;border-radius:0"><span style="font-size:34px">'+r.e+'</span></div>'+
+      '<div class="card">'+
+        '<div class="t16">'+r.t+'</div>'+
+        '<div class="row" style="gap:8px;margin-top:8px;flex-wrap:wrap">'+
+          '<span class="chip gy">'+I('cal','',11)+' 2026-'+r.d+'</span>'+
+          '<span class="chip gy">'+I('users','',11)+' '+r.by+'</span>'+
+          '<span class="chip">'+I('shield','',11)+' 已上链</span>'+
+        '</div>'+
+        '<div class="t14" style="margin-top:12px;line-height:1.85">'+r.txt+'。作业完成后已同步更新至生长档案与溯源履历，认养人可在「我的认养 - 生长档案」中查看。</div>'+
+        '<div class="row" style="gap:7px;margin-top:12px">'+[r.g,'g3','g8'].map(function(g){return '<div class="ph '+g+'" style="width:88px;height:88px;border-radius:9px"><span style="font-size:20px">🌱</span></div>';}).join('')+'</div>'+
+        '<div class="row" style="gap:8px;margin-top:12px;padding-top:11px;border-top:1px solid var(--line)">'+
+          '<div style="flex:1;text-align:center"><div class="t12">'+I('sun','',15)+'</div><div class="t14">'+r.iot.t+'</div><div class="t12" style="font-size:10.5px">气温</div></div>'+
+          '<div style="flex:1;text-align:center"><div class="t12">'+I('water','',15)+'</div><div class="t14">'+r.iot.h+'</div><div class="t12" style="font-size:10.5px">湿度</div></div>'+
+          '<div style="flex:1;text-align:center"><div class="t12">'+I('clock','',15)+'</div><div class="t14">'+r.iot.s+'</div><div class="t12" style="font-size:10.5px">工时</div></div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="card tight row bw"><div class="row" style="gap:8px">'+I('qr','var(--g)',18)+'<div><div class="t14">存证编号</div><div class="t12" style="font-size:11px">可司法鉴定平台验真</div></div></div><span class="t12" style="font-family:monospace;font-size:11px">0x8f2a…c41b</span></div>'+
+      '<div class="row" style="padding:0 12px 16px"><div class="btn pri full" data-go="service">向管家提问</div></div>';
+  }
+};
+PAGES.report={
+  title:'质检报告',
+  render:function(){
+    return '<div class="card">'+
+      '<div class="ctr" style="padding-bottom:12px;border-bottom:1px dashed var(--line)"><div class="t16">农产品质量安全检测报告</div>'+
+        '<div class="t12" style="margin-top:4px">报告编号 CNAS-2026-0918 · 2026-09-03</div></div>'+
+      '<div class="kv" style="margin-top:10px"><span class="k">委托单位</span><span>阳光谷生态农场</span></div>'+
+      '<div class="kv"><span class="k">样品名称</span><span>番茄 / 黄瓜 / 叶用莴苣</span></div>'+
+      '<div class="kv"><span class="k">检测机构</span><span>中检xx（CNAS 认可）</span></div>'+
+      '<div class="kv"><span class="k">抽样方式</span><span>五点随机抽样 · 现场封存</span></div>'+
+      '<div class="split" style="margin:10px -14px"></div>'+
+      '<div class="row" style="font-size:12px;color:var(--tx2);padding-bottom:6px"><span style="flex:2">检测项目</span><span style="flex:1;text-align:center">限量值</span><span style="flex:1;text-align:center">结果</span></div>'+
+      [['氧乐果','≤0.02 mg/kg','未检出'],['毒死蜱','≤0.02 mg/kg','未检出'],['氯氰菊酯','≤0.5 mg/kg','0.01'],['多菌灵','≤0.5 mg/kg','未检出'],['铅（Pb）','≤0.1 mg/kg','0.012'],['镉（Cd）','≤0.05 mg/kg','0.004']].map(function(x){
+        return '<div class="row" style="padding:8px 0;border-top:1px solid var(--line);font-size:13px">'+
+          '<span style="flex:2">'+x[0]+'</span><span style="flex:1;text-align:center;color:var(--tx2)">'+x[1]+'</span>'+
+          '<span style="flex:1;text-align:center;color:var(--gd);font-weight:600">'+x[2]+'</span></div>';
+      }).join('')+
+      '<div class="notebox" style="margin-top:12px;background:var(--gl);border-color:#9ad7b6;color:#2f7358">检测结论：所检项目均符合 GB 2763-2021《食品安全国家标准 食品中农药最大残留限量》要求。</div>'+
+    '</div>'+
+    '<div class="row" style="padding:0 12px;gap:10px"><div class="btn gy" data-act="notImp">下载 PDF</div><div class="btn pri" data-act="notImp">验真</div></div>'+
+    '<div style="height:16px"></div>';
+  }
+};
+PAGES.logistics={
+  title:'物流详情',
+  render:function(){
+    return '<div class="card tight row bw">'+
+      '<div class="row" style="gap:9px">'+I('truck','var(--g)',20)+'<div><div class="t15">顺丰冷运 SF7182663</div><div class="t12" style="font-size:11px">第 9 次配送 · 8.7 斤</div></div></div>'+
+      '<span class="chip">已签收</span></div>'+
+      '<div class="card">'+
+        '<div class="t15" style="margin-bottom:10px">配送轨迹</div>'+
+        '<div class="timeline">'+
+          [['已签收','2026-10-03 09:12','本人签收，感谢使用顺丰冷运',1],['派送中','2026-10-03 08:04','快递员 王师傅 138****2211',0],
+           ['到达杭州转运中心','2026-10-02 22:31','冷链车厢温度 3.2℃',0],['已从湖州发出','2026-10-02 18:05','基地冷库交接完成',0],
+           ['打包完成','2026-10-02 16:20','采摘后 6 小时内完成预冷',0],['采摘入库','2026-10-02 11:40','当日采摘，农残快检合格',0]].map(function(x,i){
+            return '<div class="tl-i'+(i===0?' new':'')+'"><div class="row bw"><span class="t'+(i===0?'15':'14')+'">'+x[0]+'</span><span class="t12" style="font-size:11px">'+x[1]+'</span></div>'+
+              '<div class="t12" style="margin-top:3px">'+x[2]+'</div></div>';
+          }).join('')+
+        '</div>'+
+      '</div>'+
+      '<div class="card">'+
+        '<div class="t15" style="margin-bottom:8px">本批清单</div>'+
+        [['番茄','2.4 斤'],['黄瓜','3.1 斤'],['辣椒','1.2 斤'],['茄子','2.0 斤']].map(function(x){
+          return '<div class="row bw" style="padding:8px 0;border-bottom:1px solid var(--line)"><span class="t14">'+x[0]+'</span><span class="t13">'+x[1]+'</span></div>';
+        }).join('')+
+        '<div class="row" style="gap:7px;margin-top:11px">'+['g1','g4','g3'].map(function(g){return '<div class="ph '+g+'" style="width:70px;height:70px;border-radius:8px"><span style="font-size:18px">🥬</span></div>';}).join('')+'</div>'+
+      '</div>'+
+      '<div class="row" style="padding:0 12px 16px;gap:10px"><div class="btn gy" data-act="notImp">复制单号</div><div class="btn pri" data-go="service">联系管家</div></div>';
+  }
+};
+PAGES.transfer={
+  title:'认养转赠',
+  render:function(){
+    const a=getA();
+    return '<div class="legend">'+I('warn','',13)+'<b>转赠规则</b>认养权益可免费转赠一次；转赠不得折价交易、不得作为投资品转让，受赠人需完成实名。</div>'+
+      '<div class="card tight row" style="gap:10px">'+
+        '<div class="ph g1" style="width:58px;height:58px;flex:0 0 58px"><span style="font-size:22px">🥬</span></div>'+
+        '<div style="flex:1"><div class="t15">'+a.name+'</div><div class="t12" style="margin-top:2px">'+a.block+' · 剩余 '+a.left+' 天</div></div>'+
+      '</div>'+
+      '<div class="card">'+
+        '<div class="kv"><span class="k">受赠人姓名</span><span><input class="inp" placeholder="请输入真实姓名"></span></div>'+
+        '<div class="kv"><span class="k">受赠人手机</span><span><input class="inp" placeholder="用于接收权益"></span></div>'+
+        '<div class="kv"><span class="k">转赠范围</span><span style="color:var(--tx2)">全部剩余权益</span></div>'+
+        '<div class="kv"><span class="k">留言</span><span><input class="inp" placeholder="给朋友的祝福（选填）"></span></div>'+
+      '</div>'+
+      '<div class="card ctr">'+
+        '<div class="t15" style="margin-bottom:10px">生成转赠海报</div>'+
+        '<div class="ph g6" style="height:170px"><div style="text-align:center"><span style="font-size:32px">🎁</span><b style="display:block;margin-top:6px">送给你一块地</b><b style="display:block;font-size:10px;margin-top:3px">扫二维码接收认养权益</b></div></div>'+
+      '</div>'+
+      '<div class="row" style="padding:0 12px;gap:10px"><div class="btn gy" data-act="back">取消</div>'+
+        '<div class="btn pri" data-act="transferDone">确认转赠</div></div>'+
+      '<div style="height:16px"></div>';
+  }
+};
+ACT.transferDone=function(){toast('转赠已发起 · 待受赠人确认');setTimeout(function(){back();},900);};
+
+PAGES.review={
+  title:'发表评价',rt:'<span style="color:var(--g)">发布</span>',
+  render:function(){
+    const a=getA();
+    return '<div class="card tight row" style="gap:10px">'+
+        '<div class="ph g1" style="width:52px;height:52px;flex:0 0 52px"><span style="font-size:20px">🥬</span></div>'+
+        '<div style="flex:1"><div class="t15">'+a.name+'</div><div class="t12" style="margin-top:2px">'+a.block+'</div></div></div>'+
+      '<div class="card ctr">'+
+        '<div class="t15" style="margin-bottom:10px">总体评分</div>'+
+        '<div class="row" style="gap:10px;justify-content:center;color:#ff8f1f">'+[1,2,3,4,5].map(function(){return I('star','#ff8f1f',32);}).join('')+'</div>'+
+      '</div>'+
+      '<div class="card">'+
+        '<div class="row bw" style="padding:9px 0"><span class="t14">产出满意度</span><span class="row" style="gap:6px">'+['不及预期','符合','超出预期'].map(function(x,i){return '<span class="chip'+(i===2?'':' gy')+'" data-act="notImp">'+x+'</span>';}).join('')+'</span></div>'+
+        '<div class="row bw" style="padding:9px 0;border-top:1px solid var(--line)"><span class="t14">管家服务</span><span class="row" style="gap:6px">'+['一般','满意','非常满意'].map(function(x,i){return '<span class="chip'+(i===2?'':' gy')+'" data-act="notImp">'+x+'</span>';}).join('')+'</span></div>'+
+        '<div class="row bw" style="padding:9px 0;border-top:1px solid var(--line)"><span class="t14">透明度</span><span class="row" style="gap:6px">'+['一般','清晰','非常清晰'].map(function(x,i){return '<span class="chip'+(i===2?'':' gy')+'" data-act="notImp">'+x+'</span>';}).join('')+'</span></div>'+
+      '</div>'+
+      '<div class="card">'+
+        '<textarea style="width:100%;height:96px;border:none;outline:none;font-family:inherit;font-size:14px;line-height:1.8;resize:none" placeholder="说说这一年的认养感受，帮助更多人了解这个项目…"></textarea>'+
+        '<div class="row" style="gap:7px">'+['g1','g3'].map(function(g){return '<div class="ph '+g+'" style="width:70px;height:70px;border-radius:8px"><span style="font-size:18px">📷</span></div>';}).join('')+
+          '<div class="ph g8" style="width:70px;height:70px;border-radius:8px;opacity:.6"><span style="font-size:20px">'+I('plus','#fff',20)+'</span></div></div>'+
+      '</div>'+
+      '<div class="noticebar" style="margin:10px 12px;border-radius:10px">'+I('warn','',13)+'评价请基于真实体验，禁止发布收益承诺、返利等内容</div>'+
+      '<div style="height:16px"></div>';
+  }
+};
+
+/* ---------- 到访 / 服务 ---------- */
+PAGES.visit={
+  title:'预约到访',
+  render:function(){
+    const dates=['10/17 周六','10/18 周日','10/24 周六','10/25 周日'];
+    return '<div class="legend">'+I('loc','',13)+'<b>基地开放时间</b>每日 09:00 - 17:00，需提前 1 天预约；管家会提前与您确认行程。</div>'+
+      '<div class="card">'+
+        '<div class="t15" style="margin-bottom:10px">选择日期</div>'+
+        '<div class="g4" style="gap:8px">'+dates.map(function(d,i){
+          const on=S.visitDate===i;
+          return '<div class="card tight ctr" data-act="visitDate:'+i+'" style="margin:0;padding:9px 4px;cursor:pointer;'+(on?'background:var(--gl);box-shadow:inset 0 0 0 1.6px var(--g)':'')+'">'+
+            '<div class="t14" style="font-size:12.5px;'+(on?'color:var(--gd);font-weight:600':'')+'">'+d.split(' ')[0]+'</div>'+
+            '<div class="t12" style="font-size:10.5px">'+(d.split(' ')[1]==='周六'?'可约':'可约')+'</div></div>';
+        }).join('')+'</div>'+
+      '</div>'+
+      '<div class="card">'+
+        '<div class="kv"><span class="k">到访人数</span><span><input class="inp" placeholder="2 人"></span></div>'+
+        '<div class="kv"><span class="k">联系人</span><span><input class="inp" placeholder="张先生"></span></div>'+
+        '<div class="kv"><span class="k">联系电话</span><span><input class="inp" placeholder="138****6721"></span></div>'+
+        '<div class="kv"><span class="k">是否用餐</span><span><input class="inp" placeholder="否"></span></div>'+
+      '</div>'+
+      '<div class="card">'+
+        '<div class="t15" style="margin-bottom:8px">想参与的项目</div>'+
+        '<div class="row" style="gap:7px;flex-wrap:wrap">'+['采摘体验','亲子研学','喂鸡捡蛋','农田午餐','认养核验','直播探园'].map(function(x,i){
+          return '<span class="chip'+(i<2?'':' gy')+'" style="font-size:12.5px;padding:6px 12px" data-act="notImp">'+x+'</span>';
+        }).join('')+'</div>'+
+      '</div>'+
+      '<div class="card tight row bw" data-act="notImp" style="cursor:pointer"><span class="t14">到访提醒</span><span class="t12">开始前 1 天推送'+I('right','',12)+'</span></div>'+
+      '<div class="row" style="padding:0 12px 16px"><div class="btn pri full" data-act="bookDone">提交预约</div></div>';
+  }
+};
+PAGES.service={
+  title:'在线管家',rt:'<span>'+I('phone','',17)+'</span>',
+  render:function(){
+    const a=getA();
+    return '<div style="background:var(--bg);padding:10px 12px">'+
+      '<div class="noticebar" style="border-radius:10px">'+I('users','',13)+' '+a.keeper+' 正在为您服务 · 标的 '+a.block+'</div></div>'+
+      '<div style="padding:12px">'+
+        '<div class="ctr t12" style="margin-bottom:10px">今天 20:40</div>'+
+        D.keeperMsg.map(function(m){
+          const me=m.who==='me';
+          return '<div class="row" style="margin-bottom:13px;justify-content:'+(me?'flex-end':'flex-start')+'">'+
+            (me?'':'<div class="avatar" style="width:32px;height:32px;font-size:13px;margin-right:7px">李</div>')+
+            '<div style="max-width:72%;background:'+(me?'var(--g)':'#fff')+';color:'+(me?'#fff':'var(--tx)')+';padding:9px 12px;border-radius:12px;box-shadow:var(--sh);font-size:13.5px;line-height:1.6">'+m.t+'</div>'+
+            (me?'<div class="avatar" style="width:32px;height:32px;font-size:13px;margin-left:7px;background:linear-gradient(135deg,#8ec5f7,#4d8fd6)">张</div>':'')+
+          '</div>';
+        }).join('')+
+      '</div>'+
+      '<div class="card row" style="margin:6px 12px;padding:10px;gap:8px;flex-wrap:wrap">'+
+        [['我要看今天的地','?'],['下次配送什么时候','?'],['周末能过来吗','?'],['帮我申请补种','?']].map(function(x){
+          return '<span class="chip gy" style="font-size:12.5px;padding:6px 11px;cursor:pointer" data-act="notImp">'+x[0]+'</span>';
+        }).join('')+
+      '</div>'+
+      '<div class="footbar"><div class="row" style="flex:1;background:var(--bg);border-radius:20px;padding:9px 14px;gap:6px">'+I('chat','#b3b8bf',15)+'<input class="inp" style="text-align:left" placeholder="问问管家今天的农事…"></div>'+
+        '<span style="color:var(--g)">'+I('plus','',22)+'</span></div>';
+  }
+};
+PAGES.care={
+  title:'作物问诊',rt:'<span>'+I('clock','',17)+'</span>',
+  render:function(){
+    return '<div class="card">'+
+        '<div class="t15" style="margin-bottom:9px">拍照上传疑似异常部位</div>'+
+        '<div class="row" style="gap:7px">'+['g1','g3'].map(function(g){return '<div class="ph '+g+'" style="width:88px;height:88px;border-radius:9px"><span style="font-size:20px">🍃</span></div>';}).join('')+
+          '<div class="ph g8" style="width:88px;height:88px;border-radius:9px;opacity:.6"><span style="font-size:22px">'+I('plus','#fff',22)+'</span></div></div>'+
+        '<div class="t12" style="margin-top:9px">建议拍摄叶面、茎基部与果实三个角度，识别准确率更高</div>'+
+      '</div>'+
+      '<div class="card">'+
+        '<div class="row" style="gap:8px;margin-bottom:10px">'+I('trend','var(--g)',19)+'<span class="t16">AI 识别结果</span><span class="chip r" style="margin-left:auto">疑似病害</span></div>'+
+        '<div class="row bw" style="padding:9px 0;border-bottom:1px solid var(--line)"><span class="t14">番茄早疫病</span><span class="t13" style="color:var(--gd)">置信度 86%</span></div>'+
+        '<div class="t13" style="margin-top:8px;line-height:1.85">症状：下部叶片出现褐色同心轮纹斑，湿度大时病斑扩展迅速。<br>建议：① 摘除病叶并带出田外；② 通风降湿，控制灌溉量；③ 可选用生物农药枯草芽孢杆菌喷雾；④ 已为您推送至基地技术员。</div>'+
+        '<div class="notebox" style="margin-top:10px">处理方案已同步给 '+D.adoptions[0].keeper+'，将在 24 小时内完成田间处置并回传照片。</div>'+
+      '</div>'+
+      '<div class="hd"><h3>问诊记录</h3></div>'+
+      '<div class="card">'+[['番茄疑似早疫病','2026-09-25','已处理'],['黄瓜白粉病咨询','2026-07-12','已回复'],['叶菜黄叶诊断','2026-05-30','已回复']].map(function(x){
+        return '<div class="row bw" style="padding:10px 0;border-bottom:1px solid var(--line)"><div><div class="t14">'+x[0]+'</div><div class="t12" style="font-size:11px">'+x[1]+'</div></div><span class="chip gy">'+x[2]+'</span></div>';
+      }).join('')+'</div>'+
+      '<div style="height:16px"></div>';
+  }
+};
+PAGES.task={
+  title:'任务中心',
+  render:function(){
+    return '<div class="card" style="background:linear-gradient(140deg,var(--g),var(--gd));color:#fff">'+
+      '<div class="row bw"><div><div style="font-size:16px;font-weight:700">今日已领 3 / 5 任务</div><div style="font-size:11.5px;opacity:.88;margin-top:4px">连续签到 12 天，明天可再领 20 积分</div></div>'+
+      '<div style="text-align:center"><div style="font-size:22px;font-weight:700">12</div><div style="font-size:10.5px">连续天数</div></div></div>'+
+      '<div class="row" style="margin-top:12px;gap:5px">'+Array(7).fill(0).map(function(_,i){
+        return '<div style="flex:1;text-align:center"><div style="height:26px;border-radius:7px;background:'+(i<5?'rgba(255,255,255,.9)':'rgba(255,255,255,.25)')+';color:'+(i<5?'var(--gd)':'#fff')+';font-size:11px;display:flex;align-items:center;justify-content:center">'+(i<5?'✓':'')+'</div><div style="font-size:9.5px;margin-top:3px;opacity:.85">'+(i+14)+'日</div></div>';
+      }).join('')+'</div>'+
+    '</div>'+
+    '<div class="hd"><h3>日常任务</h3></div>'+
+    '<div class="card">'+
+      [['cog','浏览今日农事记录','+5 分','去完成','archive'],['pen','发布一条农场动态','+20 分','去发布','publish'],['users','邀请好友完成认养','+300 分','去邀请','invite'],['star','完成一次认养评价','+50 分','去评价','review']].map(function(x){
+        return '<div class="row bw" style="padding:11px 0;border-bottom:1px solid var(--line)">'+
+          '<div class="row" style="gap:10px"><div class="ph g8" style="width:34px;height:34px;flex:0 0 34px;border-radius:9px"><span style="font-size:15px">'+I(x[0],'#fff',16)+'</span></div>'+
+          '<div><div class="t14">'+x[1]+'</div><div class="t12" style="font-size:11px;color:var(--gd)">'+x[2]+'</div></div></div>'+
+          '<span class="btn '+(x[1].indexOf('浏览今日')>=0?'gy':'sec')+'" style="padding:5px 13px;font-size:12px" '+(x[1].indexOf('浏览今日')>=0?'':'data-go="'+x[4]+'"')+'>'+x[3]+'</span></div>';
+      }).join('')+
+    '</div>'+
+    '<div class="hd"><h3>成就勋章</h3></div>'+
+    '<div class="g3 sec">'+[['🌱','初认养者','已获得'],['🥬','菜园老手','已获得'],['🏆','连续认养 3 年','待解锁'],['🎖','社区达人','待解锁'],['🥇','推广大使','待解锁'],['👑','庄主','待解锁']].map(function(x){
+      const got=x[2]==='已获得';
+      return '<div class="card tight ctr" style="opacity:'+(got?1:.5)+'"><div class="ph '+(got?'g1':'g8')+'" style="height:56px"><span style="font-size:22px">'+x[0]+'</span></div><div class="t13" style="font-size:11.5px;margin-top:6px">'+x[1]+'</div></div>';
+    }).join('')+'</div>'+
+    '<div style="height:16px"></div>';
+  }
+};
+
+/* ============================================================
+   启动
+   ============================================================ */
+render();
+setInterval(function(){ $('#clock').textContent=now(); },30000);
+document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ closeSheet(); back(); } });
+</script>
+</body>
+</html>
