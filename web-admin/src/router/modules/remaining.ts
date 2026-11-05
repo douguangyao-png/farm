@@ -454,6 +454,22 @@ const remainingRouter: AppRouteRecordRaw[] = [
     ]
   },
   {
+    path: '/farm-order', // 认养农场：订单履约（详情页不在菜单里）
+    component: Layout,
+    name: 'FarmOrderCenter',
+    meta: {
+      hidden: true
+    },
+    children: [
+      {
+        path: 'order/detail/:id(\\d+)',
+        component: () => import('@/views/farm/order/detail/index.vue'),
+        name: 'FarmOrderDetail',
+        meta: { title: '认养订单详情', icon: 'ep:view', activeMenu: '/farm-order/order' }
+      }
+    ]
+  },
+  {
     path: '/mall/trade', // 交易中心
     component: Layout,
     name: 'TradeCenter',

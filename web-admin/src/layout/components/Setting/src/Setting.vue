@@ -222,6 +222,7 @@ const clear = () => {
       <ColorRadioPicker
         v-model="systemTheme"
         :schema="[
+          '#2e7d32' /* farmer-saas: 默认农场绿 */,
           '#409eff',
           '#009688',
           '#536dfe',

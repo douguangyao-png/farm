@@ -58,7 +58,8 @@
 
   <el-row class="mt-8px" :gutter="8" justify="space-between">
     <el-col :xl="16" :lg="16" :md="24" :sm="24" :xs="24" class="mb-8px">
-      <el-card shadow="never">
+      <!-- farmer-saas: 隐藏芋道开源项目推广卡片 -->
+      <el-card v-if="false" shadow="never">
         <template #header>
           <div class="h-3 flex justify-between">
             <span>{{ t('workplace.project') }}</span>

@@ -119,8 +119,9 @@
           </div>
         </el-form-item>
       </el-col>
-      <el-divider content-position="center">萌新必读</el-divider>
-      <el-col :span="24" class="px-10px">
+      <!-- farmer-saas: 隐藏芋道的「萌新必读」推广链接 -->
+      <el-divider v-if="false" content-position="center">萌新必读</el-divider>
+      <el-col v-if="false" :span="24" class="px-10px">
         <el-form-item>
           <div class="w-full flex justify-between">
             <el-link href="https://doc.iocoder.cn/" target="_blank">📚开发指南</el-link>

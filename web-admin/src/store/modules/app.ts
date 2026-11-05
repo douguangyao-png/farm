@@ -76,7 +76,7 @@ export const useAppStore = defineStore('app', {
       currentSize: wsCache.get(CACHE_KEY.CURRENT_SIZE) || 'default', // 组件尺寸
       theme: wsCache.get(CACHE_KEY.THEME) || {
         // 主题色
-        elColorPrimary: '#409eff',
+        elColorPrimary: '#2e7d32', // farmer-saas: 主题色改为农场绿（原 #409eff）
         // 左侧菜单边框颜色
         leftMenuBorderColor: 'inherit',
         // 左侧菜单背景颜色

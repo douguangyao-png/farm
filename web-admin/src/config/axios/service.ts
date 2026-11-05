@@ -222,6 +222,9 @@ service.interceptors.response.use(
         // hard coding：忽略这个提示，直接登出
         console.log(msg)
         return handleAuthorized()
+      } else if ((config as any)?.bizError) {
+        // 业务方自己处理错误（如认养商品违禁词拦截要拿到 data.words），不弹通知，把 code/msg/data 原样抛出
+        return Promise.reject({ code, msg, data: data.data })
       } else {
         ElNotification.error({ title: msg })
       }
