@@ -19,8 +19,11 @@ export COREPACK_ENABLE_DOWNLOAD_PROMPT=0
 quiet() { grep -v "post-quantum\|store now\|pq.html" || true; }
 
 deploy_mock() {
-  echo "== mock：测试、打包"
-  (cd "$ROOT/mock-server" && npx vitest run >/dev/null && npx tsc --noEmit && npm run -s bundle >/dev/null)
+  echo "== mock：在服务器上跑测试（不在本机跑，用户 2026-11-05 定）"
+  bash "$ROOT/deploy/server-test.sh" | tee "$TMP/test.log"
+  grep -q "tsc: 无错误" "$TMP/test.log" && grep -Eq "Tests .*passed" "$TMP/test.log" && ! grep -Eq "Tests .*failed" "$TMP/test.log"     || { echo "服务器上的测试没通过，停止发布"; exit 1; }
+  echo "== mock：打包（esbuild，不跑测试）"
+  (cd "$ROOT/mock-server" && npm run -s bundle >/dev/null)
   tar -czf "$TMP/mock.tgz" -C "$ROOT/mock-server" dist/server.mjs seed
   tar -czf "$TMP/docs.tgz" -C "$ROOT" docs
   $SCP "$TMP/mock.tgz" "$TMP/docs.tgz" "$HOST:/tmp/" 2>&1 | quiet
