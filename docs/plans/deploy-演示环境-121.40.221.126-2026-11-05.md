@@ -3,8 +3,8 @@
 - 类型：新功能
 - 档位：B
 - 风险：高（共享生产服务器，上面跑着实训中心和资衡；要改 nginx 全局配置并 reload，出错会让这两个系统一起不可用）
-- 状态：草稿
-- 批准：待批准
+- 状态：执行中
+- 批准：用户 2026-11-05
 - 关联：docs/plans/demo-四端演示Demo-2026-11-04.md；服务器上 /etc/nginx/conf.d/hp.conf 头部注释写的「新服务器迁移方案 3.6」
 
 ## 1. 调研
@@ -74,13 +74,13 @@ location /farm-api/ {
 
 ## 3. 任务
 
-- [ ] T1 本机：三个前端加 `demo` 构建模式，mock 服务打包成单文件；构建产物检查（需求：见关联方案 R-7）
+- [x] T1 本机：三个前端加 `demo` 构建模式，mock 服务打包成单文件；构建产物检查（需求：见关联方案 R-7）
   - 验证：三个产物里 grep 不到 `localhost:48090`，HTML 里的资源路径以 `/farm/`、`/farm/m/`、`/farm/steward/` 开头；本机用 `npx serve` 模拟子路径打开能登录
-- [ ] T2 服务器：备份 nginx 配置，记录部署前的基线
+- [x] T2 服务器：备份 nginx 配置，记录部署前的基线
   - 验证：`/root/backup/farm-deploy-<时间>/` 里有 `nginx.conf`、`conf.d/hp.conf`、`hp-proxy.inc` 和 sha256 清单；基线是 `curl -s -o /dev/null -w "%{http_code}"` 访问 `/`、`/training/`、`/ziheng/` 的状态码，写进「记录」
-- [ ] T3 服务器：建 `farm` 用户和 `/opt/farmer-saas`，上传 Node 和 mock 服务，配置并启动 `farm-mock.service`
+- [x] T3 服务器：建 `farm` 用户和 `/opt/farmer-saas`，上传 Node 和 mock 服务，配置并启动 `farm-mock.service`
   - 验证：`systemctl is-active farm-mock` 输出 `active`；`curl 127.0.0.1:48090/__mock/health` 返回 `"up"`；`ss -ltnp` 显示 48090 只绑在 127.0.0.1
-- [ ] T4 服务器：上传三个前端；写 `farm-locations.inc`；`hp.conf` 加一行 include；`nginx -t` 通过后再 `systemctl reload nginx`
+- [x] T4 服务器：上传三个前端；写 `farm-locations.inc`；`hp.conf` 加一行 include；`nginx -t` 通过后再 `systemctl reload nginx`
   - 验证：`nginx -t` 输出 `syntax is ok` 和 `test is successful`；reload 后 `/`、`/training/`、`/ziheng/` 的状态码和基线完全一致；`/farm/` 返回 200
 - [ ] T5 部署后回归（全局规则：必须走到登录后的页面）
   - 验证：在浏览器里打开三个端，分别用演示账号登录进首页；网络面板里能看到请求发到 `/farm-api/...` 并返回 200；`/training/` 和 `/ziheng/` 能正常打开登录页（这两个系统登录后的页面我没有账号验证，需要用户自己点一下）
@@ -92,7 +92,7 @@ T4 之后任何一步出问题，按下面执行：
 ```bash
 B=/root/backup/farm-deploy-<时间>
 cp $B/conf.d/hp.conf /etc/nginx/conf.d/hp.conf
-rm -f /etc/nginx/farm-locations.inc /etc/nginx/farm.htpasswd
+rm -f /etc/nginx/farm-locations.inc /etc/nginx/farm.htpasswd /etc/nginx/farm-secret.inc
 nginx -t && systemctl reload nginx
 systemctl disable --now farm-mock && rm -f /etc/systemd/system/farm-mock.service && systemctl daemon-reload
 # 可选，彻底清理：rm -rf /opt/farmer-saas && userdel farm
@@ -104,4 +104,15 @@ systemctl disable --now farm-mock && rm -f /etc/systemd/system/farm-mock.service
 
 ## 5. 记录
 
-- 待用户确认：①本方案；②要不要加访问密码（Basic Auth）；③现在就部署（目前只有 T1 骨架，后台还是芋道自带的页面），还是等 Demo 做完再部署。
+- 2026-11-05 用户确认：①方案批准；②加访问密码（Basic Auth）；③现在就部署（T1 骨架阶段），以后每完成一个 Demo 任务更新一次；④问题反馈只做后台；⑤宝塔密码文件用户自己处理，本方案不管。
+- 2026-11-05 用户补充：以后所有系统（实训中心、资衡、农场）各用一个端口，「现在先不改」。本次仍按 /farm/ 走 80 端口；以后迁到独立端口时，农场三端改回根路径构建、单独一个 server 块即可，不再需要 hp.conf 的 include。阿里云安全组正在开 443、8080~8090（入方向），本次部署用不到。
+- 访问密码：用户名 demo，密码随机生成，只存在服务器 `/root/farm-demo-basic-auth.txt`（600 权限），不写进仓库和对话。
+- 浏览器验证的限制：演示账号和 Basic Auth 都要在浏览器里输密码，而目标是公网 IP，不属于我可以代输密码的本机/测试域名，所以登录后的页面要用户自己在浏览器里走一遍。我能做的是在服务器本机用 curl 走完整链路（经 nginx、带 Basic Auth、登录拿 token、带 token 调登录后的接口）。
+- T2 [实测 2026-11-05 12:05]：备份在 `/root/backup/farm-deploy-20261105-120518/`（nginx.conf、conf.d/hp.conf、hp-proxy.inc、SHA256SUMS、baseline.txt）。基线（服务器本机 curl 127.0.0.1）：`/` 302，`/training/` 200，`/ziheng/` 200，`/farm/` 404，`/farm-api/` 404。
+- T3 [实测 2026-11-05]：Node v22.23.4（nodejs.org 官方包，SHASUMS256 校验 OK）解压到 `/opt/farmer-saas/node`；系统用户 farm（nologin）；`systemctl is-active farm-mock` = active；`/__mock/health` 返回 `{"code":0,"data":"up"}`；`ss -ltnp` 显示 `127.0.0.1:48090`。服务文件和 nginx 片段放在仓库 `deploy/server/`。
+- 设计补充：`/farm-api/__mock/` 在 nginx 层返回 404，重置数据、未实现接口清单这些调试入口不对公网开放。
+- T1 [实测 2026-11-05]：三个前端加 `demo` 模式（后台 `.env.demo` / `pnpm build:demo`；C 端 `.env.demo` / `npm run build:h5:demo`，子路径由 `scripts/uni.cjs` 构建时临时改 manifest 的 h5.router.base、退出时还原，构建后 `git diff manifest.json` 为空；管家端 `env/.env.demo` / `pnpm build:h5:demo`）。mock 服务 `npm run bundle` 打成 `dist/server.mjs`（1.1MB），监听地址默认改为 127.0.0.1；测试 13/13 通过。产物检查：三个 index.html 的资源路径分别以 `/farm/`、`/farm/m/`、`/farm/steward/` 开头；三个产物都 grep 不到 `localhost:48090`；C 端、管家端 `routerBase` 分别是 `/farm/m/`、`/farm/steward/`。本机用 express 模拟 nginx 路径（127.0.0.1:8099），浏览器里：后台 qingshan 登录进 `/farm/index` 首页，管家端 zhangguanjia 登录进工作台，C 端首页渲染（弹出短信登录框）；网络面板里请求都是 `/farm-api/admin-api/...`、`/farm-api/app-api/...`，返回 200。
+- T4 [实测 2026-11-05]：`nginx -t` 输出 syntax is ok / test is successful，reload 后 `/` 302、`/training/` 200、`/ziheng/` 200，和基线一致。hp.conf 只多了两行（一行注释 + include），`diff` 已核对。
+- **T4 中发现并修正的问题** [实测]：最初 `/farm-api/` 也用 Basic Auth，但前端登录后每个请求都带 `Authorization: Bearer`，会顶掉 Basic 头，带 token 的接口全部被 nginx 401——也就是登录页能过、登录后全挂。改为：页面路径 Basic Auth 通过后下发 HttpOnly Cookie `farm_demo`（随机值在服务器 `/etc/nginx/farm-secret.inc`，不进仓库），`/farm-api/` 校验这个 Cookie。改前的版本备份为 `$B/farm-locations.inc.v1`。改后服务器本机 curl：不带/伪造 Cookie 调接口 401；Basic Auth 拿到 Cookie 后，qingshan、zhangguanjia 登录并调 `get-permission-info` 返回 code 0，会员 13800000001 登录并调 `member/user/get` 返回周女士；`/farm-api/__mock/*` 返回 404；从公网不带密码访问 `/farm/` 401。
+- 回滚补充：第 4 节的 `rm -f` 还要加上 `/etc/nginx/farm-secret.inc`。
+- T5 未完成：**公网浏览器里登录后的页面我没验证**（要在浏览器里输 Basic Auth 和演示账号密码，目标是公网 IP，我不能代输），需要用户按演示手册走一遍三个端。

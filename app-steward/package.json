@@ -100,7 +100,8 @@
     "init-json": "pnpm init-baseFiles",
     "prepare": "pnpm init-husky & pnpm init-baseFiles",
     "lint": "eslint --cache --cache-strategy content --cache-location node_modules/.cache/eslint/.eslintcache",
-    "lint:fix": "eslint --fix --cache --cache-strategy content --cache-location node_modules/.cache/eslint/.eslintcache"
+    "lint:fix": "eslint --fix --cache --cache-strategy content --cache-location node_modules/.cache/eslint/.eslintcache",
+    "build:h5:demo": "uni build --mode demo"
   },
   "dependencies": {
     "@dcloudio/uni-app": "3.0.0-4070620250821001",

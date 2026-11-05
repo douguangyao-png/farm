@@ -1,0 +1,22 @@
+# 认养农场 SaaS 演示 Demo 的 mock 后端（docs/plans/deploy-演示环境-121.40.221.126-2026-11-05.md）
+[Unit]
+Description=farmer-saas demo mock server
+After=network.target
+
+[Service]
+Type=simple
+User=farm
+Group=farm
+WorkingDirectory=/opt/farmer-saas/mock-server
+Environment=MOCK_HOST=127.0.0.1
+Environment=MOCK_PORT=48090
+ExecStart=/opt/farmer-saas/node/bin/node /opt/farmer-saas/mock-server/dist/server.mjs
+Restart=always
+RestartSec=3
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
