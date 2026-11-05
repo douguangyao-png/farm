@@ -56,7 +56,8 @@
                 {{ t('login.remember') }}
               </el-checkbox>
             </el-col>
-            <el-col :offset="6" :span="12">
+            <!-- farmer-saas: 演示模式没有找回密码（要发短信），隐藏 -->
+            <el-col v-if="!loginByUsername" :offset="6" :span="12">
               <el-link
                 class="float-right"
                 type="primary"
@@ -103,7 +104,8 @@
         mode="pop"
         @success="handleLogin"
       />
-      <el-col :span="24" class="px-10px">
+      <!-- farmer-saas: 演示模式下隐藏手机登录、二维码登录、注册、第三方登录（演示环境没有这些能力） -->
+      <el-col v-if="!loginByUsername" :span="24" class="px-10px">
         <el-form-item>
           <el-row :gutter="5" justify="space-between" style="width: 100%">
             <el-col :span="8">
@@ -124,8 +126,8 @@
           </el-row>
         </el-form-item>
       </el-col>
-      <el-divider content-position="center">{{ t('login.otherLogin') }}</el-divider>
-      <el-col :span="24" class="px-10px">
+      <el-divider v-if="!loginByUsername" content-position="center">{{ t('login.otherLogin') }}</el-divider>
+      <el-col v-if="!loginByUsername" :span="24" class="px-10px">
         <el-form-item>
           <div class="w-full flex justify-between">
             <Icon
