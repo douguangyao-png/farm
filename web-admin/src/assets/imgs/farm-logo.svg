@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- 认养农场 SaaS 标志（farmer-saas）：圆角方块 + 叶片 + 田垄 -->
+  <rect width="64" height="64" rx="14" fill="#2e7d32"/>
+  <path d="M32 12c-10 6-15 14-15 22 0 7 6 12 15 12s15-5 15-12c0-8-5-16-15-22z" fill="#a5d6a7"/>
+  <path d="M32 18v26M32 28l-7-5M32 34l8-6" stroke="#1b5e20" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+  <path d="M12 52c6-3 13-3 20 0s14 3 20 0" stroke="#c8e6c9" stroke-width="3" stroke-linecap="round" fill="none"/>
+</svg>

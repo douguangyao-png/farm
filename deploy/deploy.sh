@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # 演示环境一键发布（docs/plans/deploy-演示环境-121.40.221.126-2026-11-05.md）
-# 用法：bash deploy/deploy.sh [all|mock|web]   默认 all
+# 用法：bash deploy/deploy.sh [all|mock|web|admin|m|steward]   默认 all（admin/m/steward 只发对应的一个前端）
 # - mock：打包 mock 服务 + seed + docs/，上传并重启 farm-mock
 # - web ：用 demo 模式构建三个前端，上传覆盖 /opt/farmer-saas/web/
 # 每次发布前在服务器 /opt/farmer-saas/releases/ 留旧版本包，回滚见方案第 4 节。
@@ -40,9 +40,10 @@ deploy_mock() {
 
 deploy_web() {
   echo "== web：demo 模式构建三个前端（后台约 4 分钟）"
-  (cd "$ROOT/web-admin" && $PNPM build:demo >/dev/null)
-  (cd "$ROOT/app-member" && npm run -s build:h5:demo >/dev/null)
-  (cd "$ROOT/app-steward" && $PNPM build:h5:demo >/dev/null)
+  local ends="${1:-admin m steward}"
+  [[ " $ends " == *" admin "* ]] && (cd "$ROOT/web-admin" && $PNPM build:demo >/dev/null)
+  [[ " $ends " == *" m "* ]] && (cd "$ROOT/app-member" && npm run -s build:h5:demo >/dev/null)
+  [[ " $ends " == *" steward "* ]] && (cd "$ROOT/app-steward" && $PNPM build:h5:demo >/dev/null)
   echo "== 产物检查：不能有 localhost:48090，资源路径要带子路径"
   for d in web-admin/dist-demo app-member/dist/build/h5 app-steward/dist/build/h5; do
     if grep -rqF "localhost:48090" "$ROOT/$d"; then echo "产物 $d 里有 localhost:48090，停止发布"; exit 1; fi
@@ -52,15 +53,15 @@ deploy_web() {
   grep -q '/farm/steward/assets/' "$ROOT/app-steward/dist/build/h5/index.html"
   git -C "$ROOT" diff --quiet -- app-member/manifest.json || { echo "app-member/manifest.json 没有还原，停止发布"; exit 1; }
   mkdir -p "$TMP/web"
-  cp -r "$ROOT/web-admin/dist-demo" "$TMP/web/admin"
-  cp -r "$ROOT/app-member/dist/build/h5" "$TMP/web/m"
-  cp -r "$ROOT/app-steward/dist/build/h5" "$TMP/web/steward"
-  tar -czf "$TMP/web.tgz" -C "$TMP/web" admin m steward
+  [[ " $ends " == *" admin "* ]] && cp -r "$ROOT/web-admin/dist-demo" "$TMP/web/admin"
+  [[ " $ends " == *" m "* ]] && cp -r "$ROOT/app-member/dist/build/h5" "$TMP/web/m"
+  [[ " $ends " == *" steward "* ]] && cp -r "$ROOT/app-steward/dist/build/h5" "$TMP/web/steward"
+  tar -czf "$TMP/web.tgz" -C "$TMP/web" $ends
   $SCP "$TMP/web.tgz" "$HOST:/tmp/web-$T.tgz" 2>&1 | quiet
   $SSH "$HOST" "set -e
     tar -czf /opt/farmer-saas/releases/web-before-$T.tgz -C /opt/farmer-saas web
     rm -rf /tmp/farmweb && mkdir /tmp/farmweb && tar -xzf /tmp/web-$T.tgz -C /tmp/farmweb
-    for d in admin m steward; do rm -rf /opt/farmer-saas/web/\$d && mv /tmp/farmweb/\$d /opt/farmer-saas/web/\$d; done
+    for d in $ends; do rm -rf /opt/farmer-saas/web/\$d && mv /tmp/farmweb/\$d /opt/farmer-saas/web/\$d; done
     mv /tmp/web-$T.tgz /opt/farmer-saas/releases/web-$T.tgz && rm -rf /tmp/farmweb
     chmod -R a+rX /opt/farmer-saas/web" 2>&1 | quiet
 }
@@ -68,6 +69,7 @@ deploy_web() {
 case "$WHAT" in
   mock) deploy_mock ;;
   web) deploy_web ;;
+  admin|m|steward) deploy_web "$WHAT" ;;
   all) deploy_mock; deploy_web ;;
   *) echo "用法：bash deploy/deploy.sh [all|mock|web]"; exit 2 ;;
 esac

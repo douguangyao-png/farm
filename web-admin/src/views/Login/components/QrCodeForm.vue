@@ -25,7 +25,7 @@
   </el-row>
 </template>
 <script lang="ts" setup>
-import logoImg from '@/assets/imgs/logo.png'
+import logoImg from '@/assets/imgs/farm-logo.svg' // farmer-saas
 import * as LoginApi from '@/api/login'
 import { AuthQrcodeStatusEnum } from '@/api/login'
 import type { AuthQrcodeCreateRespVO } from '@/api/login'

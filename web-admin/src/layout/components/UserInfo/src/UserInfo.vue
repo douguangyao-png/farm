@@ -49,9 +49,6 @@ const loginOut = async () => {
 const toProfile = async () => {
   push('/user/profile')
 }
-const toDocument = () => {
-  window.open('https://doc.iocoder.cn/')
-}
 </script>
 
 <template>
@@ -68,10 +65,7 @@ const toDocument = () => {
           <Icon icon="ep:tools" />
           <div @click="toProfile">{{ t('common.profile') }}</div>
         </ElDropdownItem>
-        <ElDropdownItem>
-          <Icon icon="ep:menu" />
-          <div @click="toDocument">{{ t('common.document') }}</div>
-        </ElDropdownItem>
+        <!-- farmer-saas: 去掉芋道的「项目文档」（doc.iocoder.cn）入口 -->
         <ElDropdownItem divided>
           <Icon icon="ep:lock" />
           <div @click="lockScreen">{{ t('lock.lockScreen') }}</div>

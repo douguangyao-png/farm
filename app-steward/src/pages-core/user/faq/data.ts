@@ -20,24 +20,25 @@ export interface FaqCategory {
 /** FAQ 数据列表 */
 export const faqList: FaqCategory[] = [
   {
-    icon: 'github-filled',
-    title: '芋道问题',
+    // farmer-saas: 换成管家端的常见问题
+    icon: 'help-circle',
+    title: '管家常见问题',
     childList: [
       {
-        title: '芋道开源吗？',
-        content: '开源，基于 MIT 协议，可免费商用。',
+        title: '打卡要拍几张照片？',
+        content: '至少 1 张、最多 9 张现场照片。系统会核对拍摄时间、定位是否在基地范围内、是否和以前的照片重复。',
       },
       {
-        title: '芋道可以商用吗？',
-        content: '可以，芋道采用 MIT 开源协议，允许商业使用。',
+        title: '打卡被驳回了怎么办？',
+        content: '在工作台查看驳回原因，按要求重新完成农事并再次打卡。',
       },
       {
-        title: '芋道官网地址多少？',
-        content: 'https://www.iocoder.cn',
+        title: '代管工单怎么接？',
+        content: '在「代管工单 → 工单池」里点「接单」，任务会出现在今日任务里，完成后打卡即可。',
       },
       {
-        title: '芋道文档地址多少？',
-        content: 'https://doc.iocoder.cn',
+        title: '认养人自己没做的任务要我去做吗？',
+        content: '不用代替执行。认养人可以在 C 端「委托管家代办」，委托后会生成代管工单。',
       },
     ],
   },

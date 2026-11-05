@@ -13,7 +13,7 @@
     <!-- Logo 区域 -->
     <view class="flex flex-col items-center py-60rpx">
       <wd-img class="mb-24rpx" src="/static/logo.svg" width="150rpx" height="150rpx" mode="aspectFit" round />
-      <text class="text-40rpx text-gray-800 font-medium">芋道移动端</text>
+      <text class="text-40rpx text-gray-800 font-medium">认养农场 · 管家</text>
     </view>
 
     <!-- 设置列表 -->
@@ -50,10 +50,10 @@
         <text class="text-[#1890ff]" @click="handleGoPrivacy">《隐私协议》</text>
       </view>
       <text class="mb-10rpx text-24rpx text-gray-400">
-        Copyright © 2026 iocoder.cn All Rights Reserved.
+        Copyright © 2026 认养农场 SaaS
       </text>
       <text class="text-24rpx text-gray-400">
-        芋道源码
+        演示版本
       </text>
     </view>
   </view>

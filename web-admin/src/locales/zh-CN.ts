@@ -124,8 +124,8 @@ export default {
     small: '小'
   },
   login: {
-    welcome: '欢迎使用本系统',
-    message: '开箱即用的中后台管理系统',
+    welcome: '欢迎使用认养农场 SaaS', // farmer-saas
+    message: '认养农业一站式经营：基地、认养、托管、农事、溯源、配送', // farmer-saas
     tenantname: '租户名称',
     username: '用户名',
     password: '密码',
@@ -384,7 +384,7 @@ export default {
       qrSignInFormTitle: '二维码登录',
       signUpFormTitle: '注册',
       forgetFormTitle: '重置密码',
-      signInTitle: '开箱即用的中后台管理系统',
+      signInTitle: '认养农业一站式经营平台', // farmer-saas
       signInDesc: '输入您的个人详细信息开始使用！',
       policy: '我同意xxx隐私政策',
       scanSign: `扫码后点击"确认"，即可完成登录`,
