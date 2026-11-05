@@ -3,6 +3,7 @@ import cors from 'cors'
 import { attachContext, ok, fail, ERR, clearSessions } from './http.js'
 import { resetDb } from './store.js'
 import { systemRouter } from './routes/system.js'
+import { systemManageRouter } from './routes/system-manage.js'
 import { appRouter } from './routes/app.js'
 
 /** 没实现的接口记下来，方便补齐：GET /__mock/unhandled 查看 */
@@ -15,6 +16,7 @@ export function createApp() {
   app.use(attachContext)
 
   app.use('/admin-api/system', systemRouter)
+  app.use('/admin-api/system', systemManageRouter)
   app.use('/app-api', appRouter)
 
   // ---- mock 管理接口 ----

@@ -8,7 +8,9 @@ const SEED_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'seed')
 export interface Tenant { id: number; name: string; contactName?: string; contactMobile?: string; status: number; packageId: number; expireTime?: number; websites?: string[] }
 export interface Menu { id: number; parentId: number; name: string; path: string; component?: string; componentName?: string; icon?: string; visible: boolean; keepAlive: boolean; alwaysShow?: boolean; permission?: string }
 export interface Role { id: number; tenantId: number; code: string; name: string; menuIds: number[] | '*' }
-export interface User { id: number; tenantId: number; username: string; password: string; nickname: string; avatar?: string; deptId?: number; roleIds: number[]; kind: 'admin' | 'steward' }
+export interface User { id: number; tenantId: number; username: string; password: string; nickname: string; avatar?: string; deptId?: number; roleIds: number[]; kind: 'admin' | 'steward'; mobile?: string }
+export interface DictType { id: number; name: string; type: string; status: number; remark?: string }
+export interface DictData { dictType: string; value: string; label: string; colorType?: string; cssClass?: string }
 export interface Member { id: number; tenantId: number; mobile: string; password: string; nickname: string; avatar?: string }
 
 export interface Db {
@@ -18,6 +20,8 @@ export interface Db {
   users: User[]
   members: Member[]
   diyTemplates: Record<string, unknown>[]
+  dictTypes: DictType[]
+  dictData: DictData[]
   [collection: string]: unknown[]
 }
 

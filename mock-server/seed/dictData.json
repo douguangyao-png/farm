@@ -1,4 +1,10 @@
 [
   { "dictType": "common_status", "value": "0", "label": "开启", "colorType": "primary", "cssClass": "" },
-  { "dictType": "common_status", "value": "1", "label": "关闭", "colorType": "info", "cssClass": "" }
+  { "dictType": "common_status", "value": "1", "label": "关闭", "colorType": "info", "cssClass": "" },
+  { "dictType": "system_user_sex", "value": "1", "label": "男", "colorType": "default", "cssClass": "" },
+  { "dictType": "system_user_sex", "value": "2", "label": "女", "colorType": "success", "cssClass": "" },
+  { "dictType": "system_role_type", "value": "1", "label": "内置", "colorType": "danger", "cssClass": "" },
+  { "dictType": "system_role_type", "value": "2", "label": "自定义", "colorType": "primary", "cssClass": "" },
+  { "dictType": "system_data_scope", "value": "1", "label": "全部数据权限", "colorType": "", "cssClass": "" },
+  { "dictType": "system_data_scope", "value": "5", "label": "仅本人数据权限", "colorType": "", "cssClass": "" }
 ]
