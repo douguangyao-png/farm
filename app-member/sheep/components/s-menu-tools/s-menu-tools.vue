@@ -35,7 +35,7 @@
 
   const list = [
     {
-      url: '/pages/index/index',
+      url: '/pages/farm/index', // farmer-saas：认养农场首页
       icon: '/static/img/shop/tools/home.png',
       title: '首页',
     },
@@ -45,7 +45,7 @@
       title: '搜索',
     },
     {
-      url: '/pages/index/user',
+      url: '/pages/farm/mine', // farmer-saas：认养农场「我的」
       icon: '/static/img/shop/tools/user.png',
       title: '个人中心',
     },

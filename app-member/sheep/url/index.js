@@ -3,7 +3,8 @@ import { staticUrl } from '@/sheep/config';
 
 const cdn = (url = '', cdnurl = '') => {
   if (!url) return '';
-  if (url.indexOf('http') === 0) {
+  // farmer-saas：data: 图片（mock 的占位图、底部导航图标）不加 CDN 前缀
+  if (url.indexOf('http') === 0 || url.indexOf('data:') === 0) {
     return url;
   }
   if (cdnurl === '') {

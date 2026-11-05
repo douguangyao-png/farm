@@ -45,7 +45,8 @@ declare module 'express-serve-static-core' {
 /** 解析 Authorization: Bearer <token> 和 tenant-id 请求头 */
 export function attachContext(req: Request, _res: Response, next: NextFunction) {
   const auth = req.header('authorization')
-  const token = auth?.startsWith('Bearer ') ? auth.slice(7) : undefined
+  // 后台、管家端发「Bearer <token>」，芋道商城 C 端发裸 token（芋道后端两种都认），这里也两种都认
+  const token = auth ? (auth.startsWith('Bearer ') ? auth.slice(7) : auth) : undefined
   if (token) req.session = sessions.get(token)
   const t = req.header('tenant-id')
   if (t && /^\d+$/.test(t)) req.tenantId = Number(t)

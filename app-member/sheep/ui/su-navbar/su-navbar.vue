@@ -263,7 +263,7 @@
     if (hasHistory) {
       sheep.$router.back();
     } else {
-      sheep.$router.go('/pages/index/index');
+      sheep.$router.go('/pages/farm/index'); // farmer-saas：首页改为认养农场首页
     }
     emits('clickLeft');
   }

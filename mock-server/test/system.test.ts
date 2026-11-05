@@ -116,3 +116,13 @@ describe('C 端接口（T1）', () => {
     expect(r.body.code).toBe(401)
   })
 })
+
+describe('C 端兼容芋道商城的请求习惯', () => {
+  it('裸 token（不带 Bearer）也能识别；会员信息带地址；购物车按芋道格式返回空', async () => {
+    const lg = await request(app).post('/app-api/member/auth/login').set('tenant-id', '2').send({ mobile: '13800000001', password: 'demo123' })
+    const u = await request(app).get('/app-api/member/user/get').set('Authorization', lg.body.data.accessToken).set('tenant-id', '2')
+    expect(u.body.data).toMatchObject({ nickname: '周女士', address: '浙江省杭州市西湖区文三路 90 号' })
+    const c = await request(app).get('/app-api/trade/cart/list').set('tenant-id', '2')
+    expect(c.body.data).toEqual({ validList: [], invalidList: [] })
+  })
+})

@@ -6,7 +6,167 @@
 			"^su-(.*)": "@/sheep/ui/su-$1/su-$1.vue"
 		}
 	},
-	"pages": [{
+	"pages": [
+		// farmer-saas：认养农场 C 端页面（第一个是入口页），底部导航见 tabBar 和 sheep/config/farm.js
+		{
+			"path": "pages/farm/index",
+			"style": {
+				"navigationBarTitleText": "认养农场",
+				"enablePullDownRefresh": true
+			},
+			"meta": {
+				"auth": false,
+				"sync": true,
+				"title": "首页",
+				"group": "认养农场"
+			}
+		},
+		{
+			"path": "pages/farm/adoption/list",
+			"style": {
+				"navigationBarTitleText": "我的认养",
+				"enablePullDownRefresh": true
+			},
+			"meta": {
+				"auth": false,
+				"sync": true,
+				"title": "我的认养",
+				"group": "认养农场"
+			}
+		},
+		{
+			"path": "pages/farm/supply/list",
+			"style": {
+				"navigationBarTitleText": "农资商城"
+			},
+			"meta": {
+				"auth": false,
+				"sync": true,
+				"title": "农资商城",
+				"group": "认养农场"
+			}
+		},
+		{
+			"path": "pages/farm/mine",
+			"style": {
+				"navigationBarTitleText": "我的"
+			},
+			"meta": {
+				"auth": false,
+				"sync": true,
+				"title": "我的",
+				"group": "认养农场"
+			}
+		},
+		{
+			"path": "pages/farm/product/detail",
+			"style": {
+				"navigationBarTitleText": "认养详情"
+			},
+			"meta": {
+				"auth": false,
+				"sync": true,
+				"title": "认养详情",
+				"group": "认养农场"
+			}
+		},
+		{
+			"path": "pages/farm/product/compare",
+			"style": {
+				"navigationBarTitleText": "托管方式对比"
+			},
+			"meta": {
+				"auth": false,
+				"sync": true,
+				"title": "托管方式对比",
+				"group": "认养农场"
+			}
+		},
+		{
+			"path": "pages/farm/order/confirm",
+			"style": {
+				"navigationBarTitleText": "确认订单"
+			},
+			"meta": {
+				"auth": true,
+				"sync": true,
+				"title": "确认订单",
+				"group": "认养农场"
+			}
+		},
+		{
+			"path": "pages/farm/order/result",
+			"style": {
+				"navigationBarTitleText": "支付结果"
+			},
+			"meta": {
+				"auth": true,
+				"sync": true,
+				"title": "支付结果",
+				"group": "认养农场"
+			}
+		},
+		{
+			"path": "pages/farm/adoption/detail",
+			"style": {
+				"navigationBarTitleText": "认养详情"
+			},
+			"meta": {
+				"auth": true,
+				"sync": true,
+				"title": "认养详情",
+				"group": "认养农场"
+			}
+		},
+		{
+			"path": "pages/farm/self-task/list",
+			"style": {
+				"navigationBarTitleText": "自管任务"
+			},
+			"meta": {
+				"auth": true,
+				"sync": true,
+				"title": "自管任务",
+				"group": "认养农场"
+			}
+		},
+		{
+			"path": "pages/farm/supply/detail",
+			"style": {
+				"navigationBarTitleText": "农资详情"
+			},
+			"meta": {
+				"auth": false,
+				"sync": true,
+				"title": "农资详情",
+				"group": "认养农场"
+			}
+		},
+		{
+			"path": "pages/farm/supply/order-list",
+			"style": {
+				"navigationBarTitleText": "我的农资"
+			},
+			"meta": {
+				"auth": true,
+				"sync": true,
+				"title": "我的农资",
+				"group": "认养农场"
+			}
+		},
+		{
+			"path": "pages/farm/shipment/list",
+			"style": {
+				"navigationBarTitleText": "收获配送"
+			},
+			"meta": {
+				"auth": true,
+				"sync": true,
+				"title": "收获配送",
+				"group": "认养农场"
+			}
+		},
+		{
 			"path": "pages/index/index",
 			"aliasPath": "/",
 			"style": {
@@ -687,16 +847,16 @@
 	},
 	"tabBar": {
 		"list": [{
-				"pagePath": "pages/index/index"
-			},
-            {
-				"pagePath": "pages/index/category"
-            },
-			{
-				"pagePath": "pages/index/cart"
+				"pagePath": "pages/farm/index"
 			},
 			{
-				"pagePath": "pages/index/user"
+				"pagePath": "pages/farm/adoption/list"
+			},
+			{
+				"pagePath": "pages/farm/supply/list"
+			},
+			{
+				"pagePath": "pages/farm/mine"
 			}
 		]
 	}

@@ -36,7 +36,10 @@ appRouter.get('/member/user/get', requireLogin('member'), (req, res) => {
   const m = getDb().members.find((x) => x.id === req.session!.userId)
   if (!m) return fail(res, ERR.UNAUTHORIZED, '账号未登录')
   return ok(res, {
-    id: m.id, nickname: m.nickname, avatar: m.avatar ?? '', mobile: m.mobile,
+    id: m.id, nickname: m.nickname, avatar: m.avatar ?? '', mobile: m.mobile, address: m.address ?? '',
     point: 0, experience: 0, level: null, brokerageEnabled: false
   })
 })
+
+// 芋道商城启动时会拉购物车；认养 Demo 没有购物车，按芋道格式返回空，避免前端 store 报错
+appRouter.get('/trade/cart/list', (_req, res) => ok(res, { validList: [], invalidList: [] }))

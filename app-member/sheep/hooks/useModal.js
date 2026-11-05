@@ -6,7 +6,8 @@ import test from '@/sheep/helper/test.js';
 import AuthUtil from '@/sheep/api/member/auth';
 
 // 打开授权弹框
-export function showAuthModal(type = 'smsLogin') {
+// farmer-saas：默认登录方式可由 SHOPRO_DEFAULT_LOGIN 指定（mock 只实现了账号密码登录，.env.mock / .env.demo 设为 accountLogin）
+export function showAuthModal(type = import.meta.env.SHOPRO_DEFAULT_LOGIN || 'smsLogin') {
   const modal = $store('modal');
   // #ifdef H5
   closeAuthModal();

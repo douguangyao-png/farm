@@ -7,6 +7,7 @@ import $router from '@/sheep/router';
 import user from './user';
 import sys from './sys';
 import { baseUrl, h5Url } from '@/sheep/config';
+import { FARM_TABBAR } from '@/sheep/config/farm';
 
 const app = defineStore('app', {
   state: () => ({
@@ -191,7 +192,8 @@ const adaptTemplate = async (appTemplate, templateId) => {
     return;
   }
 
-  const tabBar = diyTemplate?.property?.tabBar;
+  // farmer-saas：认养农场的底部导航（首页 / 认养 / 农资 / 我的）写死在 sheep/config/farm.js，覆盖装修模板里的 tabBar
+  const tabBar = FARM_TABBAR;
   if (tabBar) {
     appTemplate.basic.tabbar = tabBar;
     // TODO 商城装修没有对 tabBar 进行角标配置，测试角标需打开以下注释
