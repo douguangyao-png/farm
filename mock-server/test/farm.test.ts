@@ -248,6 +248,34 @@ describe('平台开通租户、R-9 重置', () => {
   })
 })
 
+describe('问题反馈 FB-0002 / FB-0003：菜单树与部门', () => {
+  it('菜单树含部门管理；部门按租户隔离，可增改删，有子部门不能删', async () => {
+    const pf = await admin(1, 'admin', 'admin123')
+    const menus = (await get('/admin-api/system/menu/simple-list', pf)).data
+    expect(menus.length).toBeGreaterThan(20)
+    expect(menus.some((m: { name: string }) => m.name === '部门管理')).toBe(true)
+    const qs = await admin(2, 'qingshan')
+    const list = (await get('/admin-api/system/dept/list', qs)).data
+    expect(list.map((d: { name: string }) => d.name)).toContain('青山农场')
+    expect(list.every((d: { name: string }) => d.name !== '平台运营中心')).toBe(true)
+    expect((await post('/admin-api/system/dept/create', qs, { name: '', parentId: 200 })).code).toBe(400)
+    const c = await post('/admin-api/system/dept/create', qs, { name: '加工部', parentId: 200, sort: 3 })
+    expect(c.code).toBe(0)
+    expect((await put('/admin-api/system/dept/update', qs, { id: c.data, name: '加工包装部', parentId: 200, sort: 3, status: 0 })).code).toBe(0)
+    expect((await request(app).delete('/admin-api/system/dept/delete').set(qs).query({ id: 200 }).then((r) => r.body)).msg).toBe('存在子部门，不能删除')
+    expect((await request(app).delete('/admin-api/system/dept/delete').set(qs).query({ id: c.data }).then((r) => r.body)).code).toBe(0)
+    const lv = await admin(3, 'lvye')
+    expect((await get('/admin-api/system/dept/get', lv, { id: 200 })).code).toBe(404)
+  })
+  it('修改租户信息只改传入的字段', async () => {
+    const pf = await admin(1, 'admin', 'admin123')
+    expect((await put('/admin-api/system/tenant/update', pf, { id: 2, contactName: '李青山二' })).code).toBe(0)
+    const t = (await get('/admin-api/system/tenant/get', pf, { id: 2 })).data
+    expect(t.contactName).toBe('李青山二')
+    expect(typeof t.packageId).toBe('number')
+  })
+})
+
 describe('工作台、环境数据', () => {
   it('工作台有 14 天曲线和待办；环境数据 24 个点，A-03 土壤湿度低于 22%', async () => {
     const h = await admin(2, 'qingshan')

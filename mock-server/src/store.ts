@@ -35,6 +35,7 @@ export interface Shipment { id: number; tenantId: number; no: string; harvestId:
 export interface RiskAlert { id: number; tenantId: number; type: string; level: number; title: string; content: string; source: string; status: number; handleRemark: string | null; createTime: number; handleTime: number | null }
 export interface ArticleCategory { id: number; tenantId: number; name: string; picUrl: string; sort: number; status: number; createTime: number }
 export interface Article { id: number; tenantId: number; categoryId: number; title: string; author: string; picUrl: string; introduction: string; content: string; sort: number; status: number; browseCount: number; recommendHot: boolean; recommendBanner: boolean; spuId: number; createTime: number }
+export interface Dept { id: number; tenantId: number; parentId: number; name: string; sort: number; status: number; leaderUserId?: number | null; phone?: string; email?: string }
 export interface Feedback { id: number; tenantId: number; no: string; type: string; content: string; screenshots: string[]; pageTitle: string; pagePath: string; userAgent: string; creatorId: number; creatorName: string; status: number; replies: { id: number; content: string; creatorName: string; createTime: number }[]; createTime: number; updateTime: number }
 
 export interface Db {
@@ -43,7 +44,7 @@ export interface Db {
   bases: Base[]; assets: Asset[]; products: Product[]; orders: Order[]; adoptions: Adoption[]; records: GrowthRecord[]; tasks: Task[]
   serviceOrders: ServiceOrder[]; supplies: Supply[]; supplyOrders: SupplyOrder[]; inputRecords: InputRecord[]
   harvests: Harvest[]; shipments: Shipment[]; riskAlerts: RiskAlert[]
-  articleCategories: ArticleCategory[]; articles: Article[]; feedbacks: Feedback[]
+  articleCategories: ArticleCategory[]; articles: Article[]; feedbacks: Feedback[]; depts: Dept[]
   /** 上传的文件（data URL），重置后清空 */
   files: { id: number; url: string }[]
   /** 被违禁词拦截的发布记录（风险自检用），重置后清空 */

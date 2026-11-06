@@ -8,7 +8,7 @@ import { ok, fail, ERR, requireLogin } from '../http.js'
  * 按登录账号的租户过滤（芋道原生行为：平台管理员在系统管理里也只看平台自己的用户和角色）。
  */
 export const systemManageRouter = Router()
-systemManageRouter.use(['/role', '/user', '/dict-type', '/dict-data/page'], requireLogin('admin'))
+systemManageRouter.use(['/role', '/user', '/dict-type', '/dict-data/page', '/menu', '/dept'], requireLogin('admin'))
 
 /** 演示数据统一用一个固定的创建时间，避免每次重启都变 */
 const CREATED = new Date('2026-10-08T09:30:00+08:00').getTime()
@@ -50,7 +50,7 @@ function userView(u: ReturnType<typeof getDb>['users'][number]) {
   return {
     id: u.id, username: u.username, nickname: u.nickname, avatar: u.avatar ?? '',
     mobile: u.mobile ?? '', email: '', sex: 0, status: 0,
-    deptId: u.deptId ?? null, deptName: tenant?.name ?? '', postIds: [], roleIds: u.roleIds,
+    deptId: u.deptId ?? null, deptName: getDb().depts.find((d) => d.id === u.deptId)?.name ?? tenant?.name ?? '', postIds: [], roleIds: u.roleIds,
     remark: u.kind === 'steward' ? '管家' : '', loginIp: '', loginDate: null, createTime: CREATED
   }
 }
@@ -86,6 +86,58 @@ systemManageRouter.get('/dict-data/page', (req, res) =>
     .map((d, i) => ({ id: i + 1, sort: i + 1, status: 0, remark: '', createTime: CREATED, ...d }))
     .filter((d) => (!req.query.dictType || d.dictType === req.query.dictType) && like(d.label, req.query.label) && eqStatus(d.status, req.query.status))))
 )
+
+// ---------- 菜单树（租户套餐编辑时选「关联菜单」；FB-0002） ----------
+systemManageRouter.get('/menu/simple-list', (_req, res) =>
+  ok(res, getDb().menus.filter((m) => !m.permission).map((m) => ({ id: m.id, name: m.name, parentId: m.parentId })))
+)
+
+// ---------- 部门（按租户隔离；FB-0003） ----------
+const tenantDepts = (req: Request) => (getDb().depts ?? []).filter((d) => d.tenantId === req.session!.tenantId)
+const deptView = (d: ReturnType<typeof getDb>['depts'][number]) => ({
+  id: d.id, name: d.name, parentId: d.parentId, sort: d.sort, status: d.status,
+  leaderUserId: d.leaderUserId ?? null, phone: d.phone ?? '', email: d.email ?? '', createTime: CREATED
+})
+systemManageRouter.get('/dept/simple-list', (req, res) =>
+  ok(res, tenantDepts(req).map((d) => ({ id: d.id, name: d.name, parentId: d.parentId })))
+)
+systemManageRouter.get('/dept/list', (req, res) =>
+  ok(res, tenantDepts(req).filter((d) => like(d.name, req.query.name) && eqStatus(d.status, req.query.status)).sort((a, b) => a.sort - b.sort).map(deptView))
+)
+systemManageRouter.get('/dept/get', (req, res) => {
+  const d = tenantDepts(req).find((x) => x.id === Number(req.query.id))
+  return d ? ok(res, deptView(d)) : fail(res, ERR.NOT_FOUND, '部门不存在')
+})
+systemManageRouter.post('/dept/create', (req, res) => {
+  const b = req.body ?? {}
+  if (!String(b.name ?? '').trim()) return fail(res, ERR.BAD_REQUEST, '部门名称不能为空')
+  const depts = getDb().depts
+  const parentId = Number(b.parentId ?? 0)
+  if (parentId && !tenantDepts(req).some((d) => d.id === parentId)) return fail(res, ERR.NOT_FOUND, '上级部门不存在')
+  const id = depts.reduce((m, d) => Math.max(m, d.id), 0) + 1
+  depts.push({ id, tenantId: req.session!.tenantId, parentId, name: String(b.name).trim(), sort: Number(b.sort ?? 0), status: Number(b.status ?? 0),
+    leaderUserId: b.leaderUserId ?? null, phone: b.phone ?? '', email: b.email ?? '' })
+  return ok(res, id)
+})
+systemManageRouter.put('/dept/update', (req, res) => {
+  const b = req.body ?? {}
+  const d = tenantDepts(req).find((x) => x.id === Number(b.id))
+  if (!d) return fail(res, ERR.NOT_FOUND, '部门不存在')
+  if (!String(b.name ?? '').trim()) return fail(res, ERR.BAD_REQUEST, '部门名称不能为空')
+  if (Number(b.parentId) === d.id) return fail(res, ERR.BAD_REQUEST, '上级部门不能是自己')
+  Object.assign(d, { name: String(b.name).trim(), parentId: Number(b.parentId ?? d.parentId), sort: Number(b.sort ?? d.sort), status: Number(b.status ?? d.status),
+    leaderUserId: b.leaderUserId ?? null, phone: b.phone ?? '', email: b.email ?? '' })
+  return ok(res, true)
+})
+systemManageRouter.delete('/dept/delete', (req, res) => {
+  const id = Number(req.query.id)
+  const d = tenantDepts(req).find((x) => x.id === id)
+  if (!d) return fail(res, ERR.NOT_FOUND, '部门不存在')
+  if (getDb().depts.some((x) => x.parentId === id)) return fail(res, ERR.BAD_REQUEST, '存在子部门，不能删除')
+  if (getDb().users.some((u) => u.deptId === id)) return fail(res, ERR.BAD_REQUEST, '部门下还有用户，不能删除')
+  getDb().depts = getDb().depts.filter((x) => x.id !== id)
+  return ok(res, true)
+})
 
 // ---------- 个人中心（芋道「我的」/ 个人信息页） ----------
 systemManageRouter.get('/user/profile/get', (req, res) => {

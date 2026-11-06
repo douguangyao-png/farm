@@ -1,0 +1,9 @@
+[
+  {"id": 100, "tenantId": 1, "parentId": 0, "name": "平台运营中心", "sort": 0, "status": 0},
+  {"id": 101, "tenantId": 1, "parentId": 100, "name": "运营部", "sort": 1, "status": 0},
+  {"id": 200, "tenantId": 2, "parentId": 0, "name": "青山农场", "sort": 0, "status": 0},
+  {"id": 201, "tenantId": 2, "parentId": 200, "name": "种植部", "sort": 1, "status": 0},
+  {"id": 202, "tenantId": 2, "parentId": 200, "name": "管家组", "sort": 2, "status": 0},
+  {"id": 300, "tenantId": 3, "parentId": 0, "name": "绿野农庄", "sort": 0, "status": 0},
+  {"id": 301, "tenantId": 3, "parentId": 300, "name": "管家组", "sort": 1, "status": 0}
+]

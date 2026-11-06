@@ -1,8 +1,8 @@
 [
-  {"id": 1, "tenantId": 1, "username": "admin", "password": "admin123", "nickname": "平台管理员", "roleIds": [1], "kind": "admin", "mobile": "13900000000"},
-  {"id": 2, "tenantId": 2, "username": "qingshan", "password": "demo123", "nickname": "李青山（青山农场）", "roleIds": [2], "kind": "admin", "mobile": "13900000002"},
-  {"id": 3, "tenantId": 2, "username": "zhangguanjia", "password": "demo123", "nickname": "张管家", "roleIds": [3], "kind": "steward", "mobile": "13900000012", "baseId": 1},
-  {"id": 4, "tenantId": 3, "username": "lvye", "password": "demo123", "nickname": "王绿野（绿野农庄）", "roleIds": [4], "kind": "admin", "mobile": "13900000003"},
-  {"id": 5, "tenantId": 2, "username": "liguanjia", "password": "demo123", "nickname": "李管家", "roleIds": [3], "kind": "steward", "mobile": "13900000022", "baseId": 2},
-  {"id": 6, "tenantId": 3, "username": "lvguanjia", "password": "demo123", "nickname": "吕管家", "roleIds": [5], "kind": "steward", "mobile": "13900000033", "baseId": 3}
+  {"id": 1, "tenantId": 1, "username": "admin", "deptId": 101, "password": "admin123", "nickname": "平台管理员", "roleIds": [1], "kind": "admin", "mobile": "13900000000"},
+  {"id": 2, "tenantId": 2, "username": "qingshan", "deptId": 200, "password": "demo123", "nickname": "李青山（青山农场）", "roleIds": [2], "kind": "admin", "mobile": "13900000002"},
+  {"id": 3, "tenantId": 2, "username": "zhangguanjia", "deptId": 202, "password": "demo123", "nickname": "张管家", "roleIds": [3], "kind": "steward", "mobile": "13900000012", "baseId": 1},
+  {"id": 4, "tenantId": 3, "username": "lvye", "deptId": 300, "password": "demo123", "nickname": "王绿野（绿野农庄）", "roleIds": [4], "kind": "admin", "mobile": "13900000003"},
+  {"id": 5, "tenantId": 2, "username": "liguanjia", "deptId": 202, "password": "demo123", "nickname": "李管家", "roleIds": [3], "kind": "steward", "mobile": "13900000022", "baseId": 2},
+  {"id": 6, "tenantId": 3, "username": "lvguanjia", "deptId": 301, "password": "demo123", "nickname": "吕管家", "roleIds": [5], "kind": "steward", "mobile": "13900000033", "baseId": 3}
 ]

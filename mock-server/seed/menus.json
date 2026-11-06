@@ -29,5 +29,6 @@
   {"id": 204, "parentId": 200, "name": "文章管理", "path": "article", "visible": true, "keepAlive": true, "component": "mall/promotion/article/index", "componentName": "PromotionArticle", "icon": "ep:reading"},
   {"id": 205, "parentId": 200, "name": "文章分类", "path": "article-category", "visible": true, "keepAlive": true, "component": "mall/promotion/article/category/index", "componentName": "PromotionArticleCategory", "icon": "ep:folder"},
   {"id": 206, "parentId": 200, "name": "问题反馈", "path": "feedback", "visible": true, "keepAlive": true, "component": "farm/feedback/index", "componentName": "FarmFeedback", "icon": "ep:chat-line-square"},
+  {"id": 208, "parentId": 200, "name": "部门管理", "path": "dept", "visible": true, "keepAlive": true, "component": "system/dept/index", "componentName": "SystemDept", "icon": "ep:office-building"},
   {"id": 207, "parentId": 200, "name": "项目文档", "path": "doc", "visible": true, "keepAlive": true, "component": "farm/doc/index", "componentName": "FarmDoc", "icon": "ep:notebook"}
 ]
