@@ -7,10 +7,13 @@ import cn.iocoder.yudao.module.farm.controller.admin.shipment.vo.FarmShipmentRes
 import cn.iocoder.yudao.module.farm.controller.app.adoption.vo.FarmAppAdoptionDetailRespVO;
 import cn.iocoder.yudao.module.farm.controller.app.adoption.vo.FarmAppCameraRespVO;
 import cn.iocoder.yudao.module.farm.controller.app.adoption.vo.FarmAppTraceRespVO;
+import cn.iocoder.yudao.module.farm.controller.app.order.vo.FarmAppIdReqVO;
 import cn.iocoder.yudao.module.farm.service.FarmAppAdoptionService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -70,5 +73,12 @@ public class FarmAppAdoptionController {
     public CommonResult<List<FarmShipmentRespVO>> shipments(
             @RequestParam(value = "adoptionId", required = false) Long adoptionId) {
         return success(service.shipments(adoptionId));
+    }
+
+    /** 确认收货：只有自己的、运输中的配送单能确认，状态→已签收（等价于后台 PUT /shipment/sign） */
+    @PostMapping("/shipment/confirm")
+    public CommonResult<Boolean> confirmShipment(@RequestBody FarmAppIdReqVO req) {
+        service.confirmShipment(req.getId());
+        return success(true);
     }
 }

@@ -18,8 +18,10 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -81,6 +83,37 @@ public class FarmRecordService {
         if (rows == 0) throw exception(RECORD_STATE, "这条记录已经审核过了");
     }
 
+    /** 统计卡（对应 mock record/stats）：本月自动过检 / 需人工复核按本月提交的记录算 */
+    public Map<String, Object> stats() {
+        LocalDate today = LocalDate.now();
+        LocalDateTime startToday = today.atStartOfDay();
+        LocalDateTime monthStart = today.withDayOfMonth(1).atStartOfDay();
+        long todayCount = recordMapper.selectCount(new LambdaQueryWrapperX<FarmRecordDO>().ge(FarmRecordDO::getCreateTime, startToday));
+        long pendingCount = recordMapper.selectCount(FarmRecordDO::getStatus, 0);
+        List<FarmRecordDO> month = recordMapper.selectList(new LambdaQueryWrapperX<FarmRecordDO>().ge(FarmRecordDO::getCreateTime, monthStart));
+        long autoPass = month.stream().filter(r -> passed(r, "exifTime") && passed(r, "gpsFence") && passed(r, "duplicate")).count();
+        long assetCount = month.stream().map(FarmRecordDO::getAssetId).filter(java.util.Objects::nonNull).distinct().count();
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("todayCount", todayCount);
+        out.put("pendingCount", pendingCount);
+        out.put("autoPassCount", autoPass);
+        out.put("manualReviewCount", month.size() - autoPass);
+        out.put("monthCount", month.size());
+        out.put("avgPerAsset", assetCount == 0 ? 0 : Math.round(month.size() * 10.0 / assetCount) / 10.0);
+        return out;
+    }
+
+    private static boolean passed(FarmRecordDO r, String key) {
+        return r.getChecks() != null && Boolean.TRUE.equals(r.getChecks().get(key));
+    }
+
+    private static String kindName(String kind) {
+        if ("farming".equals(kind)) return "农事";
+        if ("harvest".equals(kind)) return "采收";
+        if ("service".equals(kind)) return "代管服务";
+        return "";
+    }
+
     /** 批量拼装 recordView（assetCode / memberName / stewardName），供订单详情等复用 */
     public List<FarmRecordRespVO> toViews(List<FarmRecordDO> list) {
         Map<Long, FarmAdoptionDO> adoptions = lookup.adoptions(list.stream().map(FarmRecordDO::getAdoptionId).collect(Collectors.toList()));
@@ -96,6 +129,16 @@ public class FarmRecordService {
             FarmMemberDO m = ad == null ? null : members.get(ad.getMemberId());
             v.setMemberName(m == null || m.getNickname() == null ? "" : m.getNickname());
             v.setStewardName(r.getStewardId() == null ? "" : users.getOrDefault(r.getStewardId(), ""));
+            String kindName = kindName(r.getKind());
+            v.setKindName(kindName);
+            v.setSummary(kindName + " · " + r.getTitle());
+            v.setPhotoCount(r.getPhotos() == null ? 0 : r.getPhotos().size());
+            List<String> notes = new ArrayList<>();
+            if (!passed(r, "exifTime")) notes.add("拍摄时间偏差");
+            if (!passed(r, "gpsFence")) notes.add("地点偏移");
+            if (!passed(r, "duplicate")) notes.add("画面重复率高");
+            v.setMachineCheck(notes.isEmpty() ? "ok" : "suspect");
+            v.setMachineCheckNote(String.join("、", notes));
             out.add(v);
         }
         return out;

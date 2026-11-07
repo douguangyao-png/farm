@@ -1,7 +1,29 @@
 <template>
+  <div class="flex items-start justify-between mb-12px">
+    <div>
+      <div class="text-18px font-600">农资与服务商品</div>
+      <div class="text-13px text-[var(--el-text-color-secondary)] mt-4px">
+        面向半托管 / 不托管认养人的第二增长曲线：把「认养费」降下来的同时，用农资与代管服务把客单价补回来
+      </div>
+    </div>
+    <div class="flex gap-8px">
+      <el-button @click="notOpen">导入批次</el-button>
+      <el-button type="primary" @click="openForm()">
+        <Icon icon="ep:plus" class="mr-5px" />发布农资
+      </el-button>
+    </div>
+  </div>
+
+  <StatCards :items="statItems" />
+
   <ContentWrap>
-    <el-form :model="queryParams" :inline="true" class="-mb-15px" label-width="56px">
-      <el-form-item label="名称">
+    <el-tabs v-model="activeTab" @tab-change="onTabChange">
+      <el-tab-pane v-for="t in SUPPLY_TABS" :key="t.name" :name="t.name">
+        <template #label>{{ t.label }}（{{ catCounts[t.name] ?? 0 }}）</template>
+      </el-tab-pane>
+    </el-tabs>
+    <el-form :model="queryParams" :inline="true" class="-mb-15px" label-width="68px">
+      <el-form-item label="商品名称">
         <el-input
           v-model="queryParams.name"
           placeholder="农资名称"
@@ -10,10 +32,14 @@
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="类目">
-        <el-select v-model="queryParams.cat" placeholder="全部" clearable class="!w-140px">
-          <el-option v-for="c in SUPPLY_CATS" :key="c.value" :label="c.label" :value="c.value" />
-        </el-select>
+      <el-form-item label="批次号">
+        <el-input
+          v-model="queryParams.batchNo"
+          placeholder="如 SEED-2026"
+          clearable
+          class="!w-180px"
+          @keyup.enter="handleQuery"
+        />
       </el-form-item>
       <el-form-item label="状态">
         <el-select v-model="queryParams.status" placeholder="全部" clearable class="!w-120px">
@@ -23,77 +49,80 @@
       <el-form-item>
         <el-button @click="handleQuery"><Icon icon="ep:search" class="mr-5px" />搜索</el-button>
         <el-button @click="resetQuery"><Icon icon="ep:refresh" class="mr-5px" />重置</el-button>
-        <el-button type="primary" plain @click="openForm()">
-          <Icon icon="ep:plus" class="mr-5px" />新增农资
-        </el-button>
       </el-form-item>
     </el-form>
   </ContentWrap>
 
   <ContentWrap>
     <el-table v-loading="loading" :data="list">
-      <el-table-column label="农资" min-width="240">
+      <el-table-column label="编号" prop="code" width="90" />
+      <el-table-column label="商品名称" min-width="220">
         <template #default="{ row }">
           <div class="flex items-center">
             <el-image
               v-if="row.cover"
               :src="row.cover"
               fit="cover"
-              class="w-48px h-48px rounded-4px mr-10px flex-shrink-0"
+              class="w-40px h-40px rounded-4px mr-10px flex-shrink-0"
             />
             <div>
               <div class="font-600">{{ row.name }}</div>
               <div class="text-12px text-[var(--el-text-color-secondary)]">
-                {{ row.spec }} · 批次 {{ row.batchNo || '-' }}
+                {{ row.spec || '-' }}
+                <el-tag v-if="!row.retailAllowed" type="danger" size="small" class="ml-4px">
+                  只能农场代施
+                </el-tag>
               </div>
             </div>
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="类目" width="100" align="center">
+      <el-table-column label="分类" width="100" align="center">
         <template #default="{ row }">
-          <el-tag :type="enumOf(SUPPLY_CATS, row.cat).type" effect="plain">
-            {{ enumLabel(SUPPLY_CATS, row.cat) }}
+          <el-tag :type="enumOf(SUPPLY_CAT_PROTO, row.cat).type" effect="plain">
+            {{ enumLabel(SUPPLY_CAT_PROTO, row.cat) }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="售价" width="110" align="right">
-        <template #default="{ row }">{{ formatMoney(row.price) }} / {{ row.unit }}</template>
+      <el-table-column label="售价" width="100" align="right">
+        <template #default="{ row }">
+          <b>{{ formatMoney(row.price) }}</b>
+        </template>
       </el-table-column>
       <el-table-column
         label="成本"
         prop="cost"
-        width="100"
+        width="90"
         align="right"
         :formatter="moneyFormatter"
       />
-      <el-table-column label="库存 / 已售" width="100" align="center">
-        <template #default="{ row }">{{ row.stock }} / {{ row.sold }}</template>
+      <el-table-column label="毛利率" width="80" align="right">
+        <template #default="{ row }">{{ row.grossMargin }}%</template>
       </el-table-column>
-      <el-table-column label="适用" width="140">
+      <el-table-column label="库存" prop="stock" width="80" align="right" />
+      <el-table-column label="销量" prop="sold" width="80" align="right" />
+      <el-table-column label="适用模式" width="130">
         <template #default="{ row }">
-          {{ (row.fitModes || []).map((m: string) => enumLabel(CARE_MODES, m)).join('、') || '-' }}
+          {{ (row.fitModes || []).map((m: string) => enumLabel(CARE_MODES, m)).join(' / ') || '-' }}
         </template>
       </el-table-column>
-      <el-table-column label="销售方式" width="130">
+      <el-table-column label="批次" prop="batchNo" width="150" show-overflow-tooltip />
+      <el-table-column label="状态" width="90" align="center">
         <template #default="{ row }">
-          <el-tag v-if="row.retailAllowed" type="success" size="small">可零售</el-tag>
-          <el-tag v-else type="danger" size="small">只能农场代施</el-tag>
-          <el-tag v-if="row.needWorkorder" type="warning" size="small" class="ml-4px"
-            >需工单</el-tag
-          >
+          <el-tag :type="SUPPLY_STATE_TYPE[row.stateName] ?? 'info'">{{ row.stateName }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="状态" width="80" align="center">
-        <template #default="{ row }">
-          <el-tag :type="enumOf(SUPPLY_STATUS, row.status).type">
-            {{ enumLabel(SUPPLY_STATUS, row.status) }}
-          </el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column label="操作" width="80" align="center" fixed="right">
+      <el-table-column label="操作" width="150" align="center" fixed="right">
         <template #default="{ row }">
           <el-button link type="primary" @click="openForm(row.id)">编辑</el-button>
+          <el-button link type="primary" @click="notOpen">批次</el-button>
+          <el-button
+            link
+            :type="row.status === 0 ? 'danger' : 'success'"
+            @click="toggleStatus(row)"
+          >
+            {{ row.status === 0 ? '下架' : '上架' }}
+          </el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -102,6 +131,13 @@
       v-model:page="queryParams.pageNo"
       v-model:limit="queryParams.pageSize"
       @pagination="getList"
+    />
+    <el-alert
+      class="mt-12px"
+      type="warning"
+      :closable="false"
+      show-icon
+      title="合规校验已开启：检测到「化学农药」类目商品时，系统将强制关闭 C 端零售开关，仅允许以「农场代施服务」形式绑定工单出售；所有农资售出即写入购入地块的投入品台账。"
     />
   </ContentWrap>
 
@@ -117,7 +153,12 @@
           class="!w-200px"
           @change="onCatChange"
         >
-          <el-option v-for="c in SUPPLY_CATS" :key="c.value" :label="c.label" :value="c.value" />
+          <el-option
+            v-for="c in SUPPLY_CAT_PROTO"
+            :key="c.value"
+            :label="c.label"
+            :value="c.value"
+          />
         </el-select>
       </el-form-item>
       <el-row :gutter="12">
@@ -214,13 +255,14 @@ import type { FormInstance, FormRules } from 'element-plus'
 import * as SupplyApi from '@/api/farm/supply'
 import {
   CARE_MODES,
-  SUPPLY_CATS,
   SUPPLY_STATUS,
   enumLabel,
   enumOf,
   formatMoney,
   moneyFormatter
 } from '../constants'
+import StatCards from '../fulfill/StatCards.vue'
+import { SUPPLY_CAT_PROTO, SUPPLY_STATE_TYPE, SUPPLY_TABS } from './constants'
 
 defineOptions({ name: 'FarmSupply' })
 
@@ -233,8 +275,51 @@ const queryParams = reactive<any>({
   pageSize: 10,
   name: undefined,
   cat: undefined,
+  batchNo: undefined,
   status: undefined
 })
+const stats = ref<any>({})
+const activeTab = ref('all')
+const catCounts = computed<Record<string, number>>(() => stats.value.catCounts ?? {})
+const statItems = computed(() => {
+  const s = stats.value
+  return [
+    { label: '本月农资 GMV', value: formatMoney(s.monthGmv ?? 0), sub: '本月已下单金额合计' },
+    {
+      label: '关联订单',
+      value: `${s.monthOrderCount ?? 0} 单`,
+      sub: `客单 ${formatMoney(s.avgOrderAmount ?? 0)}`
+    },
+    {
+      label: '认养人复购率',
+      value: `${s.repeatRate ?? 0}%`,
+      sub: `买过 2 次以上 ${s.repeatMemberCount ?? 0} 人`
+    },
+    {
+      label: '代管服务收入',
+      value: formatMoney(s.serviceIncome ?? 0),
+      sub: '由逾期自管任务转化'
+    }
+  ]
+})
+const onTabChange = (name: string | number) => {
+  queryParams.cat = name === 'all' ? undefined : name
+  handleQuery()
+}
+const notOpen = () => message.info('演示版暂未开放')
+/** 上下架：取完整数据再改状态保存（update 接口按字段更新，这样不会漏字段） */
+const toggleStatus = async (row: SupplyApi.SupplyVO) => {
+  const to = row.status === 0 ? 1 : 0
+  try {
+    await message.confirm(`确认${to === 1 ? '下架' : '上架'}「${row.name}」？`)
+  } catch {
+    return
+  }
+  const full = await SupplyApi.getSupply(row.id!)
+  await SupplyApi.updateSupply({ ...full, status: to })
+  message.success(to === 1 ? '已下架' : '已上架')
+  getList()
+}
 
 const getList = async () => {
   loading.value = true
@@ -242,6 +327,7 @@ const getList = async () => {
     const res = await SupplyApi.getSupplyPage(queryParams)
     list.value = res.list
     total.value = res.total
+    stats.value = res.stats ?? {}
   } finally {
     loading.value = false
   }
@@ -251,7 +337,13 @@ const handleQuery = () => {
   getList()
 }
 const resetQuery = () => {
-  Object.assign(queryParams, { name: undefined, cat: undefined, status: undefined })
+  Object.assign(queryParams, {
+    name: undefined,
+    cat: undefined,
+    batchNo: undefined,
+    status: undefined
+  })
+  activeTab.value = 'all'
   handleQuery()
 }
 

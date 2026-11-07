@@ -27,7 +27,7 @@
 | 资产类型 `assetType` | `plot` 地块、`animal` 畜禽、`tree` 果树 |
 | 资产状态 `asset.status` | `0` 空闲、`10` 已认养、`20` 停用 |
 | 认养商品状态 `product.status` | `0` 上架、`1` 下架 |
-| 认养订单状态 `order.status` | `0` 待支付、`10` 认养中、`20` 已完成、`30` 已取消 |
+| 认养订单状态 `order.status` | `0` 待付款、`10` 认养中、`20` 已完成、`30` 已取消 |
 | 农事记录状态 `record.status` | `0` 待审核、`10` 已通过、`20` 已驳回 |
 | 农事任务状态 `task.status` | `0` 待办、`10` 已完成、`20` 已委托代办 |
 | 任务执行方 `task.owner` | `steward` 管家、`member` 认养人（自管任务） |
@@ -85,7 +85,7 @@
 
 | 方法 | 路径 | 返回 |
 |---|---|---|
-| GET | `/admin-api/farm/dashboard/summary` | `gmvToday, gmvMonth, orderCountMonth, adoptingCount, assetTotal, assetAdopted, pendingRecordCount, pendingServiceOrderCount, overdueSelfTaskCount, riskScore, gmvTrend[{date:'MM-DD', amount}]`（近 14 天）、`careModeShare[{mode, count}]`、`todos[{type, title, count, path}]`、`todayRecords[{id, assetCode, title, stewardName, createTime}]` |
+| GET | `/admin-api/farm/dashboard/summary` | 金额一律分。统计卡：`gmvToday, gmvYesterday, gmvDayOnDayRate`（较昨日 %，昨日为 0 时 null）、`orderCountToday, orderCountYesterday, orderCountMonth, orderCountLast7d, orderCountLast7dRate`（近 7 天较前 7 天 %，null 同上）、`pendingShipCount`（已录入未发货的收成数）、`adoptingMemberCount`（有进行中认养的不同认养人）、`repurchaseRate`（%，已支付订单 ≥2 笔的认养人 / 有已支付订单的认养人）。其余：`gmvMonth, adoptingCount, assetTotal, assetAdopted, pendingRecordCount, pendingServiceOrderCount, overdueSelfTaskCount, riskScore`。曲线：`gmvTrend[{date:'MM-DD', amount}]`（近 30 天，旧版 14 天）、`gmvPeak{date, amount}`。`careModeShare[{mode, name, count}]`（页面已不用，保留）、`slotUsage[{type:'plot'|'animal'|'tree', name, unit, used, total}]`（认养位使用情况）、`latestOrders[{id, no, memberName, productTitle, amount, status, createTime}]`（最新 5 单，含未付款）、`weekOverview{categories[{name, count}]（近 7 天已支付订单按商品分类）, avgOrderAmount, repurchaseRate, refundRate}`（refundRate 暂无退款数据，恒为 null）、`todos[{type, title, count, desc, level('danger'|'primary'|'warning'), path}]`（type：record/service/harvest/trace/risk；level=danger 算「风控提醒」）、`todayRecords[{id, assetCode, title, stewardName, createTime, status}]` |
 | GET | `/admin-api/farm/risk/self-check` | `score`（0–100）、`items[{key, name, score, max, status('ok'|'warn'|'bad'), detail, suggestion}]`：资质证照、资金路径、合同签署率、文案合规、溯源完整度；`hits[{productId, productTitle, words[], time}]` 近期被拦截的文案 |
 
 ### 2.2 基地
@@ -128,24 +128,42 @@ createTime
 ```
 - `create/update`：校验 `title`、`description`、每档 `outputPromise`，命中违禁词 → `1_030_000_000`，`data = { words, suggestion }`；`title` 为空 → 400；至少开放一档，否则 400「至少开放一种托管方式」。
 - `update-status`：`{ id, status }` 上架、下架。
+- `page` 参数 `title, status, baseId` + `assetType`（plot/animal/tree）、`priceMin, priceMax`（分，按 `basePrice` 闭区间过滤）。页签「全部 / 在售 / 已下架」= 不传 / `status=0` / `status=1`。
+- 列表派生字段（只读，保存时不用传）：`no`（P + id 补零 3 位，如 P001）、`categoryName`（土地认养 / 家禽认养 / 果树认养）、`totalSlots`（= stock + sold）、`soldRate`（0–100，= sold / totalSlots）、`insured`（任一已开放档位的 `insurance` 含「含」字）、`expectedOutput`（优先全托管档、否则第一个已开放档的 `outputPromise`，口径「约定交付 X 斤，不足部分按同等品质补发」）；另有既有的 `minPrice, enabledModes, baseName`。
 
 ### 2.5 认养订单
 
 | 方法 | 路径 | 说明 |
 |---|---|---|
-| GET | `/admin-api/farm/order/page` | 参数 `no, memberMobile, careMode, status, productId`。字段 `id, no, memberId, memberName, memberMobile, productId, productTitle, careMode, amount, status, assetCode, contractVersion, createTime, payTime` |
-| GET | `/admin-api/farm/order/get?id=` | 上面的字段 + `contract{ no, version, title, signedAt }`、`adoption{ id, assetId, assetCode, baseName, startAt, endAt, promisedJin, harvestedJin }`、`records[]`（该认养最近 10 条已通过的农事记录）、`shipments[]` |
+| GET | `/admin-api/farm/order/page` | 参数 `no, memberMobile, careMode, status, productId, createTimeStart, createTimeEnd`（后两个是下单时间区间，毫秒时间戳，含端点）。字段 `id, no, memberId, memberName, memberMobile, productId, productTitle, careMode, amount, status, assetCode, contractVersion, contractAgreed, createTime, payTime`，另有（2026-11-07 新增）`payMethod`（演示固定「微信支付」）、`promisedJin`（约定交付斤数，无则 null）、`harvestedJin`（已收斤数）、`progress`（履约进度 0-100 整数 = 已收 / 约定交付，无约定交付为 0）。页签上的数量由前端按 `status` 各取一次 `total`，不新增接口；`status=40`（退款中）暂无数据，退款闭环未做 |
+| GET | `/admin-api/farm/order/get?id=` | 上面的字段 + `contract{ no, version, title, agreed, signedAt }`、`adoption{ id, assetId, assetCode, baseName, startAt, endAt, promisedJin, harvestedJin }`、`records[]`（该认养最近 10 条已通过的农事记录）、`shipments[]`；2026-11-07 新增 `customer{ name, mobile, orderCount, totalAmount }`（累计认养 = 该客户已支付且未取消的订单数；累计消费 = 其金额合计，分）、`steward{ name, mobile(脱敏) }`（没有认养关系时为 null）。履约时间轴由前端用订单、认养、配送的时间拼；资金与分账（服务费 3%、T+1 结算）、交易号、溯源码为前端演示计算，页面标注「演示数据」 |
+
+#### 2.5.1 合同管理（2026-11-07 新增，只读台账，由订单派生）
+
+| 方法 | 路径 | 说明 |
+|---|---|---|
+| GET | `/admin-api/farm/contract/page` | 经营者。参数 `no`（合同编号或订单号，模糊，`HT` 前缀自动去掉）、`memberMobile`（模糊）、`status`（10 已签署 / 0 待签署 / 20 已解除）、`pageNo, pageSize`。字段 `id`（同订单 id）, `no`（`HT` + 订单号去掉前两位）, `orderId, orderNo, memberName, memberMobile, productTitle, careMode, careModeName, version, title, status, signMethod`（固定「电子签名」）, `caAuth`, `chainProof`（演示口径：已签署即 true）, `signedAt`（已签署时 = 支付时间，否则 null）, `createTime`。按订单下单时间倒序 |
+
+- 合同状态：订单已取消（status=30）→ 20 已解除；已勾选合同且已支付 → 10 已签署；其余 → 0 待签署。
+- 统计卡（总数 / 已签署 / 待签署 / 已解除）由前端按 `status` 各取一次 `total`。合同模板库、反欺诈条款为前端静态演示数据。真实 CA、区块链、原文下载、验真不在本期范围。
 
 ### 2.6 农事记录审核
 
 | 方法 | 路径 | 说明 |
 |---|---|---|
-| GET | `/admin-api/farm/record/page` | 参数 `status, assetCode, stewardId`。字段 `id, adoptionId, assetId, assetCode, memberName, stewardId, stewardName, taskId, kind('farming'|'harvest'|'service'), title, content, photos[], lng, lat, env{airTemp, airHumidity, soilMoisture}, checks{ exifTime, gpsFence, duplicate }（布尔，true 表示通过）, status, auditRemark, createTime, auditTime` |
+| GET | `/admin-api/farm/record/page` | 参数 `status, assetCode, stewardId`。字段 `id, adoptionId, assetId, assetCode, memberName, stewardId, stewardName, taskId, kind('farming'|'harvest'|'service'), title, content, photos[], lng, lat, env{airTemp, airHumidity, soilMoisture}, checks{ exifTime, gpsFence, duplicate }（布尔，true 表示通过）, status, auditRemark, createTime, auditTime`。派生字段（只读）：`kindName`（农事 / 采收 / 代管服务）、`summary`（「类型名 · 标题」）、`photoCount`、`machineCheck`（`ok` 三项都通过 / `suspect` 存疑）、`machineCheckNote`（存疑原因，「、」连接：拍摄时间偏差 / 地点偏移 / 画面重复率高）。前端状态文案：0 待审核、10 已发布、20 已驳回 |
 | PUT | `/admin-api/farm/record/audit` | `{ id, pass: boolean, remark }`。驳回时 `remark` 必填 → 400。只有 `status=0` 能审，否则 `1_030_000_006`。通过后 C 端生长档案可见 |
+| GET | `/admin-api/farm/record/stats` | 统计卡：`todayCount`（今日提交）、`pendingCount`（全部待审核）、`autoPassCount`（本月三项校验全通过）、`manualReviewCount`（本月有校验未通过）、`monthCount`（本月累计）、`avgPerAsset`（本月平均每块地条数，1 位小数） |
 
 ### 2.7 代管工单
 
 `GET /admin-api/farm/service-order/page|get`：`id, no, fromTaskId, taskTitle, adoptionId, assetCode, memberName, stewardId, stewardName, serviceType, price, status, split{ steward:70, farm:20, platform:10 }（百分比，分账演示阶段不执行）, proofPhotos[], remark, createTime, acceptTime, finishTime`。
+
+`/page` 返回 `{ list, total, stats }`（2026-11-07 对齐原型 08 增加），入参 `status, no`，其余字段不变：
+
+- 行内新增：`careModeName`（认养人托管方式中文名，无认养关系为空串）、`proofCount`（现场照片张数 = `proofPhotos.length`）。`/get` 的 Java 实现同样带这两个字段，mock 的 `/get` 不带（前端用列表行合并）。
+- `stats`：`counts{ all, pending, serving, done, cancelled }`（页签数量，对应 status 全部 / 0 / 10 / 20 / 30）、`monthCount`（本月新建工单数）、`monthCountGrowth`（对上月的环比 %，1 位小数；上月为 0 时 `null`）、`income`（本月已完成工单的金额合计，分）、`stewardIncome`（其中管家分成，按 `split.steward` 百分比算，分）、`avgAcceptHours`（已接单工单的 接单时间 − 创建时间 平均小时数，1 位小数；没有则 `null`）、`goodRate`（执行好评率 %，没有评价数据，演示口径固定 `98.4`）。
+- 页面文案（取值不变）：`0` 待接单、`10` 服务中（接口枚举叫「已接单」）、`20` 已完成、`30` 已取消。mock：`mock-server/src/farm/stats.ts serviceOrderPage`；Java：`FarmServiceOrderService.page`，返回类型 `FarmFulfillPage`（`list, total, stats`）。
 
 ### 2.8 农资商品、农资订单
 
@@ -155,6 +173,14 @@ createTime
 | GET | `/admin-api/farm/supply-order/page` | 字段 `id, no, memberName, adoptionId, assetCode, spuId, spuName, cat, qty, amount, deliverWay, batchNo, traceState, createTime` |
 | PUT | `/admin-api/farm/supply-order/trace` | `{ id, usedAt, dosage }` 登记施用，`traceState → 10`，并写一条投入品记录 |
 
+2026-11-07 对齐原型 08，`supply/page` 与 `supply-order/page` 返回 `{ list, total, stats }`（mock：`farm/stats.ts supplyPage / supplyOrderPage`；Java：`FarmSupplyService.page` / `FarmSupplyOrderService.page`，返回类型 `FarmFulfillPage`）。以下是新增部分，原有字段不变：
+
+- `supply/page`：入参新增 `batchNo`（批次号模糊匹配）；行内新增只读字段 `code`（编号 `SP-` + (100+id)）、`grossMargin`（毛利率 %，整数，`(price-cost)/price`，售价为 0 时 0）、`stateName`（按顺序判定：`status=1` 已下架 → `needWorkorder` 需工单 → `stock<200` 低库存 → 正常）。`supply/get` 的 Java 实现也带这三个字段。
+- `supply/page` 的 `stats`：`monthGmv`（本月农资订单金额合计，分）、`monthOrderCount`（本月农资订单数）、`avgOrderAmount`（客单，分，四舍五入）、`repeatMemberCount`（累计买过 ≥2 单的认养人数）、`repeatRate`（复购率 % = 复购人数 / 下过单的认养人数，1 位小数）、`serviceIncome`（本月已完成代管工单金额合计，分，与 2.7 的 `income` 同口径）、`catCounts`（类目页签数量 `{ all, seed, fert, tool, bio, svc, ins, pesticide }`，没有商品的类目不出现）。
+- 页面类目名（取值不变）：`seed` 种子种苗、`fert` 肥料基质、`tool` 农具耗材、`bio` 绿色防控、`svc` 代管服务、`ins` 保险加装、`pesticide` 化学农药。
+- `supply-order/page`：入参新增 `keyword`（订单号或认养人昵称模糊匹配）、`assetCode`（绑定地块编号模糊匹配）、`state`（`stateName` 精确匹配），原有 `no`、`traceState` 保留；行内新增 `stateName`。库里没有订单状态字段，`stateName` 是演示口径：`svc` 服务类登记后「已完成」、否则「待派单」；`ins` 保险「已生效」；`tool` 农具登记后「已安装」；其余登记后「已使用」、未登记「待使用」。
+- `supply-order/page` 的 `stats`：`todayCount`（今日订单数）、`todayAmount`（今日金额，分）、`pendingDispatch`（`stateName=待派单` 的数量）、`untraced`（`traceState=0` 的数量）、`repeatMemberCount`、`repeatRate`（同上，口径为全部农资订单）。
+
 ### 2.9 收成与配送
 
 | 方法 | 路径 | 说明 |
@@ -163,6 +189,13 @@ createTime
 | POST | `/admin-api/farm/harvest/create` | `{ adoptionId, crop, weightJin, harvestDate, remark }`；`weightJin <= 0` → 400。同时累加认养的 `harvestedJin` |
 | GET | `/admin-api/farm/shipment/page` | 字段 `id, no, harvestId, adoptionId, memberName, receiverName, receiverMobile, address, weightJin, carrier, logisticsNo, coldChain, status, tracks[{ time, content }], createTime` |
 | POST | `/admin-api/farm/shipment/create` | `{ harvestId, carrier, logisticsNo }`；收成已发过货 → 400。状态直接到「运输中」，自动生成两条轨迹 |
+
+2026-11-07 对齐原型 08（mock：`farm/stats.ts harvestPage / shipmentPage` 与 `farm-admin.ts harvest/create`；Java：`FarmHarvestService`、`FarmShipmentService`，page 返回类型 `FarmFulfillPage`）：
+
+- `harvest/page` 返回 `{ list, total, stats }`，`stats`：`totalCount`（累计批数）、`totalWeightJin`（累计斤数）、`monthWeightJin`（本月采收斤数）、`unshippedCount`、`unshippedWeightJin`（未发货批数、斤数），斤数均保留 1 位小数。
+- `harvest/create` 入参新增 `items: [{ crop, weightJin }]`（收获明细，可多品类）和 `farmType`（农事类型：播种 / 施肥 / 病虫害防治 / 浇水 / 搭架整枝 / 采摘采收 / 翻耕，不传按「采摘采收」）。传了 `items` 就以它为准，老的 `crop + weightJin` 仍兼容。不新增表字段：`crop` 存各品类名用「、」连接（≤64 字），`weightJin` 存合计，多品类时明细追加进 `remark`（格式 `作业说明；明细：番茄 12.4 斤、黄瓜 6.2 斤`，≤255 字）；超长 → 400。每行品类为空或重量 ≤0 → 400（沿用「请填写作物」「重量要大于 0」）。`farmType` 写进生长档案内容（`…录入收成（农事类型：采摘采收），称重 X 斤。`）。
+- `shipment/page` 返回 `{ list, total, stats }`，行内新增 `batchNo`（`B` + 创建日期，如 `B2026-1107`，同一天发出的配送单算一个批次；订单详情用的 `toViews` 也带）、`planDate`（创建当天 0 点毫秒时间戳）、`progress`（完成度 %：待发货 28、已发货 62、已完成 100）。仍是「一单一人」的配送单模型，没有改成原型的「批次」实体。`stats`：`counts{ all, pending, shipped, done }`（页签数量，对应 status 全部 / 0 / 10 / 20）、`batchCount`（批次数）、`shippedWeightJin`（已发货在途斤数）、`coldChainCount`（冷链单数）。
+- 页面文案（取值不变）：配送状态 `0` 待发货、`10` 已发货（接口枚举叫「运输中」）、`20` 已完成（接口枚举叫「已签收」）。
 
 ### 2.10 问题反馈（R-12，平台和经营者共用）
 
@@ -202,9 +235,10 @@ createTime
 |---|---|---|---|
 | GET | `/farm/home` | 否 | `banners[{ image, title, url }]`、`bases[{ id, name, cover, live: boolean }]`、`products[]`（上架商品摘要：`id, title, cover, minPrice, basePrice, sold, stock, careModes[mode]`）、`notices[{ title }]` |
 | GET | `/farm/product/get?id=` | 否 | 和后台 2.4 字段一致，另加 `base{ name, address, certNo }`、`compareRows[{ item, full, semi, self }]`（托管对比） |
-| POST | `/farm/order/create` | 是 | `{ productId, careMode, contractAgreed, receiverName, receiverMobile, address }`。未勾选合同 → `1_030_000_001`；商品下架/该档未开放 → 400。返回 `{ id, no, amount }`，状态待支付 |
+| POST | `/farm/order/create` | 是 | `{ productId, careMode, contractAgreed, receiverName, receiverMobile, address, deliverWay }`（`deliverWay`：`cold` 冷链快递到家 / `pickup` 基地自提 / `monthly` 月度集中配送，演示口径，只接收不落库）。未勾选合同 → `1_030_000_001`；商品下架/该档未开放 → 400。返回 `{ id, no, amount }`，状态待付款 |
 | POST | `/farm/order/pay` | 是 | `{ id }` 模拟支付：状态 → 认养中，绑定一个空闲资产，生成认养关系；按托管方式生成自管任务（全托管 0 项、半托管 2 项、不托管 5 项）和管家任务。返回 `{ orderId, adoptionId }`。错误 `1_030_000_002`、`1_030_000_003` |
-| GET | `/farm/order/get?id=` | 是 | 订单 + 合同 |
+| GET | `/farm/order/get?id=` | 是 | 订单字段（同 2.7 订单，含 `payMethod`、`promisedJin`、`harvestedJin`、`progress`）+ `contract{ no, version, title, agreed, signedAt }`，2026-11-07 新增认养摘要（未支付时 `adoptionNo/adoptionStatus/startAt/endAt/areaM2/insuranceNo/traceCode` 为 null，`shipmentCount` 为 0，`assetName/stewardName/stewardMobile` 为空串）：`adoptionNo`（演示口径 `A{年}-{认养 id 补 4 位}`）、`adoptionStatus`、`startAt`、`endAt`（服务周期）、`shipmentCount`（该认养已有配送单数）、`assetName`、`areaM2`、`stewardName`、`stewardMobile`（脱敏）、`insuranceNo`（演示保单号 `PICC-{年}-{订单 id 补 4 位}`）、`traceCode`（演示溯源码 `TR`+订单号去掉前两位）。用于支付结果页 |
+| GET | `/farm/order/list` | 是 | 我的订单，新的在前，每条字段同 `/farm/order/get`（含 `contract` 和认养摘要）。「我的订单」页（页签前端按 `status` 过滤：0 待付款 / 10 认养中 / 20 已完成）和「合约中心」（取 `contract.signedAt` 非空的）共用 |
 | GET | `/farm/adoption/list` | 是 | 我的认养：`id, orderId, productTitle, cover, careMode, assetCode, baseName, startAt, endAt, status, promisedJin, harvestedJin, selfTodoCount` |
 | GET | `/farm/adoption/get?id=` | 是 | 上面的字段 + `asset{ code, crop, areaM2, cameraName }`、`steward{ name, mobile(脱敏) }`、`careModeInfo`（该档的标语、责任、产出说明、合同版本） |
 | GET | `/farm/adoption/records?adoptionId=` | 是 | 生长档案：已通过的农事记录，倒序 |
@@ -219,6 +253,7 @@ createTime
 | POST | `/farm/supply-order/create` | 是 | `{ spuId, qty, adoptionId, deliverWay }`。没有 `adoptionId` → `1_030_000_004`；`retailAllowed=false` → `1_030_000_005`；`qty < 1` 或超库存 → 400。生成后 `traceState=0` |
 | GET | `/farm/supply-order/list` | 是 | 我的农资 |
 | GET | `/farm/shipment/list?adoptionId=` | 是 | 收获配送：同 2.9 shipment 字段 |
+| POST | `/farm/shipment/confirm` | 是 | `{ id }` 确认收货（认养详情「收获配送」页签）。只有属于当前会员的配送单；不是自己的/不存在 → 404；状态不是运输中（10）→ `1_030_000_002`「只有运输中的配送单能确认签收」。成功后状态 → 已签收（20），追加一条轨迹「已签收，签收人：xxx」，与后台 `PUT /shipment/sign` 逻辑一致。返回 `true` |
 
 ## 5. 不在契约里的
 

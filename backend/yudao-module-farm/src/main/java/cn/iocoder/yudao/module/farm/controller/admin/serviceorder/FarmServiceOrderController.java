@@ -1,7 +1,7 @@
 package cn.iocoder.yudao.module.farm.controller.admin.serviceorder;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
-import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.module.farm.controller.admin.fulfill.FarmFulfillPage;
 import cn.iocoder.yudao.module.farm.controller.admin.serviceorder.vo.FarmServiceOrderPageReqVO;
 import cn.iocoder.yudao.module.farm.controller.admin.serviceorder.vo.FarmServiceOrderRespVO;
 import cn.iocoder.yudao.module.farm.service.FarmServiceOrderService;
@@ -24,7 +24,7 @@ public class FarmServiceOrderController {
     private FarmServiceOrderService service;
 
     @GetMapping("/page")
-    public CommonResult<PageResult<FarmServiceOrderRespVO>> page(FarmServiceOrderPageReqVO req) {
+    public CommonResult<FarmFulfillPage<FarmServiceOrderRespVO>> page(FarmServiceOrderPageReqVO req) {
         return success(service.page(req));
     }
 

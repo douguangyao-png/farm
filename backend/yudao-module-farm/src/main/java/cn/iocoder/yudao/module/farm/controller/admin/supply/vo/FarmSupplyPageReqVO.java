@@ -9,5 +9,7 @@ import lombok.EqualsAndHashCode;
 public class FarmSupplyPageReqVO extends PageParam {
     private String name;
     private String cat;
+    /** 批次号，模糊匹配 */
+    private String batchNo;
     private Integer status;
 }

@@ -1,10 +1,10 @@
 package cn.iocoder.yudao.module.farm.service;
 
 import cn.hutool.core.util.StrUtil;
-import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.module.farm.controller.admin.harvest.vo.FarmAdoptionSimpleRespVO;
+import cn.iocoder.yudao.module.farm.controller.admin.fulfill.FarmFulfillPage;
 import cn.iocoder.yudao.module.farm.controller.admin.harvest.vo.FarmHarvestCreateReqVO;
 import cn.iocoder.yudao.module.farm.controller.admin.harvest.vo.FarmHarvestPageReqVO;
 import cn.iocoder.yudao.module.farm.controller.admin.harvest.vo.FarmHarvestRespVO;
@@ -32,12 +32,13 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.module.farm.enums.ErrorCodeConstants.BAD_REQUEST;
 
-/** 接口契约 2.9 收成（mock：farm-admin.ts 355–386 行） */
+/** 接口契约 2.9 收成（mock：farm-admin.ts /harvest、farm/stats.ts） */
 @Service
 public class FarmHarvestService {
 
@@ -55,23 +56,32 @@ public class FarmHarvestService {
     @Autowired
     private FarmViewLookup lookup;
 
-    public PageResult<FarmHarvestRespVO> page(FarmHarvestPageReqVO req) {
-        LambdaQueryWrapperX<FarmHarvestDO> w = new LambdaQueryWrapperX<FarmHarvestDO>();
+    /** 列表 + 统计卡（stats 字段见契约 2.9；mock：farm/stats.ts harvestPage） */
+    public FarmFulfillPage<FarmHarvestRespVO> page(FarmHarvestPageReqVO req) {
+        List<FarmHarvestDO> allRows = harvestMapper.selectList(new LambdaQueryWrapperX<FarmHarvestDO>()
+                .orderByDesc(FarmHarvestDO::getHarvestDate).orderByDesc(FarmHarvestDO::getId));
+        LocalDate m0 = LocalDate.now(ZONE).withDayOfMonth(1);
+        List<FarmHarvestDO> unshipped = allRows.stream().filter(h -> h.getShipmentId() == null).collect(Collectors.toList());
+        Map<String, Object> stats = FarmFulfillPage.m(
+                "totalCount", allRows.size(),
+                "totalWeightJin", FarmFulfillPage.r1(sumWeight(allRows)),
+                "monthWeightJin", FarmFulfillPage.r1(sumWeight(allRows.stream()
+                        .filter(h -> h.getHarvestDate() != null && !h.getHarvestDate().isBefore(m0)).collect(Collectors.toList()))),
+                "unshippedCount", unshipped.size(),
+                "unshippedWeightJin", FarmFulfillPage.r1(sumWeight(unshipped)));
+
+        List<FarmHarvestDO> filtered = allRows;
         if (StrUtil.isNotEmpty(req.getAssetCode())) {
-            List<Long> assetIds = assetMapper.selectList(new LambdaQueryWrapperX<FarmAssetDO>()
+            Set<Long> assetIds = assetMapper.selectList(new LambdaQueryWrapperX<FarmAssetDO>()
                             .like(FarmAssetDO::getCode, req.getAssetCode()))
-                    .stream().map(FarmAssetDO::getId).collect(Collectors.toList());
-            if (assetIds.isEmpty()) return PageResult.empty();
-            w.in(FarmHarvestDO::getAssetId, assetIds);
+                    .stream().map(FarmAssetDO::getId).collect(Collectors.toSet());
+            filtered = filtered.stream().filter(h -> assetIds.contains(h.getAssetId())).collect(Collectors.toList());
         }
         if (req.getShipped() != null) {
-            if (req.getShipped()) w.isNotNull(FarmHarvestDO::getShipmentId);
-            else w.isNull(FarmHarvestDO::getShipmentId);
+            boolean shipped = req.getShipped();
+            filtered = filtered.stream().filter(h -> (h.getShipmentId() != null) == shipped).collect(Collectors.toList());
         }
-        w.orderByDesc(FarmHarvestDO::getHarvestDate).orderByDesc(FarmHarvestDO::getId);
-        PageResult<FarmHarvestDO> p = harvestMapper.selectPage(req, w);
-
-        List<FarmHarvestDO> list = p.getList();
+        List<FarmHarvestDO> list = FarmFulfillPage.slice(filtered, req);
         Map<Long, FarmAdoptionDO> adoptions = lookup.adoptions(list.stream().map(FarmHarvestDO::getAdoptionId).collect(Collectors.toList()));
         Map<Long, FarmAssetDO> assets = lookup.assets(list.stream().map(FarmHarvestDO::getAssetId).collect(Collectors.toList()));
         Map<Long, FarmMemberDO> members = lookup.members(adoptions.values().stream().map(FarmAdoptionDO::getMemberId).collect(Collectors.toList()));
@@ -94,7 +104,16 @@ public class FarmHarvestService {
             v.setShipmentId(h.getShipmentId());
             out.add(v);
         }
-        return new PageResult<>(out, p.getTotal());
+        FarmFulfillPage<FarmHarvestRespVO> result = new FarmFulfillPage<>();
+        result.setList(out);
+        result.setTotal((long) filtered.size());
+        result.setStats(stats);
+        return result;
+    }
+
+    private static double sumWeight(List<FarmHarvestDO> list) {
+        return list.stream().map(FarmHarvestDO::getWeightJin).filter(w -> w != null)
+                .mapToDouble(BigDecimal::doubleValue).sum();
     }
 
     /** 认养人下拉：本租户状态为 10（认养中）的认养关系 */
@@ -125,13 +144,39 @@ public class FarmHarvestService {
     public Long create(FarmHarvestCreateReqVO req) {
         FarmAdoptionDO ad = req.getAdoptionId() == null ? null : adoptionMapper.selectById(req.getAdoptionId());
         if (ad == null) throw exception(BAD_REQUEST, "请选择认养关系");
-        if (req.getWeightJin() == null || req.getWeightJin().compareTo(BigDecimal.ZERO) <= 0) {
-            throw exception(BAD_REQUEST, "重量要大于 0");
+        // 支持多品类明细 items；没传 items 时按老的单作物 crop + weightJin
+        List<FarmHarvestCreateReqVO.Item> rawItems = req.getItems();
+        if (rawItems == null || rawItems.isEmpty()) {
+            FarmHarvestCreateReqVO.Item one = new FarmHarvestCreateReqVO.Item();
+            one.setCrop(req.getCrop());
+            one.setWeightJin(req.getWeightJin());
+            rawItems = List.of(one);
         }
-        if (StrUtil.isBlank(req.getCrop())) throw exception(BAD_REQUEST, "请填写作物");
-        BigDecimal weightJin = req.getWeightJin().setScale(1, RoundingMode.HALF_UP);
-        String crop = req.getCrop().trim();
-        String remark = req.getRemark() == null ? "" : req.getRemark();
+        List<String> cropNames = new ArrayList<>();
+        List<String> details = new ArrayList<>();
+        BigDecimal weightJin = BigDecimal.ZERO;
+        for (FarmHarvestCreateReqVO.Item it : rawItems) {
+            if (StrUtil.isBlank(it.getCrop())) throw exception(BAD_REQUEST, "请填写作物");
+            if (it.getWeightJin() == null || it.getWeightJin().compareTo(BigDecimal.ZERO) <= 0) {
+                throw exception(BAD_REQUEST, "重量要大于 0");
+            }
+            BigDecimal w = it.getWeightJin().setScale(1, RoundingMode.HALF_UP);
+            weightJin = weightJin.add(w);
+            cropNames.add(it.getCrop().trim());
+            details.add(it.getCrop().trim() + " " + w.stripTrailingZeros().toPlainString() + " 斤");
+        }
+        weightJin = weightJin.setScale(1, RoundingMode.HALF_UP);
+        String crop = String.join("、", cropNames);
+        String farmType = StrUtil.isBlank(req.getFarmType()) ? "采摘采收" : req.getFarmType().trim();
+        String userRemark = req.getRemark() == null ? "" : req.getRemark().trim();
+        String remark = userRemark;
+        if (rawItems.size() > 1) {
+            String detail = "明细：" + String.join("、", details);
+            remark = userRemark.isEmpty() ? detail : userRemark + "；" + detail;
+        }
+        // 库里 crop 是 varchar(64)、remark 是 varchar(255)，超了给明确提示，不让数据库报错
+        if (crop.length() > 64) throw exception(BAD_REQUEST, "品类名称合计不能超过 64 个字");
+        if (remark.length() > 255) throw exception(BAD_REQUEST, "备注加明细不能超过 255 个字");
         List<String> photos = req.getPhotos() == null ? new ArrayList<>() : req.getPhotos();
         long hd = req.getHarvestDate() == null || req.getHarvestDate() == 0L ? System.currentTimeMillis() : req.getHarvestDate();
         LocalDate harvestDate = Instant.ofEpochMilli(hd).atZone(ZONE).toLocalDate();
@@ -169,7 +214,7 @@ public class FarmHarvestService {
         rec.setTaskId(null);
         rec.setKind("harvest");
         rec.setTitle("采收 " + crop + " " + weightText + " 斤");
-        rec.setContent((StrUtil.isEmpty(nickname) ? "农场" : nickname) + "录入收成，称重 " + weightText + " 斤。" + remark);
+        rec.setContent((StrUtil.isEmpty(nickname) ? "农场" : nickname) + "录入收成（农事类型：" + farmType + "），称重 " + weightText + " 斤。" + remark);
         rec.setPhotos(photos);
         rec.setLng(BigDecimal.ZERO);
         rec.setLat(BigDecimal.ZERO);

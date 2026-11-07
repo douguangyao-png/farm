@@ -15,6 +15,7 @@ const FarmApi = {
   createOrder: (data) => post('/farm/order/create', data),
   payOrder: (id) => post('/farm/order/pay', { id }, { loadingMsg: '支付中' }),
   getOrder: (id) => get('/farm/order/get', { id }),
+  getOrderList: () => get('/farm/order/list'),
   // 我的认养
   getAdoptionList: () => get('/farm/adoption/list'),
   getAdoption: (id) => get('/farm/adoption/get', { id }),
@@ -36,6 +37,7 @@ const FarmApi = {
   getArticle: (id) => get('/farm/article/get', { id }),
   // 收获配送
   getShipmentList: (adoptionId) => get('/farm/shipment/list', adoptionId ? { adoptionId } : {}),
+  confirmShipment: (id) => post('/farm/shipment/confirm', { id }, { loadingMsg: '确认中' }),
 };
 
 export default FarmApi;

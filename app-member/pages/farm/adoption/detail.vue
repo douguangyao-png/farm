@@ -1,4 +1,4 @@
-<!-- 认养详情（farmer-saas 新增）：概览、生长档案、溯源、环境数据、监控画面 -->
+<!-- 认养详情（farmer-saas 新增）：概览、生长档案、溯源、环境数据、监控画面、收获配送（含确认收货） -->
 <template>
   <s-layout title="认养详情">
     <demo-badge />
@@ -61,7 +61,7 @@
               <view class="e-icon">肥</view>
               <view>农资商城</view>
             </view>
-            <view class="entry" @tap="go('/pages/farm/shipment/list', { adoptionId: a.id })">
+            <view class="entry" @tap="tab = 'harvest'">
               <view class="e-icon">车</view>
               <view>收获配送</view>
             </view>
@@ -70,6 +70,64 @@
               <view>我的农资</view>
             </view>
           </view>
+        </view>
+      </view>
+
+      <!-- 收获配送（原型 07 adoption 的「收获配送」页签） -->
+      <view v-show="tab === 'harvest'">
+        <view class="f-card">
+          <view class="f-between bar-label">
+            <text class="f-title no-mb">产出统计</text>
+            <text class="f-sub" v-if="a.promisedJin !== null && a.promisedJin !== undefined">约定交付 {{ a.promisedJin }} 斤</text>
+          </view>
+          <template v-if="a.promisedJin !== null && a.promisedJin !== undefined">
+            <view class="f-progress"><view class="bar" :style="{ width: pct + '%' }" /></view>
+            <view class="f-between bar-label top">
+              <text class="f-sub">已收 {{ a.harvestedJin || 0 }} 斤</text>
+              <text class="f-sub">完成 {{ pct }}%</text>
+            </view>
+            <view class="f-sub promise-note">约定交付 {{ a.promisedJin }} 斤，不足部分按同等品质补发</view>
+          </template>
+          <template v-else>
+            <view class="f-kv"><text class="k">已收</text><text class="v">{{ a.harvestedJin || 0 }} 斤</text></view>
+            <view class="f-sub">{{ a.careModeInfo?.outputPromise }}</view>
+          </template>
+        </view>
+
+        <view class="f-title sec-title">配送批次<text class="f-more">共 {{ shipments.length }} 次</text></view>
+        <view class="f-card" v-for="(s, i) in shipmentRows" :key="s.id" @tap="toggleTrack(s.id)">
+          <view class="f-between">
+            <view class="f-row">
+              <text class="f-tag" :class="s.status === 20 ? 'gray' : 'orange'">第 {{ s.seq }} 次</text>
+              <text class="f-sub">{{ fmtTime(s.createTime, 'YYYY-MM-DD') }}</text>
+            </view>
+            <text class="s-status" :class="{ done: s.status === 20 }">{{ SHIPMENT_STATUS[s.status] }}</text>
+          </view>
+          <view class="s-line">{{ s.weightJin }} 斤<text class="f-tag" v-if="s.coldChain">冷链</text></view>
+          <view class="f-between foot">
+            <text class="f-sub">{{ s.carrier || '—' }} {{ s.logisticsNo }}</text>
+            <text class="f-more">物流详情 {{ openId === s.id ? '︿' : '﹀' }}</text>
+          </view>
+          <view class="f-timeline tracks" v-if="openId === s.id && s.tracks?.length">
+            <view class="f-tl-item" :class="{ gray: ti > 0 }" v-for="(t, ti) in [...s.tracks].reverse()" :key="ti">
+              <view class="t-content">{{ t.content }}</view>
+              <view class="f-sub">{{ fmtTime(t.time) }}</view>
+            </view>
+          </view>
+          <view class="f-sub addr" v-if="openId === s.id">收货人 {{ s.receiverName }} {{ s.receiverMobile }} · {{ s.address }}</view>
+          <view class="confirm-row" v-if="s.status === 10">
+            <button class="f-btn mini" @tap.stop="confirm(s)">确认收货</button>
+          </view>
+        </view>
+        <view v-if="!shipments.length" class="f-empty">
+          <view class="f-empty-title">还没有配送记录</view>
+          <view>采收后农场会安排配送，物流信息会显示在这里</view>
+        </view>
+
+        <view class="f-warn">采收后农场会安排冷链配送。收到农产品后请点「确认收货」，系统会记录签收时间；配送方式需要调整时请联系专属管家。</view>
+        <view class="btn-row">
+          <button class="f-btn ghost" @tap="adjustDelivery">调整配送</button>
+          <button class="f-btn" @tap="confirmLatest">确认收货</button>
         </view>
       </view>
 
@@ -176,7 +234,7 @@
   import { onLoad, onShow } from '@dcloudio/uni-app';
   import sheep from '@/sheep';
   import FarmApi from '@/sheep/api/farm';
-  import { CARE_MODE_NAME, fmtTime, call, contractTitle, needLogin } from '@/pages/farm/common/farm';
+  import { CARE_MODE_NAME, SHIPMENT_STATUS, fmtTime, call, callRaw, contractTitle, needLogin } from '@/pages/farm/common/farm';
   import DemoBadge from '@/pages/farm/components/demo-badge.vue';
 
   const TABS = [
@@ -185,6 +243,7 @@
     { key: 'trace', label: '溯源' },
     { key: 'env', label: '环境' },
     { key: 'camera', label: '监控' },
+    { key: 'harvest', label: '收获配送' },
   ];
 
   const id = ref(0);
@@ -194,10 +253,18 @@
   const trace = ref(null);
   const env = ref(null);
   const camera = ref(null);
+  const shipments = ref([]);
+  const openId = ref(0);
 
   const pct = computed(() =>
     a.value?.promisedJin ? Math.min(100, Math.round(((a.value.harvestedJin || 0) / a.value.promisedJin) * 100)) : 0,
   );
+  // 配送单按时间从早到晚编「第 N 次」，列表新的在前
+  const shipmentRows = computed(() => {
+    const asc = [...shipments.value].sort((x, y) => x.createTime - y.createTime || x.id - y.id);
+    const seq = Object.fromEntries(asc.map((s, i) => [s.id, i + 1]));
+    return shipments.value.map((s) => ({ ...s, seq: seq[s.id] }));
+  });
   const memberDuty = computed(() =>
     (a.value?.careModeInfo?.duty || []).filter((d) => d.owner === 'member').map((d) => d.item),
   );
@@ -265,18 +332,53 @@
 
   async function load() {
     if (!id.value || needLogin()) return;
-    const [ad, rec, tr, ev, cam] = await Promise.all([
+    const [ad, rec, tr, ev, cam, ship] = await Promise.all([
       call(FarmApi.getAdoption(id.value)),
       call(FarmApi.getAdoptionRecords(id.value)),
       call(FarmApi.getAdoptionTrace(id.value)),
       call(FarmApi.getAdoptionEnv(id.value)),
       call(FarmApi.getAdoptionCamera(id.value)),
+      call(FarmApi.getShipmentList(id.value)),
     ]);
     a.value = ad;
     records.value = rec || [];
     trace.value = tr;
     env.value = ev;
     camera.value = cam;
+    shipments.value = ship || [];
+  }
+
+  function toggleTrack(sid) {
+    openId.value = openId.value === sid ? 0 : sid;
+  }
+  // 确认收货：只有运输中的配送单能确认，成功后刷新状态
+  function confirm(s) {
+    uni.showModal({
+      title: '确认收货',
+      content: `配送单 ${s.no}（${s.weightJin} 斤）已收到了吗？确认后状态变为已签收。`,
+      confirmText: '已收到',
+      success: async (r) => {
+        if (!r.confirm) return;
+        const res = await callRaw(FarmApi.confirmShipment(s.id));
+        if (res.code === 0) {
+          sheep.$helper.toast('已确认收货');
+        }
+        await load();
+      },
+    });
+  }
+  function confirmLatest() {
+    const list = shipmentRows.value.filter((s) => s.status === 10);
+    if (!list.length) return sheep.$helper.toast('暂无待收货的配送单');
+    if (list.length > 1) return sheep.$helper.toast('有多张运输中的配送单，请在对应批次里确认收货');
+    confirm(list[0]);
+  }
+  function adjustDelivery() {
+    uni.showModal({
+      title: '调整配送',
+      content: '配送方式调整、延后（免费保管 7 天）请联系专属管家，演示版暂不支持在线修改。',
+      showCancel: false,
+    });
   }
 
   let firstShow = true;
@@ -319,6 +421,59 @@
   }
   .bar-label {
     margin-bottom: 10rpx;
+  }
+  .no-mb {
+    margin-bottom: 0;
+  }
+  .top {
+    margin: 10rpx 0 0;
+  }
+  .sec-title {
+    margin: 10rpx 0 14rpx;
+  }
+  .s-status {
+    font-size: 28rpx;
+    color: $fo;
+    &.done {
+      color: $fgd;
+    }
+  }
+  .s-line {
+    margin: 14rpx 0;
+    font-size: 30rpx;
+    font-weight: 600;
+  }
+  .foot {
+    margin-top: 12rpx;
+    padding-top: 14rpx;
+    border-top: 2rpx solid $fline;
+  }
+  .tracks {
+    margin-top: 16rpx;
+  }
+  .t-content {
+    font-size: 26rpx;
+  }
+  .addr {
+    margin-top: 10rpx;
+  }
+  .confirm-row {
+    margin-top: 16rpx;
+    text-align: right;
+  }
+  .f-btn.mini {
+    height: 56rpx;
+    line-height: 56rpx;
+    padding: 0 32rpx;
+    font-size: 24rpx;
+  }
+  .btn-row {
+    display: flex;
+    gap: 20rpx;
+    margin-top: 20rpx;
+    .f-btn {
+      flex: 1;
+    }
   }
   .promise-note {
     margin-top: 12rpx;

@@ -28,4 +28,6 @@ public class FarmSupplyOrderRespVO {
     private String cat;
     private String cover;
     private String unit;
+    /** 订单状态：待使用 / 已使用 / 已安装 / 待派单 / 已完成 / 已生效（演示口径，见 FarmSupplyOrderService.stateName） */
+    private String stateName;
 }

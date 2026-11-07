@@ -1,18 +1,30 @@
 package cn.iocoder.yudao.module.farm.service;
 
 import cn.hutool.core.util.StrUtil;
-import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
+import cn.iocoder.yudao.module.farm.controller.admin.fulfill.FarmFulfillPage;
 import cn.iocoder.yudao.module.farm.controller.admin.supply.vo.FarmSupplyPageReqVO;
+import cn.iocoder.yudao.module.farm.controller.admin.supply.vo.FarmSupplyRespVO;
 import cn.iocoder.yudao.module.farm.controller.admin.supply.vo.FarmSupplySaveReqVO;
+import cn.iocoder.yudao.module.farm.dal.dataobject.FarmServiceOrderDO;
 import cn.iocoder.yudao.module.farm.dal.dataobject.FarmSupplyDO;
+import cn.iocoder.yudao.module.farm.dal.dataobject.FarmSupplyOrderDO;
+import cn.iocoder.yudao.module.farm.dal.mysql.FarmServiceOrderMapper;
 import cn.iocoder.yudao.module.farm.dal.mysql.FarmSupplyMapper;
+import cn.iocoder.yudao.module.farm.dal.mysql.FarmSupplyOrderMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.module.farm.enums.ErrorCodeConstants.BAD_REQUEST;
@@ -24,13 +36,65 @@ public class FarmSupplyService {
 
     @Autowired
     private FarmSupplyMapper supplyMapper;
+    @Autowired
+    private FarmSupplyOrderMapper supplyOrderMapper;
+    @Autowired
+    private FarmServiceOrderMapper serviceOrderMapper;
 
-    public PageResult<FarmSupplyDO> page(FarmSupplyPageReqVO req) {
-        return supplyMapper.selectPage(req, new LambdaQueryWrapperX<FarmSupplyDO>()
-                .likeIfPresent(FarmSupplyDO::getName, req.getName())
-                .eqIfPresent(FarmSupplyDO::getCat, req.getCat())
-                .eqIfPresent(FarmSupplyDO::getStatus, req.getStatus())
-                .orderByAsc(FarmSupplyDO::getId));
+    /** 列表 + 统计卡 + 类目页签数量（stats 字段见契约 2.8；mock：farm/stats.ts supplyPage） */
+    public FarmFulfillPage<FarmSupplyRespVO> page(FarmSupplyPageReqVO req) {
+        List<FarmSupplyDO> all = supplyMapper.selectList(new LambdaQueryWrapperX<FarmSupplyDO>().orderByAsc(FarmSupplyDO::getId));
+
+        LocalDateTime m0 = LocalDate.now().withDayOfMonth(1).atStartOfDay();
+        List<FarmSupplyOrderDO> orders = supplyOrderMapper.selectList(new LambdaQueryWrapperX<FarmSupplyOrderDO>());
+        List<FarmSupplyOrderDO> monthOrders = orders.stream()
+                .filter(o -> o.getCreateTime() != null && !o.getCreateTime().isBefore(m0)).collect(Collectors.toList());
+        Map<Long, Integer> perMember = new HashMap<>();
+        for (FarmSupplyOrderDO o : orders) perMember.merge(o.getMemberId(), 1, Integer::sum);
+        long repeatMemberCount = perMember.values().stream().filter(n -> n >= 2).count();
+        long monthGmv = monthOrders.stream().mapToLong(o -> o.getAmount() == null ? 0L : o.getAmount()).sum();
+        long serviceIncome = serviceOrderMapper.selectList(new LambdaQueryWrapperX<FarmServiceOrderDO>().eq(FarmServiceOrderDO::getStatus, 20))
+                .stream()
+                .filter(x -> !(x.getFinishTime() != null ? x.getFinishTime() : x.getCreateTime()).isBefore(m0))
+                .mapToLong(x -> x.getPrice() == null ? 0L : x.getPrice()).sum();
+        Map<String, Object> catCounts = new LinkedHashMap<>();
+        catCounts.put("all", all.size());
+        for (FarmSupplyDO s : all) catCounts.merge(s.getCat(), 1, (x, y) -> (Integer) x + (Integer) y);
+        Map<String, Object> stats = FarmFulfillPage.m(
+                "monthGmv", monthGmv,
+                "monthOrderCount", monthOrders.size(),
+                "avgOrderAmount", monthOrders.isEmpty() ? 0L : Math.round(monthGmv / (double) monthOrders.size()),
+                "repeatMemberCount", repeatMemberCount,
+                "repeatRate", perMember.isEmpty() ? 0d : FarmFulfillPage.r1(repeatMemberCount * 100d / perMember.size()),
+                "serviceIncome", serviceIncome,
+                "catCounts", catCounts);
+
+        List<FarmSupplyRespVO> rows = all.stream()
+                .filter(s -> StrUtil.isEmpty(req.getName()) || (s.getName() != null && s.getName().contains(req.getName())))
+                .filter(s -> StrUtil.isEmpty(req.getCat()) || req.getCat().equals(s.getCat()))
+                .filter(s -> StrUtil.isEmpty(req.getBatchNo()) || (s.getBatchNo() != null && s.getBatchNo().contains(req.getBatchNo())))
+                .filter(s -> req.getStatus() == null || req.getStatus().equals(s.getStatus()))
+                .map(FarmSupplyService::toView)
+                .collect(Collectors.toList());
+        return new FarmFulfillPage<>(rows, req, stats);
+    }
+
+    /** 低库存线：库存低于 200 算低库存（服务、保险库存是 9999，不会命中） */
+    private static final int LOW_STOCK = 200;
+
+    /** DO → 列表行，补 code / grossMargin / stateName（与 mock farm/stats.ts supplyPage 一致） */
+    public static FarmSupplyRespVO toView(FarmSupplyDO s) {
+        FarmSupplyRespVO v = BeanUtils.toBean(s, FarmSupplyRespVO.class);
+        v.setCode("SP-" + (100 + s.getId()));
+        long price = s.getPrice() == null ? 0L : s.getPrice();
+        long cost = s.getCost() == null ? 0L : s.getCost();
+        v.setGrossMargin(price > 0 ? (int) Math.round((price - cost) * 100d / price) : 0);
+        String state = "正常";
+        if (s.getStatus() != null && s.getStatus() == 1) state = "已下架";
+        else if (Boolean.TRUE.equals(s.getNeedWorkorder())) state = "需工单";
+        else if (s.getStock() != null && s.getStock() < LOW_STOCK) state = "低库存";
+        v.setStateName(state);
+        return v;
     }
 
     public FarmSupplyDO get(Long id) {

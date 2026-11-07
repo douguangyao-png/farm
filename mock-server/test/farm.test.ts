@@ -276,11 +276,47 @@ describe('问题反馈 FB-0002 / FB-0003：菜单树与部门', () => {
   })
 })
 
+describe('第一期：原型对齐新增的接口', () => {
+  it('合同管理台账、订单新字段、农事记录统计、履约类列表带统计', async () => {
+    const h = await admin(2, 'qingshan')
+    const c = await get('/admin-api/farm/contract/page', h, { pageNo: 1, pageSize: 10 })
+    expect(c.code).toBe(0)
+    expect(c.data.total).toBeGreaterThan(0)
+    expect(c.data.list[0]).toHaveProperty('orderNo')
+    const o = await get('/admin-api/farm/order/page', h, { pageNo: 1, pageSize: 10 })
+    expect(o.data.list[0]).toHaveProperty('payMethod')
+    expect(o.data.list[0]).toHaveProperty('progress')
+    const rs = await get('/admin-api/farm/record/stats', h)
+    expect(rs.data).toHaveProperty('pendingCount')
+    for (const p of ['harvest', 'shipment', 'supply', 'supply-order', 'service-order']) {
+      const r = await get(`/admin-api/farm/${p}/page`, h, { pageNo: 1, pageSize: 10 })
+      expect(r.code, p).toBe(0)
+      expect(r.data.stats, p).toBeTruthy()
+    }
+    const lv = await admin(3, 'lvye')
+    expect((await get('/admin-api/farm/contract/page', lv, { pageNo: 1, pageSize: 10 })).data.total).toBeLessThan(c.data.total)
+  })
+  it('C 端：订单列表带合同；确认收货只能确认自己的运输中配送单', async () => {
+    const m = await member(2, '13800000001')
+    const list = await get('/app-api/farm/order/list', m)
+    expect(list.data.length).toBeGreaterThan(0)
+    expect(list.data[0]).toHaveProperty('contract')
+    const ships = await get('/app-api/farm/shipment/list', m)
+    const moving = ships.data.find((x: { status: number }) => x.status === 10)
+    if (moving) {
+      const other = await member(2, '13800000002')
+      expect((await post('/app-api/farm/shipment/confirm', other, { id: moving.id })).code).toBe(404)
+      expect((await post('/app-api/farm/shipment/confirm', m, { id: moving.id })).code).toBe(0)
+      expect((await post('/app-api/farm/shipment/confirm', m, { id: moving.id })).code).toBe(1_030_000_002)
+    }
+  })
+})
+
 describe('工作台、环境数据', () => {
-  it('工作台有 14 天曲线和待办；环境数据 24 个点，A-03 土壤湿度低于 22%', async () => {
+  it('工作台有 30 天曲线和待办；环境数据 24 个点，A-03 土壤湿度低于 22%', async () => {
     const h = await admin(2, 'qingshan')
     const d = await get('/admin-api/farm/dashboard/summary', h)
-    expect(d.data.gmvTrend).toHaveLength(14)
+    expect(d.data.gmvTrend).toHaveLength(30)
     expect(d.data.pendingRecordCount).toBe(2)
     const env = await get('/admin-api/farm/asset/env', h, { assetId: 3 })
     expect(env.data.series).toHaveLength(24)

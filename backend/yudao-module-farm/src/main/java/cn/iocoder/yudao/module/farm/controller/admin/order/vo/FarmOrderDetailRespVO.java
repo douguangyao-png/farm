@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.util.List;
+import java.util.Map;
 
 /** 订单详情：订单字段 + contract / adoption / records / shipments（mock farm-admin.ts 251–262 行） */
 @Data
@@ -17,4 +18,8 @@ public class FarmOrderDetailRespVO extends FarmOrderRespVO {
     /** 该认养最近 10 条已通过的农事记录 */
     private List<FarmRecordRespVO> records;
     private List<FarmShipmentRespVO> shipments;
+    /** 客户信息卡：{ name, mobile, orderCount, totalAmount(分) } */
+    private Map<String, Object> customer;
+    /** 专属管家：{ name, mobile(脱敏) }，没有认养关系时为 null */
+    private Map<String, Object> steward;
 }

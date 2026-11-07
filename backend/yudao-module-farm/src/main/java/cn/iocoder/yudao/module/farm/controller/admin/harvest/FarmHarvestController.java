@@ -1,7 +1,7 @@
 package cn.iocoder.yudao.module.farm.controller.admin.harvest;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
-import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.module.farm.controller.admin.fulfill.FarmFulfillPage;
 import cn.iocoder.yudao.module.farm.controller.admin.harvest.vo.FarmHarvestCreateReqVO;
 import cn.iocoder.yudao.module.farm.controller.admin.harvest.vo.FarmHarvestPageReqVO;
 import cn.iocoder.yudao.module.farm.controller.admin.harvest.vo.FarmHarvestRespVO;
@@ -26,7 +26,7 @@ public class FarmHarvestController {
     private FarmHarvestService service;
 
     @GetMapping("/page")
-    public CommonResult<PageResult<FarmHarvestRespVO>> page(FarmHarvestPageReqVO req) {
+    public CommonResult<FarmFulfillPage<FarmHarvestRespVO>> page(FarmHarvestPageReqVO req) {
         return success(service.page(req));
     }
 

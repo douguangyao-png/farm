@@ -2,6 +2,7 @@ package cn.iocoder.yudao.module.farm.controller.admin.order.vo;
 
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /** 对应 mock orderView */
@@ -30,4 +31,12 @@ public class FarmOrderRespVO {
     private String address;
     private LocalDateTime createTime;
     private LocalDateTime payTime;
+    /** 演示口径：固定「微信支付」 */
+    private String payMethod;
+    /** 约定交付（斤），不托管/未认养为 null */
+    private BigDecimal promisedJin;
+    /** 已收（斤） */
+    private BigDecimal harvestedJin;
+    /** 履约进度 0-100 整数 = 已收 / 约定交付 */
+    private Integer progress;
 }

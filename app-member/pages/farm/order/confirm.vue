@@ -1,4 +1,4 @@
-<!-- 确认订单 + 合同确认（farmer-saas 新增）：未勾选合同不能支付（R-3），演示支付 -->
+<!-- 确认订单 + 合同确认（farmer-saas 新增）：交付方式 3 选 1、金额明细、三份文件勾选；未勾选不能支付（R-3），演示支付 -->
 <template>
   <s-layout title="确认订单">
     <demo-badge />
@@ -22,6 +22,29 @@
         <view class="f-kv"><text class="k">每周待办</text><text class="v">{{ mode.weeklyTodo }} 项</text></view>
         <view class="f-kv"><text class="k">保险</text><text class="v">{{ mode.insurance }}</text></view>
         <view class="f-kv"><text class="k">地块</text><text class="v">支付后自动分配空闲地块</text></view>
+        <view class="f-kv"><text class="k">认养人</text><text class="v">{{ form.receiverName || '—' }}</text></view>
+        <view class="f-kv"><text class="k">联系电话</text><text class="v">{{ maskedMobile }}</text></view>
+      </view>
+
+      <!-- 交付方式（原型 07 order：3 选 1） -->
+      <view class="f-card">
+        <view class="f-title">交付方式</view>
+        <view class="ship" v-for="w in SHIP_WAYS" :key="w.value" @tap="deliverWay = w.value">
+          <view>
+            <view class="ship-name">{{ w.label }}</view>
+            <view class="f-sub">{{ w.tip }}</view>
+          </view>
+          <view class="radio" :class="{ on: deliverWay === w.value }"><view class="dot" v-if="deliverWay === w.value" /></view>
+        </view>
+      </view>
+
+      <!-- 金额明细 -->
+      <view class="f-card">
+        <view class="f-kv"><text class="k">商品金额</text><text class="v">{{ yuan(mode.price) }}</text></view>
+        <view class="f-between pay-line">
+          <text>应付金额</text>
+          <text class="f-price total">{{ yuan(mode.price) }}</text>
+        </view>
       </view>
 
       <!-- 收货人 -->
@@ -48,6 +71,10 @@
           <text>{{ contractName }}</text>
           <text class="f-more">阅读 ›</text>
         </view>
+        <view class="contract" @tap="openDoc('waiver')">
+          <text>《免责条款》</text>
+          <text class="f-more">阅读 ›</text>
+        </view>
         <view class="contract" v-if="needNotice" @tap="openDoc('notice')">
           <text>《产出浮动告知书》</text>
           <text class="f-more">阅读 ›</text>
@@ -58,10 +85,11 @@
         <view class="agree" :class="{ shake }" @tap="agreed = !agreed">
           <view class="box" :class="{ on: agreed }">{{ agreed ? '✓' : '' }}</view>
           <view class="agree-text">
-            我已阅读并同意{{ contractName }}<text v-if="needNotice">和《产出浮动告知书》</text>
+            我已阅读并同意{{ contractName }}<text v-if="needNotice">、《产出浮动告知书》</text>与《免责条款》，知悉本项目为实物交付、无资金收益。
           </view>
         </view>
       </view>
+      <view class="f-ok legend">下单前请确认：认养为农产品预购行为，交付以实物为准，产出受气候、病虫害等自然条件影响；平台与经营者均不提供资金收益、回购或保本承诺。</view>
       <view class="f-bottom-space" />
     </view>
 
@@ -76,7 +104,7 @@
     <!-- 合同 / 告知书 -->
     <su-popup :show="doc !== ''" round="10" showClose @close="doc = ''">
       <view class="doc">
-        <view class="doc-title">{{ doc === 'notice' ? '《产出浮动告知书》' : contractName }}</view>
+        <view class="doc-title">{{ docTitle }}</view>
         <scroll-view scroll-y class="doc-body">
           <view class="doc-tip">演示文本，正式版由农场上传合同模板并电子签署</view>
           <view class="doc-p" v-for="(t, i) in docText" :key="i">{{ t }}</view>
@@ -118,6 +146,18 @@
   const order = ref(null);
   const form = reactive({ receiverName: '', receiverMobile: '', address: '' });
 
+  // 交付方式 3 选 1（原型 07）。演示口径：只作为下单时的选择记录，暂未落库，配送时由农场和管家按收货信息安排
+  const SHIP_WAYS = [
+    { value: 'cold', label: '冷链快递到家', tip: '免费 · 每月 2 次' },
+    { value: 'pickup', label: '基地自提', tip: '随时 · 可顺丰到付' },
+    { value: 'monthly', label: '月度集中配送', tip: '每月 1 次 · 免运费' },
+  ];
+  const deliverWay = ref('cold');
+  const maskedMobile = computed(() => (form.receiverMobile || '').replace(/^(\d{3})\d{4}(\d{4})$/, '$1****$2') || '—');
+  const docTitle = computed(() =>
+    doc.value === 'notice' ? '《产出浮动告知书》' : doc.value === 'waiver' ? '《免责条款》' : contractName.value,
+  );
+
   const mode = computed(() => p.value?.careModes.find((m) => m.mode === modeKey.value && m.enabled));
   const contractName = computed(() => (mode.value ? contractTitle(mode.value.mode, mode.value.contractVersion) : ''));
   const needNotice = computed(() => mode.value && mode.value.mode !== 'full');
@@ -125,6 +165,15 @@
   const docText = computed(() => {
     const m = mode.value;
     if (!m) return [];
+    if (doc.value === 'waiver') {
+      return [
+        '一、认养为农产品预购和农业生产服务，交付物为实物农产品，不构成任何形式的理财、投资或收益承诺。',
+        '二、因台风、冰雹、洪涝、干旱、病虫害等不可抗力导致减产，按所投农业保险条款理赔；非不可抗力的减产，按合同约定补发或延期。',
+        '三、物流途中的轻微损耗（运输颠簸、冷链温差等）在合理范围内不属于质量问题；收货时发现明显破损请当场拍照并联系专属管家。',
+        '四、认养人自行负责的农事环节（见合同责任划分）未按时完成造成的减产，农场不承担补发责任。',
+        '五、认养费用是农业服务费，不转移土地或畜禽所有权。',
+      ];
+    }
     if (doc.value === 'notice') {
       return [
         `一、您选择的是${CARE_MODE_NAME[m.mode]}。浇水、除草、追肥等日常农活由您负责（可委托管家代办），产量会受日常管理、天气、病虫害影响。`,
@@ -172,6 +221,7 @@
           receiverName: form.receiverName,
           receiverMobile: form.receiverMobile,
           address: form.address,
+          deliverWay: deliverWay.value,
         }),
       );
       if (!data) return;
@@ -293,6 +343,46 @@
   }
   .total {
     font-size: 40rpx;
+  }
+  .pay-line {
+    margin-top: 12rpx;
+    padding-top: 16rpx;
+    border-top: 2rpx solid $fline;
+    font-size: 28rpx;
+    .total {
+      font-size: 40rpx;
+    }
+  }
+  .ship {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18rpx 0;
+  }
+  .ship-name {
+    font-size: 28rpx;
+  }
+  .radio {
+    width: 36rpx;
+    height: 36rpx;
+    border-radius: 50%;
+    border: 3rpx solid #d5d9de;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    &.on {
+      border-color: $fg;
+    }
+    .dot {
+      width: 18rpx;
+      height: 18rpx;
+      border-radius: 50%;
+      background: $fg;
+    }
+  }
+  .legend {
+    margin-top: 10rpx;
+    line-height: 1.6;
   }
   .doc,
   .pay {

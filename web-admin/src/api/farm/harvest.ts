@@ -2,11 +2,18 @@ import request from '@/config/axios'
 
 /** 收成与配送（契约 2.9） */
 export const getHarvestPage = (params: any) => request.get({ url: '/farm/harvest/page', params })
-export const createHarvest = (data: {
-  adoptionId: number
+export interface HarvestItem {
   crop: string
   weightJin: number
+}
+export const createHarvest = (data: {
+  adoptionId: number
+  /** 收获明细（可多行）；合计作为本批重量，品类名用「、」连接存进 crop */
+  items: HarvestItem[]
   harvestDate: number
+  /** 农事类型，不传按「采摘采收」 */
+  farmType?: string
+  photos?: string[]
   remark?: string
 }) => request.post({ url: '/farm/harvest/create', data })
 export const getAdoptionSimpleList = (): Promise<

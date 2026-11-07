@@ -1,7 +1,7 @@
 import { Router, type Request } from 'express'
-import { getDb, nextId, placeholderImage, type Adoption, type CareMode } from '../store.js'
+import { getDb, nextId, placeholderImage, type Adoption, type CareMode, type Order } from '../store.js'
 import { ok, fail, requireLogin } from '../http.js'
-import { BIZ, q, byNewest, browseTenant, currentMember, own, notFound, badRequest, envView, makeNo, CARE_MODE_NAME } from '../farm/common.js'
+import { BIZ, q, byNewest, browseTenant, currentMember, own, notFound, badRequest, envView, makeNo, maskMobile, CARE_MODE_NAME } from '../farm/common.js'
 import { productView, orderView, contractOf, adoptionView, adoptionDetail, recordView, supplyOrderView, shipmentView } from '../farm/views.js'
 
 /** /app-api/farm/**：C 端（契约第 4 节） */
@@ -132,15 +132,41 @@ farmAppRouter.post('/order/pay', login, (req, res) => {
   return ok(res, { orderId: o.id, adoptionId: ad.id, assetCode: asset.code })
 })
 
+/**
+ * C 端订单视图：订单视图 + 合同 + 认养摘要（支付结果页、我的订单、合约中心共用；契约第 4 节）。
+ * 演示口径的字段：adoptionNo、insuranceNo、traceCode 由编号拼出，没有真实保单和溯源系统。
+ */
+function appOrderView(o: Order) {
+  const ad = o.adoptionId ? db().adoptions.find((x) => x.id === o.adoptionId) : undefined
+  const a = ad ? db().assets.find((x) => x.id === ad.assetId) : undefined
+  const st = ad ? db().users.find((u) => u.id === ad.stewardId) : undefined
+  const year = new Date(o.payTime ?? o.createTime).getFullYear()
+  return {
+    ...orderView(o),
+    contract: contractOf(o),
+    adoptionNo: ad ? `A${year}-${String(ad.id).padStart(4, '0')}` : null,
+    adoptionStatus: ad?.status ?? null,
+    startAt: ad?.startAt ?? null,
+    endAt: ad?.endAt ?? null,
+    shipmentCount: ad ? db().shipments.filter((s) => s.adoptionId === ad.id).length : 0,
+    assetName: a?.name ?? '',
+    areaM2: a?.specs.areaM2 ?? null,
+    stewardName: st?.nickname ?? '',
+    stewardMobile: maskMobile(st?.mobile),
+    insuranceNo: ad ? `PICC-${year}-${String(o.id).padStart(4, '0')}` : null,
+    traceCode: ad ? `TR${o.no.slice(2)}` : null
+  }
+}
+
 farmAppRouter.get('/order/get', login, (req, res) => {
   const m = mine(req)
   const o = own(db().orders, req.query.id, m.tenantId)
   if (!o || o.memberId !== m.id) return notFound(res, '订单')
-  return ok(res, { ...orderView(o), contract: contractOf(o) })
+  return ok(res, appOrderView(o))
 })
 farmAppRouter.get('/order/list', login, (req, res) => {
   const m = mine(req)
-  return ok(res, db().orders.filter((o) => o.memberId === m.id && o.tenantId === m.tenantId).sort(byNewest).map(orderView))
+  return ok(res, db().orders.filter((o) => o.memberId === m.id && o.tenantId === m.tenantId).sort(byNewest).map(appOrderView))
 })
 
 // ---------- 我的认养 ----------
@@ -276,6 +302,16 @@ farmAppRouter.get('/shipment/list', login, (req, res) => {
   return ok(res, db().shipments.filter((s) => s.memberId === m.id && (adoptionId === undefined || s.adoptionId === Number(adoptionId))).sort(byNewest).map(shipmentView))
 })
 
+/** 确认收货：只有「运输中」且属于当前会员的配送单；等价于后台 PUT /shipment/sign（同样的状态限制和提示） */
+farmAppRouter.post('/shipment/confirm', login, (req, res) => {
+  const m = mine(req)
+  const s = own(db().shipments, req.body?.id, m.tenantId)
+  if (!s || s.memberId !== m.id) return notFound(res, '配送单')
+  if (s.status !== 10) return fail(res, BIZ.ORDER_STATE, '只有运输中的配送单能确认签收')
+  s.status = 20
+  s.tracks.push({ time: Date.now(), content: `已签收，签收人：${s.receiverName}` })
+  return ok(res, true)
+})
 
 // ---------- 农场资讯（经营者在「系统管理 → 文章管理」发布的文章） ----------
 farmAppRouter.get('/article/list', (req, res) => {

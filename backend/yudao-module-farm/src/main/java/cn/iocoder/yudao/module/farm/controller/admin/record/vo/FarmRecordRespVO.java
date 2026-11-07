@@ -33,4 +33,13 @@ public class FarmRecordRespVO {
     private String auditRemark;
     private LocalDateTime createTime;
     private LocalDateTime auditTime;
+    /** 类型名：农事 / 采收 / 代管服务 */
+    private String kindName;
+    /** 类型与摘要 =「类型名 · 标题」 */
+    private String summary;
+    private Integer photoCount;
+    /** 机器校验：ok（三项都通过）/ suspect（存疑） */
+    private String machineCheck;
+    /** 存疑原因，多个用「、」连接：拍摄时间偏差 / 地点偏移 / 画面重复率高 */
+    private String machineCheckNote;
 }

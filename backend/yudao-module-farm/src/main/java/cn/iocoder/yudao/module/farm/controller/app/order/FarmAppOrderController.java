@@ -1,7 +1,6 @@
 package cn.iocoder.yudao.module.farm.controller.app.order;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
-import cn.iocoder.yudao.module.farm.controller.admin.order.vo.FarmOrderRespVO;
 import cn.iocoder.yudao.module.farm.controller.app.order.vo.FarmAppIdReqVO;
 import cn.iocoder.yudao.module.farm.controller.app.order.vo.FarmAppOrderCreateReqVO;
 import cn.iocoder.yudao.module.farm.controller.app.order.vo.FarmAppOrderDetailRespVO;
@@ -49,7 +48,7 @@ public class FarmAppOrderController {
 
     /** mock 141 行 */
     @GetMapping("/list")
-    public CommonResult<List<FarmOrderRespVO>> list() {
+    public CommonResult<List<FarmAppOrderDetailRespVO>> list() {
         return success(service.list());
     }
 }

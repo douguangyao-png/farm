@@ -10,7 +10,7 @@ const fs = require('node:fs')
 const root = path.resolve(__dirname, '..')
 process.env.UNI_INPUT_DIR = root
 
-const SUB_PATH_MODES = { demo: '/farm/m/' }
+const SUB_PATH_MODES = { demo: '/farm/m/', real: '/farm-real/m/' }
 const modeIdx = process.argv.indexOf('--mode')
 const subBase = modeIdx > 0 ? SUB_PATH_MODES[process.argv[modeIdx + 1]] : undefined
 

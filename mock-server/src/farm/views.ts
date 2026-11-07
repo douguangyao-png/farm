@@ -10,13 +10,25 @@ const asset = (id: number | null | undefined) => db().assets.find((a) => a.id ==
 const base = (id: number | null | undefined) => db().bases.find((b) => b.id === id)
 const product = (id: number | null | undefined) => db().products.find((p) => p.id === id)
 
+/** 资产类型 → 认养分类名（原型 08 的「分类」列）；工作台认养位、本周经营概览也用 */
+export const CATEGORY_NAME: Record<string, string> = { plot: '土地认养', animal: '家禽认养', tree: '果树认养' }
+
 export function productView(p: Product) {
   const enabled = p.careModes.filter((m) => m.enabled)
+  const main = enabled.find((m) => m.mode === 'full') ?? enabled[0]
+  const totalSlots = p.stock + p.sold
   return {
     ...p,
     baseName: base(p.baseId)?.name ?? '',
     minPrice: Math.min(...enabled.map((m) => m.price)),
-    enabledModes: enabled.map((m) => m.mode)
+    enabledModes: enabled.map((m) => m.mode),
+    // 以下是对齐原型 goodsList 补的列，全部由现有数据派生
+    no: 'P' + String(p.id).padStart(3, '0'),
+    categoryName: CATEGORY_NAME[p.assetType] ?? '',
+    totalSlots,
+    soldRate: totalSlots > 0 ? Math.round((p.sold / totalSlots) * 100) : 0,
+    insured: enabled.some((m) => m.insurance.includes('含')),
+    expectedOutput: main?.outputPromise ?? ''
   }
 }
 
@@ -41,11 +53,25 @@ export function contractOf(o: Order) {
   }
 }
 
+/** 合同状态：10 已签署 / 0 待签署 / 20 已解除（订单已取消）。合同台账由订单派生 */
+export function contractStatusOf(o: Order): number {
+  if (o.status === 30) return 20
+  return o.contractAgreed && o.payTime ? 10 : 0
+}
+
 export function orderView(o: Order) {
   const m = member(o.memberId)
   const p = product(o.productId)
+  const ad = o.adoptionId ? db().adoptions.find((a) => a.id === o.adoptionId) : undefined
+  const promisedJin = ad?.promisedJin ?? null
+  const harvestedJin = ad?.harvestedJin ?? 0
   return {
     ...o,
+    // 演示口径：支付方式固定微信支付；履约进度 = 已收 / 约定交付（百分比整数，0-100）
+    payMethod: '微信支付',
+    promisedJin,
+    harvestedJin,
+    progress: promisedJin ? Math.min(100, Math.round((harvestedJin / promisedJin) * 100)) : 0,
     memberName: m?.nickname ?? '',
     memberMobile: m?.mobile ?? '',
     productTitle: p?.title ?? '',
@@ -84,13 +110,25 @@ export function adoptionDetail(ad: Adoption) {
   }
 }
 
+const RECORD_KIND_NAME: Record<string, string> = { farming: '农事', harvest: '采收', service: '代管服务' }
+
 export function recordView(r: GrowthRecord) {
   const ad = db().adoptions.find((x) => x.id === r.adoptionId)
+  // 机器校验：三项都通过 = ok，否则 suspect 并给出一句原因（checks 里 true 表示通过）
+  const notes: string[] = []
+  if (r.checks && !r.checks.exifTime) notes.push('拍摄时间偏差')
+  if (r.checks && !r.checks.gpsFence) notes.push('地点偏移')
+  if (r.checks && !r.checks.duplicate) notes.push('画面重复率高')
   return {
     ...r,
     assetCode: asset(r.assetId)?.code ?? '',
     memberName: ad ? member(ad.memberId)?.nickname ?? '' : '',
-    stewardName: user(r.stewardId)?.nickname ?? ''
+    stewardName: user(r.stewardId)?.nickname ?? '',
+    kindName: RECORD_KIND_NAME[r.kind] ?? '',
+    summary: `${RECORD_KIND_NAME[r.kind] ?? ''} · ${r.title}`,
+    photoCount: r.photos?.length ?? 0,
+    machineCheck: notes.length ? 'suspect' : 'ok',
+    machineCheckNote: notes.join('、')
   }
 }
 

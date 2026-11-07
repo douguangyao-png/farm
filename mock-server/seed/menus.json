@@ -16,6 +16,7 @@
   {"id": 331, "parentId": 330, "name": "认养订单", "path": "order", "visible": true, "keepAlive": true, "component": "farm/order/index", "componentName": "FarmOrder", "icon": "ep:document"},
   {"id": 332, "parentId": 330, "name": "收成录入", "path": "harvest", "visible": true, "keepAlive": true, "component": "farm/harvest/index", "componentName": "FarmHarvest", "icon": "ep:apple"},
   {"id": 333, "parentId": 330, "name": "配送批次", "path": "shipment", "visible": true, "keepAlive": true, "component": "farm/shipment/index", "componentName": "FarmShipment", "icon": "ep:van"},
+  {"id": 334, "parentId": 330, "name": "合同管理", "path": "contract", "visible": true, "keepAlive": true, "component": "farm/contract/index", "componentName": "FarmContract", "icon": "ep:document-checked"},
   {"id": 340, "parentId": 0, "name": "农事代管", "path": "/farm-work", "visible": true, "keepAlive": true, "alwaysShow": true, "icon": "ep:sunny"},
   {"id": 341, "parentId": 340, "name": "农事记录审核", "path": "record", "visible": true, "keepAlive": true, "component": "farm/record/index", "componentName": "FarmRecord", "icon": "ep:camera"},
   {"id": 342, "parentId": 340, "name": "代管工单", "path": "service-order", "visible": true, "keepAlive": true, "component": "farm/service-order/index", "componentName": "FarmServiceOrder", "icon": "ep:list"},

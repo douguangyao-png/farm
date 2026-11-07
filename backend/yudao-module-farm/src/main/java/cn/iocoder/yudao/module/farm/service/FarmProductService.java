@@ -33,6 +33,9 @@ import static cn.iocoder.yudao.module.farm.enums.ErrorCodeConstants.NOT_FOUND;
 @Service
 public class FarmProductService {
 
+    /** 资产类型 -> 认养分类名（与 mock views.ts 的 CATEGORY_NAME 一致） */
+    private static final Map<String, String> CATEGORY_NAME = Map.of("plot", "土地认养", "animal", "家禽认养", "tree", "果树认养");
+
     @Autowired
     private FarmProductMapper productMapper;
     @Autowired
@@ -45,6 +48,9 @@ public class FarmProductService {
                 .likeIfPresent(FarmProductDO::getTitle, req.getTitle())
                 .eqIfPresent(FarmProductDO::getStatus, req.getStatus())
                 .eqIfPresent(FarmProductDO::getBaseId, req.getBaseId())
+                .eqIfPresent(FarmProductDO::getAssetType, req.getAssetType())
+                .geIfPresent(FarmProductDO::getBasePrice, req.getPriceMin())
+                .leIfPresent(FarmProductDO::getBasePrice, req.getPriceMax())
                 .orderByDesc(FarmProductDO::getCreateTime)
                 .orderByDesc(FarmProductDO::getId));
         return new PageResult<>(toViews(p.getList()), p.getTotal());
@@ -148,14 +154,28 @@ public class FarmProductService {
             v.setBaseName(baseNames.getOrDefault(p.getBaseId(), ""));
             Long min = null;
             List<String> modeNames = new ArrayList<>();
+            boolean insured = false;
+            String expectedOutput = null;
             if (p.getCareModes() != null) {
                 for (Map<String, Object> m : p.getCareModes()) {
                     if (!isEnabled(m)) continue;
                     long price = toLong(m.get("price"));
                     if (min == null || price < min) min = price;
                     modeNames.add(str(m.get("mode")));
+                    String insurance = str(m.get("insurance"));
+                    if (insurance != null && insurance.contains("含")) insured = true;
+                    if (expectedOutput == null || "full".equals(str(m.get("mode")))) expectedOutput = str(m.get("outputPromise"));
                 }
             }
+            int stock = p.getStock() == null ? 0 : p.getStock();
+            int sold = p.getSold() == null ? 0 : p.getSold();
+            int totalSlots = stock + sold;
+            v.setNo("P" + String.format("%03d", p.getId()));
+            v.setCategoryName(CATEGORY_NAME.getOrDefault(p.getAssetType(), ""));
+            v.setTotalSlots(totalSlots);
+            v.setSoldRate(totalSlots > 0 ? (int) Math.round(sold * 100.0 / totalSlots) : 0);
+            v.setInsured(insured);
+            v.setExpectedOutput(expectedOutput == null ? "" : expectedOutput);
             v.setMinPrice(min);
             v.setEnabledModes(modeNames);
             out.add(v);

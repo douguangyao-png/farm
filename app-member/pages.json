@@ -191,6 +191,42 @@
 			}
 		},
 		{
+			"path": "pages/farm/order/list",
+			"style": {
+				"navigationBarTitleText": "我的订单"
+			},
+			"meta": {
+				"auth": true,
+				"sync": true,
+				"title": "我的订单",
+				"group": "认养农场"
+			}
+		},
+		{
+			"path": "pages/farm/contract/list",
+			"style": {
+				"navigationBarTitleText": "合约中心"
+			},
+			"meta": {
+				"auth": true,
+				"sync": true,
+				"title": "合约中心",
+				"group": "认养农场"
+			}
+		},
+		{
+			"path": "pages/farm/notice/index",
+			"style": {
+				"navigationBarTitleText": "平台合规说明"
+			},
+			"meta": {
+				"auth": false,
+				"sync": true,
+				"title": "平台合规说明",
+				"group": "认养农场"
+			}
+		},
+		{
 			"path": "pages/index/index",
 			"aliasPath": "/",
 			"style": {

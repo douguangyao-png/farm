@@ -1,8 +1,7 @@
 package cn.iocoder.yudao.module.farm.controller.admin.supply;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
-import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
+import cn.iocoder.yudao.module.farm.controller.admin.fulfill.FarmFulfillPage;
 import cn.iocoder.yudao.module.farm.controller.admin.supply.vo.FarmSupplyPageReqVO;
 import cn.iocoder.yudao.module.farm.controller.admin.supply.vo.FarmSupplyRespVO;
 import cn.iocoder.yudao.module.farm.controller.admin.supply.vo.FarmSupplySaveReqVO;
@@ -24,13 +23,13 @@ public class FarmSupplyController {
     private FarmSupplyService service;
 
     @GetMapping("/page")
-    public CommonResult<PageResult<FarmSupplyRespVO>> page(FarmSupplyPageReqVO req) {
-        return success(BeanUtils.toBean(service.page(req), FarmSupplyRespVO.class));
+    public CommonResult<FarmFulfillPage<FarmSupplyRespVO>> page(FarmSupplyPageReqVO req) {
+        return success(service.page(req));
     }
 
     @GetMapping("/get")
     public CommonResult<FarmSupplyRespVO> get(@RequestParam("id") Long id) {
-        return success(BeanUtils.toBean(service.get(id), FarmSupplyRespVO.class));
+        return success(FarmSupplyService.toView(service.get(id)));
     }
 
     /** 命中违禁词时返回 {code:1030000000, msg, data:{words, suggestion}}（农资不记命中记录，与 mock 一致） */

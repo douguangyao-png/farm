@@ -13,4 +13,6 @@ public class FarmAppOrderCreateReqVO {
     private String receiverName;
     private String receiverMobile;
     private String address;
+    /** 交付方式 cold / pickup / monthly；演示口径，只接收不落库（订单表暂无该列） */
+    private String deliverWay;
 }

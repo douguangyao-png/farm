@@ -3,9 +3,9 @@ package cn.iocoder.yudao.module.farm.service;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
-import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
+import cn.iocoder.yudao.module.farm.controller.admin.fulfill.FarmFulfillPage;
 import cn.iocoder.yudao.module.farm.controller.admin.supplyorder.vo.FarmSupplyOrderPageReqVO;
 import cn.iocoder.yudao.module.farm.controller.admin.supplyorder.vo.FarmSupplyOrderRespVO;
 import cn.iocoder.yudao.module.farm.controller.admin.supplyorder.vo.FarmSupplyOrderTraceReqVO;
@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -52,13 +53,56 @@ public class FarmSupplyOrderService {
     @Autowired
     private FarmInputRecordMapper inputRecordMapper;
 
-    public PageResult<FarmSupplyOrderRespVO> page(FarmSupplyOrderPageReqVO req) {
-        PageResult<FarmSupplyOrderDO> p = orderMapper.selectPage(req, new LambdaQueryWrapperX<FarmSupplyOrderDO>()
-                .eqIfPresent(FarmSupplyOrderDO::getTraceState, req.getTraceState())
-                .likeIfPresent(FarmSupplyOrderDO::getNo, req.getNo())
+    /** 列表 + 统计卡（stats 字段见契约 2.8；mock：farm/stats.ts supplyOrderPage）。统计看全租户，所以先全量拼装再在内存里过滤、分页 */
+    public FarmFulfillPage<FarmSupplyOrderRespVO> page(FarmSupplyOrderPageReqVO req) {
+        List<FarmSupplyOrderDO> raw = orderMapper.selectList(new LambdaQueryWrapperX<FarmSupplyOrderDO>()
                 .orderByDesc(FarmSupplyOrderDO::getCreateTime)
                 .orderByDesc(FarmSupplyOrderDO::getId));
-        return new PageResult<>(toViews(p.getList()), p.getTotal());
+        List<FarmSupplyOrderRespVO> all = toViews(raw);
+
+        LocalDateTime d0 = LocalDate.now().atStartOfDay();
+        long todayCount = 0;
+        long todayAmount = 0;
+        Map<Long, Integer> perMember = new HashMap<>();
+        for (FarmSupplyOrderRespVO o : all) {
+            if (o.getCreateTime() != null && !o.getCreateTime().isBefore(d0)) {
+                todayCount++;
+                todayAmount += o.getAmount() == null ? 0L : o.getAmount();
+            }
+            perMember.merge(o.getMemberId(), 1, Integer::sum);
+        }
+        long repeatMemberCount = perMember.values().stream().filter(n -> n >= 2).count();
+        Map<String, Object> stats = FarmFulfillPage.m(
+                "todayCount", todayCount,
+                "todayAmount", todayAmount,
+                "pendingDispatch", all.stream().filter(o -> "待派单".equals(o.getStateName())).count(),
+                "untraced", all.stream().filter(o -> o.getTraceState() != null && o.getTraceState() == 0).count(),
+                "repeatMemberCount", repeatMemberCount,
+                "repeatRate", perMember.isEmpty() ? 0d : FarmFulfillPage.r1(repeatMemberCount * 100d / perMember.size()));
+
+        List<FarmSupplyOrderRespVO> rows = all.stream()
+                .filter(o -> req.getTraceState() == null || req.getTraceState().equals(o.getTraceState()))
+                .filter(o -> StrUtil.isEmpty(req.getNo()) || (o.getNo() != null && o.getNo().contains(req.getNo())))
+                .filter(o -> StrUtil.isEmpty(req.getKeyword())
+                        || (o.getNo() != null && o.getNo().contains(req.getKeyword()))
+                        || (o.getMemberName() != null && o.getMemberName().contains(req.getKeyword())))
+                .filter(o -> StrUtil.isEmpty(req.getAssetCode()) || (o.getAssetCode() != null && o.getAssetCode().contains(req.getAssetCode())))
+                .filter(o -> StrUtil.isEmpty(req.getState()) || req.getState().equals(o.getStateName()))
+                .collect(Collectors.toList());
+        FarmFulfillPage<FarmSupplyOrderRespVO> out = new FarmFulfillPage<>(rows, req, stats);
+        return out;
+    }
+
+    /**
+     * 订单状态（演示口径，库里没有单独状态字段，与 mock supplyOrderStateName 一致）：
+     * 服务类 = 登记后已完成、否则待派单；保险 = 已生效；农具登记后 = 已安装；其余登记后 = 已使用、否则待使用
+     */
+    public static String stateName(String cat, Integer traceState) {
+        boolean traced = traceState != null && traceState == 10;
+        if ("svc".equals(cat)) return traced ? "已完成" : "待派单";
+        if ("ins".equals(cat)) return "已生效";
+        if (traced) return "tool".equals(cat) ? "已安装" : "已使用";
+        return "待使用";
     }
 
     /** 登记施用。命中「已经登记过了」用任务状态码 1030000006（与 mock 的 TASK_STATE 一致），提示语沿用 mock */
@@ -111,6 +155,7 @@ public class FarmSupplyOrderService {
             v.setCat(spu == null ? "" : spu.getCat());
             v.setCover(spu == null ? "" : spu.getCover());
             v.setUnit(spu == null ? "" : spu.getUnit());
+            v.setStateName(stateName(v.getCat(), o.getTraceState()));
             out.add(v);
         }
         return out;

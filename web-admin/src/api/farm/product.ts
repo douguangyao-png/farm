@@ -34,6 +34,13 @@ export interface ProductVO {
   minPrice?: number
   enabledModes?: string[]
   createTime?: number
+  /** 以下列表展示用，由接口派生，保存时不用传（契约 2.4） */
+  no?: string
+  categoryName?: string
+  totalSlots?: number
+  soldRate?: number
+  insured?: boolean
+  expectedOutput?: string
 }
 
 /** 违禁词拦截的业务错误码 */

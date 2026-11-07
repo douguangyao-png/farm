@@ -27,6 +27,8 @@ export const DELIVER_WAYS = [
 export const DELIVER_WAY_NAME = Object.fromEntries(DELIVER_WAYS.map((x) => [x.value, x.label]));
 
 export const SHIPMENT_STATUS = { 0: '待发货', 10: '运输中', 20: '已签收' };
+/** 订单状态（原型：待付款 / 认养中 / 已完成；已取消为系统状态） */
+export const ORDER_STATUS = { 0: '待付款', 10: '认养中', 20: '已完成', 30: '已取消' };
 export const ADOPTION_STATUS = { 0: '待支付', 10: '认养中', 20: '已完成', 30: '已取消' };
 
 /** 金额：分 → ¥，整元不带小数，带千分位 */

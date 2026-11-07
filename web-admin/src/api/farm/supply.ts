@@ -18,6 +18,10 @@ export interface SupplyVO {
   status: number
   sold?: number
   description: string
+  /** 以下三个是列表页派生字段（只读）：编号、毛利率 %、状态（正常/低库存/需工单/已下架） */
+  code?: string
+  grossMargin?: number
+  stateName?: string
 }
 
 export const getSupplyPage = (params: any) => request.get({ url: '/farm/supply/page', params })

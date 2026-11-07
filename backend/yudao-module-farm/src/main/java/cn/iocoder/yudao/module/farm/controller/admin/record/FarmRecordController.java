@@ -10,6 +10,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
 /** 接口契约 2.6 农事记录审核：/admin-api/farm/record/** */
@@ -24,6 +26,12 @@ public class FarmRecordController {
     @GetMapping("/page")
     public CommonResult<PageResult<FarmRecordRespVO>> page(FarmRecordPageReqVO req) {
         return success(service.page(req));
+    }
+
+    /** 统计卡：todayCount, pendingCount, autoPassCount, manualReviewCount, monthCount, avgPerAsset */
+    @GetMapping("/stats")
+    public CommonResult<Map<String, Object>> stats() {
+        return success(service.stats());
     }
 
     @GetMapping("/get")

@@ -11,7 +11,8 @@
     "build:h5": "node scripts/uni.cjs build",
     "build:h5:mock": "node scripts/uni.cjs build --mode mock",
     "postinstall": "patch-package",
-    "build:h5:demo": "node scripts/uni.cjs build --mode demo"
+    "build:h5:demo": "node scripts/uni.cjs build --mode demo",
+    "build:h5:real": "node scripts/uni.cjs build --mode real"
   },
   "repository": "https://github.com/sheepjs/shop.git",
   "keywords": [

@@ -39,6 +39,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -224,6 +225,17 @@ public class FarmAppAdoptionService {
         if (adoptionId != null) w.eq(FarmShipmentDO::getAdoptionId, adoptionId);
         w.orderByDesc(FarmShipmentDO::getCreateTime).orderByDesc(FarmShipmentDO::getId);
         return shipmentService.toViews(shipmentMapper.selectList(w));
+    }
+
+    /**
+     * 确认收货（mock：farm-app.ts POST /shipment/confirm）：只能确认自己的配送单，且只有运输中能确认；
+     * 等价于后台 PUT /shipment/sign（状态→已签收，追加一条轨迹），复用 FarmShipmentService.sign 的校验和提示
+     */
+    public void confirmShipment(Long id) {
+        Long memberId = support.memberId();
+        FarmShipmentDO s = id == null ? null : shipmentMapper.selectById(id);
+        if (s == null || !Objects.equals(s.getMemberId(), memberId)) throw exception(NOT_FOUND, "配送单");
+        shipmentService.sign(id);
     }
 
     // ---------- helpers ----------

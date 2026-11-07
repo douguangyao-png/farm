@@ -15,4 +15,8 @@ public class FarmOrderPageReqVO extends PageParam {
     private String careMode;
     private Integer status;
     private Long productId;
+    /** 下单时间起（毫秒时间戳，含） */
+    private Long createTimeStart;
+    /** 下单时间止（毫秒时间戳，含） */
+    private Long createTimeEnd;
 }

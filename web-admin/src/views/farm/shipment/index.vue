@@ -1,5 +1,25 @@
 <template>
+  <div class="flex items-start justify-between mb-12px">
+    <div>
+      <div class="text-18px font-600">配送批次</div>
+      <div class="text-13px text-[var(--el-text-color-secondary)] mt-4px">
+        按认养商品配置自动生成配送计划；录入收成后汇总到批次并推送物流通知
+      </div>
+    </div>
+    <div class="flex gap-8px">
+      <el-button @click="notOpen">打印面单</el-button>
+      <el-button type="primary" @click="openForm">
+        <Icon icon="ep:plus" class="mr-5px" />新建批次
+      </el-button>
+    </div>
+  </div>
+
   <ContentWrap>
+    <el-tabs v-model="activeTab" @tab-change="onTabChange">
+      <el-tab-pane v-for="t in SHIP_TABS" :key="String(t.name)" :name="t.name">
+        <template #label>{{ t.label }}（{{ counts[t.countKey] ?? 0 }}）</template>
+      </el-tab-pane>
+    </el-tabs>
     <el-form :model="queryParams" :inline="true" class="-mb-15px" label-width="68px">
       <el-form-item label="配送单号">
         <el-input
@@ -10,28 +30,15 @@
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="状态">
-        <el-select v-model="queryParams.status" placeholder="全部" clearable class="!w-120px">
-          <el-option
-            v-for="s in SHIPMENT_STATUS"
-            :key="s.value"
-            :label="s.label"
-            :value="s.value"
-          />
-        </el-select>
-      </el-form-item>
       <el-form-item>
         <el-button @click="handleQuery"><Icon icon="ep:search" class="mr-5px" />搜索</el-button>
         <el-button @click="resetQuery"><Icon icon="ep:refresh" class="mr-5px" />重置</el-button>
-        <el-button type="primary" plain @click="openForm">
-          <Icon icon="ep:van" class="mr-5px" />新建配送
-        </el-button>
       </el-form-item>
     </el-form>
   </ContentWrap>
 
   <ContentWrap>
-    <el-table v-loading="loading" :data="list">
+    <el-table ref="tableRef" v-loading="loading" :data="list" row-key="id">
       <el-table-column type="expand">
         <template #default="{ row }">
           <div class="px-40px py-8px">
@@ -48,18 +55,26 @@
           </div>
         </template>
       </el-table-column>
+      <el-table-column label="批次号" prop="batchNo" width="120">
+        <template #default="{ row }">
+          <b>{{ row.batchNo }}</b>
+        </template>
+      </el-table-column>
+      <el-table-column label="计划日期" width="110">
+        <template #default="{ row }">{{ fmtDay(row.planDate) }}</template>
+      </el-table-column>
       <el-table-column label="配送单号" prop="no" width="160" />
       <el-table-column label="地块" prop="assetCode" width="80" />
-      <el-table-column label="收货人" min-width="220">
+      <el-table-column label="收货人" min-width="210">
         <template #default="{ row }">
           <div>{{ row.receiverName }} {{ row.receiverMobile }}</div>
           <div class="text-12px text-[var(--el-text-color-secondary)]">{{ row.address }}</div>
         </template>
       </el-table-column>
-      <el-table-column label="重量" width="90" align="right">
+      <el-table-column label="重量" width="80" align="right">
         <template #default="{ row }">{{ row.weightJin }} 斤</template>
       </el-table-column>
-      <el-table-column label="承运" min-width="170">
+      <el-table-column label="物流方式" min-width="160">
         <template #default="{ row }">
           <div>
             {{ row.carrier }}
@@ -68,27 +83,25 @@
           <div class="text-12px text-[var(--el-text-color-secondary)]">{{ row.logisticsNo }}</div>
         </template>
       </el-table-column>
-      <el-table-column label="最新轨迹" min-width="200">
-        <template #default="{ row }">
-          <template v-if="row.tracks?.length">{{
-            row.tracks[row.tracks.length - 1].content
-          }}</template>
-        </template>
-      </el-table-column>
       <el-table-column label="状态" width="90" align="center">
         <template #default="{ row }">
-          <el-tag :type="enumOf(SHIPMENT_STATUS, row.status).type">
-            {{ enumLabel(SHIPMENT_STATUS, row.status) }}
+          <el-tag :type="enumOf(SHIP_STATUS, row.status).type">
+            {{ enumLabel(SHIP_STATUS, row.status) }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="创建时间" prop="createTime" width="150" :formatter="timeFormatter" />
-      <el-table-column label="操作" width="100" align="center" fixed="right">
+      <el-table-column label="完成度" width="120">
         <template #default="{ row }">
+          <el-progress :percentage="row.progress" :stroke-width="6" />
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" width="150" align="center" fixed="right">
+        <template #default="{ row }">
+          <el-button link type="primary" @click="toggleDetail(row)">明细</el-button>
+          <el-button link type="primary" @click="notOpen">导出</el-button>
           <el-button v-if="row.status === 10" link type="primary" @click="handleSign(row)">
             确认签收
           </el-button>
-          <span v-else>-</span>
         </template>
       </el-table-column>
     </el-table>
@@ -99,6 +112,37 @@
       @pagination="getList"
     />
   </ContentWrap>
+
+  <el-row :gutter="12">
+    <el-col :xs="24" :lg="12">
+      <ContentWrap>
+        <div class="font-600 mb-8px">待发货与在途</div>
+        <div v-for="x in summaryRows" :key="x.k" class="flex mb-8px text-13px">
+          <span class="w-100px text-[var(--el-text-color-secondary)] flex-shrink-0">{{ x.k }}</span>
+          <span>{{ x.v }}</span>
+        </div>
+        <div class="flex gap-8px mt-12px">
+          <el-button type="primary" size="small" @click="notOpen">一键通知认养人</el-button>
+          <el-button size="small" @click="notOpen">批量打印</el-button>
+        </div>
+      </ContentWrap>
+    </el-col>
+    <el-col :xs="24" :lg="12">
+      <ContentWrap>
+        <div class="font-600 mb-8px">自动配送规则</div>
+        <div v-for="x in AUTO_RULES" :key="x.k" class="flex mb-8px text-13px">
+          <span class="w-100px text-[var(--el-text-color-secondary)] flex-shrink-0">{{ x.k }}</span>
+          <span>{{ x.v }}</span>
+        </div>
+        <el-alert
+          type="success"
+          :closable="false"
+          show-icon
+          title="收成录入 → 批次 → 物流单号 → C 端物流详情，全链路自动串接，无需人工转录。除批次归并外，其余规则为演示说明。"
+        />
+      </ContentWrap>
+    </el-col>
+  </el-row>
 
   <Dialog v-model="dialogVisible" title="新建配送批次" width="600px">
     <el-form ref="formRef" :model="form" :rules="rules" label-width="90px" v-loading="formLoading">
@@ -137,7 +181,8 @@
 <script lang="ts" setup>
 import type { FormInstance, FormRules } from 'element-plus'
 import * as HarvestApi from '@/api/farm/harvest'
-import { SHIPMENT_STATUS, enumLabel, enumOf, fmtDay, fmtTime, timeFormatter } from '../constants'
+import { enumLabel, enumOf, fmtDay, fmtTime } from '../constants'
+import { AUTO_RULES, SHIP_STATUS, SHIP_TABS } from './constants'
 
 defineOptions({ name: 'FarmShipment' })
 
@@ -146,6 +191,37 @@ const loading = ref(false)
 const list = ref<any[]>([])
 const total = ref(0)
 const queryParams = reactive<any>({ pageNo: 1, pageSize: 10, no: undefined, status: undefined })
+const stats = ref<any>({})
+const activeTab = ref<string | number>('all')
+const counts = computed<Record<string, number>>(() => stats.value.counts ?? {})
+/** 待发货收成（还没建配送单的收成）的数量与斤数，来自收成接口的 stats */
+const unshipped = ref<{ count: number; weight: number }>({ count: 0, weight: 0 })
+const summaryRows = computed(() => [
+  {
+    k: '待发货收成',
+    v: `${unshipped.value.count} 批 / 共 ${unshipped.value.weight} 斤（点「新建批次」发货）`
+  },
+  {
+    k: '在途重量',
+    v: `${stats.value.shippedWeightJin ?? 0} 斤（${counts.value.shipped ?? 0} 单已发货未签收）`
+  },
+  { k: '批次数', v: `${stats.value.batchCount ?? 0} 个批次 / ${counts.value.all ?? 0} 张配送单` },
+  { k: '冷链要求', v: `${stats.value.coldChainCount ?? 0} 单冷链，0-4℃ 冷运` }
+])
+const tableRef = ref()
+const toggleDetail = (row: any) => tableRef.value?.toggleRowExpansion(row)
+const notOpen = () => message.info('演示版暂未开放')
+const onTabChange = (name: string | number) => {
+  queryParams.status = name === 'all' ? undefined : name
+  handleQuery()
+}
+const loadUnshipped = async () => {
+  const res = await HarvestApi.getHarvestPage({ pageNo: 1, pageSize: 1, shipped: false })
+  unshipped.value = {
+    count: res.stats?.unshippedCount ?? 0,
+    weight: res.stats?.unshippedWeightJin ?? 0
+  }
+}
 
 const getList = async () => {
   loading.value = true
@@ -153,6 +229,8 @@ const getList = async () => {
     const res = await HarvestApi.getShipmentPage(queryParams)
     list.value = res.list
     total.value = res.total
+    stats.value = res.stats ?? {}
+    loadUnshipped()
   } finally {
     loading.value = false
   }
@@ -164,6 +242,7 @@ const handleQuery = () => {
 const resetQuery = () => {
   queryParams.no = undefined
   queryParams.status = undefined
+  activeTab.value = 'all'
   handleQuery()
 }
 
@@ -195,7 +274,7 @@ const submitForm = async () => {
   formLoading.value = true
   try {
     await HarvestApi.createShipment(form.value)
-    message.success('已发货，状态为运输中')
+    message.success('已发货，状态为已发货')
     dialogVisible.value = false
     getList()
   } finally {

@@ -7,6 +7,7 @@ import { systemManageRouter } from './routes/system-manage.js'
 import { appRouter } from './routes/app.js'
 import { platformRouter } from './routes/platform.js'
 import { farmAdminRouter } from './routes/farm-admin.js'
+import { farmContractRouter } from './routes/farm-contract.js'
 import { farmStewardRouter } from './routes/farm-steward.js'
 import { farmAppRouter } from './routes/farm-app.js'
 import { contentRouter, uploadHandler } from './routes/content.js'
@@ -28,6 +29,7 @@ export function createApp() {
   app.use('/admin-api', contentRouter)
   app.use('/admin-api/farm/doc', docsRouter)
   app.use('/admin-api/farm/steward', farmStewardRouter)
+  app.use('/admin-api/farm/contract', farmContractRouter)
   app.use('/admin-api/farm', farmAdminRouter)
   app.use('/app-api', appRouter)
   app.use('/app-api/farm', farmAppRouter)

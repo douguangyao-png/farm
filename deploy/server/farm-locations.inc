@@ -31,6 +31,14 @@ location /farm-api/ {
 # 前端：/farm-real/ → /opt/farmer-saas/web/admin-real/；接口：/farm-real-api/ → 芋道 + farm 模块（127.0.0.1:48080）
 # 回滚：删掉本段，nginx -t && systemctl reload nginx（/etc/nginx/farm-locations.inc.bak-* 是上一版）
 location = /farm-real { return 301 /farm-real/; }
+location /farm-real/m/ {
+    alias /opt/farmer-saas/web/m-real/;
+    try_files $uri $uri/ /farm-real/m/index.html;
+}
+location /farm-real/steward/ {
+    alias /opt/farmer-saas/web/steward-real/;
+    try_files $uri $uri/ /farm-real/steward/index.html;
+}
 location /farm-real/ {
     alias /opt/farmer-saas/web/admin-real/;
     try_files $uri $uri/ /farm-real/index.html;

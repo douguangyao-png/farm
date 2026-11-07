@@ -31,4 +31,8 @@ public class FarmServiceOrderRespVO {
     private LocalDateTime createTime;
     private LocalDateTime acceptTime;
     private LocalDateTime finishTime;
+    /** 认养人的托管方式中文名（全托管 / 半托管 / 不托管），无认养关系时为空串 */
+    private String careModeName;
+    /** 现场照片张数 = proofPhotos 的长度 */
+    private Integer proofCount;
 }

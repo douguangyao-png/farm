@@ -2,9 +2,9 @@ package cn.iocoder.yudao.module.farm.service;
 
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
-import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
+import cn.iocoder.yudao.module.farm.controller.admin.fulfill.FarmFulfillPage;
 import cn.iocoder.yudao.module.farm.controller.admin.shipment.vo.FarmShipmentCreateReqVO;
 import cn.iocoder.yudao.module.farm.controller.admin.shipment.vo.FarmShipmentPageReqVO;
 import cn.iocoder.yudao.module.farm.controller.admin.shipment.vo.FarmShipmentRespVO;
@@ -27,17 +27,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.module.farm.enums.ErrorCodeConstants.BAD_REQUEST;
 import static cn.iocoder.yudao.module.farm.enums.ErrorCodeConstants.NOT_FOUND;
 
-/** 接口契约 2.9 配送（mock：farm-admin.ts 387–419 行） */
+/** 接口契约 2.9 配送（mock：farm-admin.ts /shipment、farm/stats.ts） */
 @Service
 public class FarmShipmentService {
 
@@ -63,13 +67,48 @@ public class FarmShipmentService {
     @Autowired
     private FarmViewLookup lookup;
 
-    public PageResult<FarmShipmentRespVO> page(FarmShipmentPageReqVO req) {
-        PageResult<FarmShipmentDO> p = shipmentMapper.selectPage(req, new LambdaQueryWrapperX<FarmShipmentDO>()
-                .eqIfPresent(FarmShipmentDO::getStatus, req.getStatus())
-                .likeIfPresent(FarmShipmentDO::getNo, req.getNo())
+    /** 列表 + 统计卡 + 页签数量（stats 字段见契约 2.9；mock：farm/stats.ts shipmentPage） */
+    public FarmFulfillPage<FarmShipmentRespVO> page(FarmShipmentPageReqVO req) {
+        List<FarmShipmentDO> raw = shipmentMapper.selectList(new LambdaQueryWrapperX<FarmShipmentDO>()
                 .orderByDesc(FarmShipmentDO::getCreateTime)
                 .orderByDesc(FarmShipmentDO::getId));
-        return new PageResult<>(toViews(p.getList()), p.getTotal());
+        Map<String, Object> counts = FarmFulfillPage.m(
+                "all", raw.size(),
+                "pending", countStatus(raw, 0),
+                "shipped", countStatus(raw, 10),
+                "done", countStatus(raw, 20));
+        Set<String> batches = new HashSet<>();
+        double shippedWeight = 0;
+        long coldChainCount = 0;
+        for (FarmShipmentDO s : raw) {
+            batches.add(batchNo(s));
+            if (s.getStatus() != null && s.getStatus() == 10 && s.getWeightJin() != null) shippedWeight += s.getWeightJin().doubleValue();
+            if (Boolean.TRUE.equals(s.getColdChain())) coldChainCount++;
+        }
+        Map<String, Object> stats = FarmFulfillPage.m(
+                "counts", counts,
+                "batchCount", batches.size(),
+                "shippedWeightJin", FarmFulfillPage.r1(shippedWeight),
+                "coldChainCount", coldChainCount);
+
+        List<FarmShipmentDO> rows = raw.stream()
+                .filter(s -> req.getStatus() == null || req.getStatus().equals(s.getStatus()))
+                .filter(s -> StrUtil.isEmpty(req.getNo()) || (s.getNo() != null && s.getNo().contains(req.getNo())))
+                .collect(Collectors.toList());
+        FarmFulfillPage<FarmShipmentRespVO> out = new FarmFulfillPage<>();
+        out.setTotal((long) rows.size());
+        out.setList(toViews(FarmFulfillPage.slice(rows, req)));
+        out.setStats(stats);
+        return out;
+    }
+
+    private static long countStatus(List<FarmShipmentDO> list, int status) {
+        return list.stream().filter(s -> s.getStatus() != null && s.getStatus() == status).count();
+    }
+
+    /** 批次号：B + 创建日期（同一天发的配送单算一个批次），例 B2026-1107 */
+    private static String batchNo(FarmShipmentDO s) {
+        return s.getCreateTime() == null ? "" : "B" + s.getCreateTime().format(DateTimeFormatter.ofPattern("yyyy-MMdd"));
     }
 
     /** 创建配送单，状态直接到「运输中」，自动生成两条轨迹；同时回写收成的 shipmentId */
@@ -145,6 +184,9 @@ public class FarmShipmentService {
             FarmAdoptionDO ad = s.getAdoptionId() == null ? null : adoptions.get(s.getAdoptionId());
             FarmAssetDO a = ad == null || ad.getAssetId() == null ? null : assets.get(ad.getAssetId());
             v.setAssetCode(a == null ? "" : a.getCode());
+            v.setBatchNo(batchNo(s));
+            v.setPlanDate(s.getCreateTime() == null ? null : s.getCreateTime().toLocalDate().atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli());
+            v.setProgress(s.getStatus() == null ? 0 : s.getStatus() == 20 ? 100 : s.getStatus() == 10 ? 62 : 28);
             out.add(v);
         }
         return out;

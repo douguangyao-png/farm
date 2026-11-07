@@ -10,4 +10,10 @@ public class FarmSupplyOrderPageReqVO extends PageParam {
     /** 0 待登记 / 10 已登记 */
     private Integer traceState;
     private String no;
+    /** 订单号或认养人昵称，模糊匹配 */
+    private String keyword;
+    /** 绑定地块编号，模糊匹配 */
+    private String assetCode;
+    /** 订单状态（stateName 原文，精确匹配） */
+    private String state;
 }

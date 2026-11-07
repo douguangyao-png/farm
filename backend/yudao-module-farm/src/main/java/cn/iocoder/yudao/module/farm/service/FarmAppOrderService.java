@@ -11,14 +11,18 @@ import cn.iocoder.yudao.module.farm.dal.dataobject.FarmAssetDO;
 import cn.iocoder.yudao.module.farm.dal.dataobject.FarmMemberDO;
 import cn.iocoder.yudao.module.farm.dal.dataobject.FarmOrderDO;
 import cn.iocoder.yudao.module.farm.dal.dataobject.FarmProductDO;
+import cn.iocoder.yudao.module.farm.dal.dataobject.FarmShipmentDO;
 import cn.iocoder.yudao.module.farm.dal.dataobject.FarmStewardDO;
 import cn.iocoder.yudao.module.farm.dal.dataobject.FarmTaskDO;
 import cn.iocoder.yudao.module.farm.dal.mysql.FarmAdoptionMapper;
 import cn.iocoder.yudao.module.farm.dal.mysql.FarmAssetMapper;
 import cn.iocoder.yudao.module.farm.dal.mysql.FarmOrderMapper;
 import cn.iocoder.yudao.module.farm.dal.mysql.FarmProductMapper;
+import cn.iocoder.yudao.module.farm.dal.mysql.FarmShipmentMapper;
 import cn.iocoder.yudao.module.farm.dal.mysql.FarmStewardMapper;
 import cn.iocoder.yudao.module.farm.dal.mysql.FarmTaskMapper;
+import cn.iocoder.yudao.module.system.api.user.AdminUserApi;
+import cn.iocoder.yudao.module.system.api.user.dto.AdminUserRespDTO;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -78,6 +83,10 @@ public class FarmAppOrderService {
     private FarmTaskMapper taskMapper;
     @Autowired
     private FarmStewardMapper stewardMapper;
+    @Autowired
+    private FarmShipmentMapper shipmentMapper;
+    @Autowired
+    private AdminUserApi adminUserApi;
     @Autowired
     private FarmAppSupport support;
     @Autowired
@@ -173,7 +182,7 @@ public class FarmAppOrderService {
         ad.setStewardId(stewardUserId == null ? 0L : stewardUserId);
         adoptionMapper.insert(ad);
 
-        // 4. 订单：只有待支付能变认养中，防重复支付
+        // 4. 订单：只有待付款能变认养中，防重复支付
         int orderRows = orderMapper.update(null, new LambdaUpdateWrapper<FarmOrderDO>()
                 .eq(FarmOrderDO::getId, o.getId())
                 .eq(FarmOrderDO::getStatus, 0)
@@ -230,30 +239,21 @@ public class FarmAppOrderService {
         return out;
     }
 
-    /** mock 135–140 行 */
+    /** mock 135–140 行：订单视图 + 合同 + 认养摘要 */
     public FarmAppOrderDetailRespVO get(Long id) {
         FarmMemberDO m = support.member();
         FarmOrderDO o = id == null ? null : orderMapper.selectById(id);
         if (o == null || !Objects.equals(o.getMemberId(), m.getId())) throw exception(NOT_FOUND, "订单");
-        FarmAppOrderDetailRespVO d = BeanUtils.toBean(toViews(List.of(o)).get(0), FarmAppOrderDetailRespVO.class);
-        FarmOrderContractVO c = new FarmOrderContractVO();
-        String no = o.getNo() == null ? "" : o.getNo();
-        c.setNo("HT" + (no.length() > 2 ? no.substring(2) : ""));
-        c.setVersion(o.getContractVersion());
-        c.setTitle("《认养服务合同（" + FarmViewLookup.careModeName(o.getCareMode()) + "）》" + o.getContractVersion());
-        c.setAgreed(o.getContractAgreed());
-        c.setSignedAt(o.getPayTime());
-        d.setContract(c);
-        return d;
+        return appViews(List.of(o)).get(0);
     }
 
-    /** mock 141–144 行：我的订单，新的在前 */
-    public List<FarmOrderRespVO> list() {
+    /** mock 141–144 行：我的订单，新的在前；每条带合同和认养摘要（合约中心、我的订单页用） */
+    public List<FarmAppOrderDetailRespVO> list() {
         FarmMemberDO m = support.member();
         List<FarmOrderDO> list = orderMapper.selectList(new LambdaQueryWrapper<FarmOrderDO>()
                 .eq(FarmOrderDO::getMemberId, m.getId())
                 .orderByDesc(FarmOrderDO::getCreateTime).orderByDesc(FarmOrderDO::getId));
-        return toViews(list);
+        return appViews(list);
     }
 
     // ---------- helpers ----------
@@ -278,6 +278,72 @@ public class FarmAppOrderService {
             out.add(v);
         }
         return out;
+    }
+
+    /** 对应 mock appOrderView：订单视图 + 合同 + 认养摘要（周期、管家、编号、保单号、溯源码为演示口径） */
+    private List<FarmAppOrderDetailRespVO> appViews(List<FarmOrderDO> list) {
+        List<FarmAppOrderDetailRespVO> out = new ArrayList<>();
+        if (list.isEmpty()) return out;
+        List<FarmOrderRespVO> base = toViews(list);
+        Map<Long, FarmAdoptionDO> adoptions = lookup.adoptions(list.stream().map(FarmOrderDO::getAdoptionId).collect(Collectors.toList()));
+        Map<Long, FarmAssetDO> assets = lookup.assets(adoptions.values().stream().map(FarmAdoptionDO::getAssetId).collect(Collectors.toList()));
+        for (int i = 0; i < list.size(); i++) {
+            FarmOrderDO o = list.get(i);
+            FarmAppOrderDetailRespVO d = BeanUtils.toBean(base.get(i), FarmAppOrderDetailRespVO.class);
+            String no = o.getNo() == null ? "" : o.getNo();
+            FarmOrderContractVO c = new FarmOrderContractVO();
+            c.setNo("HT" + (no.length() > 2 ? no.substring(2) : ""));
+            c.setVersion(o.getContractVersion());
+            c.setTitle("《认养服务合同（" + FarmViewLookup.careModeName(o.getCareMode()) + "）》" + o.getContractVersion());
+            c.setAgreed(o.getContractAgreed());
+            c.setSignedAt(o.getPayTime());
+            d.setContract(c);
+
+            FarmAdoptionDO ad = o.getAdoptionId() == null ? null : adoptions.get(o.getAdoptionId());
+            // 与 FarmOrderService.toViews 同口径：支付方式固定微信支付；履约进度 = 已收 / 约定交付
+            BigDecimal promised = ad == null ? null : ad.getPromisedJin();
+            BigDecimal harvested = ad == null || ad.getHarvestedJin() == null ? BigDecimal.ZERO : ad.getHarvestedJin();
+            d.setPayMethod("微信支付");
+            d.setPromisedJin(promised);
+            d.setHarvestedJin(harvested);
+            d.setProgress(promised == null || promised.signum() <= 0 ? 0
+                    : Math.min(100, harvested.multiply(BigDecimal.valueOf(100)).divide(promised, 0, RoundingMode.HALF_UP).intValue()));
+
+            d.setShipmentCount(0L);
+            d.setAssetName("");
+            d.setStewardName("");
+            d.setStewardMobile("");
+            if (ad != null) {
+                LocalDateTime t = o.getPayTime() != null ? o.getPayTime() : o.getCreateTime();
+                int year = t == null ? LocalDateTime.now().getYear() : t.getYear();
+                d.setAdoptionNo(String.format("A%d-%04d", year, ad.getId()));
+                d.setAdoptionStatus(ad.getStatus());
+                d.setStartAt(ad.getStartAt());
+                d.setEndAt(ad.getEndAt());
+                d.setShipmentCount(shipmentMapper.selectCount(new LambdaQueryWrapper<FarmShipmentDO>()
+                        .eq(FarmShipmentDO::getAdoptionId, ad.getId())));
+                FarmAssetDO a = ad.getAssetId() == null ? null : assets.get(ad.getAssetId());
+                if (a != null) {
+                    d.setAssetName(a.getName() == null ? "" : a.getName());
+                    d.setAreaM2(a.getSpecs() == null ? null : a.getSpecs().get("areaM2"));
+                }
+                AdminUserRespDTO st = ad.getStewardId() == null || ad.getStewardId() <= 0 ? null : adminUserApi.getUser(ad.getStewardId());
+                if (st != null) {
+                    d.setStewardName(st.getNickname() == null ? "" : st.getNickname());
+                    d.setStewardMobile(maskMobile(st.getMobile()));
+                }
+                d.setInsuranceNo(String.format("PICC-%d-%04d", year, o.getId()));
+                d.setTraceCode("TR" + (no.length() > 2 ? no.substring(2) : ""));
+            }
+            out.add(d);
+        }
+        return out;
+    }
+
+    /** 手机号脱敏：138****1234（mock maskMobile） */
+    private static String maskMobile(String mobile) {
+        if (mobile == null) return "";
+        return mobile.replaceFirst("^(\\d{3})\\d{4}(\\d{4})$", "$1****$2");
     }
 
     private Long findStewardUserId(Long baseId) {

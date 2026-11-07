@@ -40,9 +40,12 @@
   const MENUS = [
     { label: '我的认养', sub: '地块、档案、监控', url: '/pages/farm/adoption/list', auth: true },
     { label: '自管任务', sub: '半托管 / 不托管的农活', url: '/pages/farm/self-task/list', auth: true },
+    { label: '我的订单', sub: '待付款、认养中、已完成', url: '/pages/farm/order/list', auth: true },
+    { label: '合约中心', sub: '合同、保单、告知书', url: '/pages/farm/contract/list', auth: true },
     { label: '我的农资', sub: '订单和溯源登记', url: '/pages/farm/supply/order-list', auth: true },
     { label: '收获配送', sub: '物流轨迹', url: '/pages/farm/shipment/list', auth: true },
     { label: '农资商城', sub: '种子、肥料、代管服务', url: '/pages/farm/supply/list', auth: false },
+    { label: '平台合规说明', sub: '我们不是理财，是农产品预售', url: '/pages/farm/notice/index', auth: false },
   ];
 
   const userStore = sheep.$store('user');

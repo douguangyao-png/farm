@@ -3,11 +3,12 @@ import { getDb, nextId, type Product, type CareModeConfig, type Supply } from '.
 import { ok, fail, requireLogin } from '../http.js'
 import { findBannedWords, bannedMessage, SUGGESTION } from '../compliance.js'
 import {
-  BIZ, page, q, like, eqNum, byNewest, tenantOf, own, notFound, badRequest, currentUser, envView, makeNo, CARE_MODE_NAME
+  BIZ, page, q, like, eqNum, byNewest, tenantOf, own, notFound, badRequest, currentUser, envView, makeNo, CARE_MODE_NAME, maskMobile
 } from '../farm/common.js'
 import {
-  productView, assetView, orderView, contractOf, adoptionView, recordView, serviceOrderView, supplyOrderView, harvestView, shipmentView
+  productView, CATEGORY_NAME, assetView, orderView, contractOf, adoptionView, recordView, serviceOrderView, supplyOrderView, harvestView, shipmentView
 } from '../farm/views.js'
+import { serviceOrderPage, supplyPage, supplyOrderPage, harvestPage, shipmentPage } from '../farm/stats.js'
 
 /** /admin-api/farm/**：经营者后台（契约第 2 节） */
 export const farmAdminRouter = Router()
@@ -32,12 +33,17 @@ farmAdminRouter.get('/dashboard/summary', (req, res) => {
   const incomeOn = (from: number, to: number) =>
     paid.filter((o) => o.payTime! >= from && o.payTime! < to).reduce((s, o) => s + o.amount, 0) +
     supplyPaid.filter((o) => o.createTime >= from && o.createTime < to).reduce((s, o) => s + o.amount, 0)
-  const gmvTrend = Array.from({ length: 14 }, (_, i) => {
-    const from = startToday - (13 - i) * DAY
+  const paidCountOn = (from: number, to: number) => paid.filter((o) => o.payTime! >= from && o.payTime! < to).length
+  // 近 30 天曲线（原型 08 dash：近 30 天认养 GMV）
+  const gmvTrend = Array.from({ length: 30 }, (_, i) => {
+    const from = startToday - (29 - i) * DAY
     const d = new Date(from)
     const dayIndex = Math.floor(from / DAY)
     return { date: `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`, amount: baselineGmv(t, dayIndex) + incomeOn(from, from + DAY) }
   })
+  const gmvPeak = gmvTrend.reduce((m, x) => (x.amount > m.amount ? x : m), gmvTrend[0])
+  const gmvToday = gmvTrend[29].amount
+  const gmvYesterday = gmvTrend[28].amount
   const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).getTime()
   const assets = db().assets.filter((a) => a.tenantId === t && a.status !== 20)
   const adoptions = db().adoptions.filter((a) => a.tenantId === t && a.status === 10)
@@ -46,23 +52,67 @@ farmAdminRouter.get('/dashboard/summary', (req, res) => {
   const overdueSelfTaskCount = db().tasks.filter((x) => x.tenantId === t && x.owner === 'member' && x.status === 0 && x.deadline < now).length
   const unshipped = db().harvests.filter((h) => h.tenantId === t && !h.shipmentId).length
   const untraced = db().supplyOrders.filter((o) => o.tenantId === t && o.traceState === 0).length
+  const risk = selfCheck(t)
+  const riskBadCount = risk.items.filter((x) => x.status !== 'ok').length
+  const ordersLast7d = paidCountOn(startToday - 6 * DAY, startToday + DAY)
+  const ordersPrev7d = paidCountOn(startToday - 13 * DAY, startToday - 6 * DAY)
+  // 在养认养人 = 有进行中认养的不同认养人；续费 / 复购率 = 已支付订单 ≥2 笔的认养人 / 有已支付订单的认养人
+  const adoptingMemberCount = new Set(adoptions.map((a) => a.memberId)).size
+  const orderCountByMember = new Map<number, number>()
+  for (const o of paid) orderCountByMember.set(o.memberId, (orderCountByMember.get(o.memberId) ?? 0) + 1)
+  const payers = orderCountByMember.size
+  const repurchaseRate = payers ? Math.round((Array.from(orderCountByMember.values()).filter((n) => n >= 2).length / payers) * 1000) / 10 : 0
+  const slotName: Record<string, { name: string; unit: string }> = {
+    plot: { name: CATEGORY_NAME.plot, unit: '位' }, animal: { name: CATEGORY_NAME.animal, unit: '只' }, tree: { name: CATEGORY_NAME.tree, unit: '棵' }
+  }
+  const slotUsage = (['plot', 'animal', 'tree'] as const).map((type) => {
+    const list = assets.filter((a) => a.assetType === type)
+    return { type, name: slotName[type].name, unit: slotName[type].unit, used: list.filter((a) => a.status === 10).length, total: list.length }
+  })
+  const weekFrom = startToday - 6 * DAY
+  const weekPaid = paid.filter((o) => o.payTime! >= weekFrom)
+  const weekCategories = (['plot', 'animal', 'tree'] as const).map((type) => ({
+    name: CATEGORY_NAME[type],
+    count: weekPaid.filter((o) => db().products.find((p) => p.id === o.productId)?.assetType === type).length
+  }))
+  const latestOrders = db().orders.filter((o) => o.tenantId === t).sort(byNewest).slice(0, 5).map(orderView)
   return ok(res, {
-    gmvToday: gmvTrend[13].amount,
+    gmvToday,
+    gmvYesterday,
+    gmvDayOnDayRate: gmvYesterday ? Math.round(((gmvToday - gmvYesterday) / gmvYesterday) * 1000) / 10 : null,
     gmvMonth: Array.from({ length: Math.round((startToday - monthStart) / DAY) + 1 }, (_, i) => monthStart + i * DAY)
       .reduce((s, from) => s + baselineGmv(t, Math.floor(from / DAY)) + incomeOn(from, from + DAY), 0),
+    gmvPeak,
+    orderCountToday: paidCountOn(startToday, startToday + DAY),
+    orderCountYesterday: paidCountOn(startToday - DAY, startToday),
     orderCountMonth: paid.filter((o) => o.payTime! >= monthStart).length,
+    orderCountLast7d: ordersLast7d,
+    orderCountLast7dRate: ordersPrev7d ? Math.round(((ordersLast7d - ordersPrev7d) / ordersPrev7d) * 1000) / 10 : null,
+    pendingShipCount: unshipped,
     adoptingCount: adoptions.length,
+    adoptingMemberCount,
+    repurchaseRate,
     assetTotal: assets.length,
     assetAdopted: assets.filter((a) => a.status === 10).length,
     pendingRecordCount, pendingServiceOrderCount, overdueSelfTaskCount,
-    riskScore: selfCheck(t).score,
+    riskScore: risk.score,
     gmvTrend,
     careModeShare: (['full', 'semi', 'self'] as const).map((mode) => ({ mode, name: CARE_MODE_NAME[mode], count: adoptions.filter((a) => a.careMode === mode).length })),
+    slotUsage,
+    latestOrders,
+    weekOverview: {
+      categories: weekCategories,
+      avgOrderAmount: paid.length ? Math.round(paid.reduce((s, o) => s + o.amount, 0) / paid.length) : 0,
+      repurchaseRate,
+      refundRate: null
+    },
+    // level：danger 红点（风控）/ primary 绿点 / warning 橙点；desc 是一句话说明
     todos: [
-      { type: 'record', title: '农事记录待审核', count: pendingRecordCount, path: '/farm-work/record' },
-      { type: 'service', title: '代管工单待接单', count: pendingServiceOrderCount, path: '/farm-work/service-order' },
-      { type: 'harvest', title: '收成待发货', count: unshipped, path: '/farm-order/shipment' },
-      { type: 'trace', title: '农资待登记施用', count: untraced, path: '/farm-supply/supply-order' }
+      { type: 'record', title: '农事记录待审核', count: pendingRecordCount, desc: '管家上传记录需复核后发布到 C 端', level: 'warning', path: '/farm-work/record' },
+      { type: 'service', title: '代管工单待接单', count: pendingServiceOrderCount, desc: '工单池里还没有管家接单', level: 'warning', path: '/farm-work/service-order' },
+      { type: 'harvest', title: '收成待发货', count: unshipped, desc: '已录入收成但还没生成配送单', level: 'primary', path: '/farm-order/shipment' },
+      { type: 'trace', title: '农资待登记施用', count: untraced, desc: '自购农资未登记批次和施用时间，地块档案会标「待补充」', level: 'warning', path: '/farm-supply/supply-order' },
+      { type: 'risk', title: '风险自检待改进', count: riskBadCount, desc: '合规自检有未达标项，建议尽快处理', level: 'danger', path: '/farm-board/self-check' }
     ],
     todayRecords: db().records.filter((r) => r.tenantId === t && r.createTime >= startToday - DAY).sort(byNewest).slice(0, 6).map(recordView),
     demo: true
@@ -191,7 +241,11 @@ function logHit(tenantId: number, productId: number | null, title: string, words
 
 farmAdminRouter.get('/product/page', (req, res) => {
   const t = tenantOf(req)
-  const rows = db().products.filter((p) => p.tenantId === t && like(p.title, q(req, 'title')) && eqNum(p.status, q(req, 'status')) && eqNum(p.baseId, q(req, 'baseId')))
+  const priceMin = q(req, 'priceMin')
+  const priceMax = q(req, 'priceMax')
+  const rows = db().products.filter((p) => p.tenantId === t && like(p.title, q(req, 'title')) && eqNum(p.status, q(req, 'status')) && eqNum(p.baseId, q(req, 'baseId'))
+    && (q(req, 'assetType') === undefined || p.assetType === q(req, 'assetType'))
+    && (priceMin === undefined || p.basePrice >= Number(priceMin)) && (priceMax === undefined || p.basePrice <= Number(priceMax)))
     .sort(byNewest).map(productView)
   return ok(res, page(req, rows))
 })
@@ -244,7 +298,9 @@ farmAdminRouter.get('/order/page', (req, res) => {
   const t = tenantOf(req)
   const rows = db().orders.filter((o) => o.tenantId === t).map(orderView)
     .filter((o) => like(o.no, q(req, 'no')) && like(o.memberMobile, q(req, 'memberMobile')) && (q(req, 'careMode') === undefined || o.careMode === q(req, 'careMode'))
-      && eqNum(o.status, q(req, 'status')) && eqNum(o.productId, q(req, 'productId')))
+      && eqNum(o.status, q(req, 'status')) && eqNum(o.productId, q(req, 'productId'))
+      && (q(req, 'createTimeStart') === undefined || o.createTime >= Number(q(req, 'createTimeStart')))
+      && (q(req, 'createTimeEnd') === undefined || o.createTime <= Number(q(req, 'createTimeEnd'))))
     .sort(byNewest)
   return ok(res, page(req, rows))
 })
@@ -252,9 +308,15 @@ farmAdminRouter.get('/order/get', (req, res) => {
   const o = own(db().orders, req.query.id, tenantOf(req))
   if (!o) return notFound(res, '订单')
   const ad = db().adoptions.find((a) => a.id === o.adoptionId)
+  const m = db().members.find((x) => x.id === o.memberId)
+  const mine = db().orders.filter((x) => x.tenantId === o.tenantId && x.memberId === o.memberId && x.payTime && x.status !== 30)
+  const st = ad ? db().users.find((u) => u.id === ad.stewardId) : undefined
   return ok(res, {
     ...orderView(o),
     contract: contractOf(o),
+    // 客户信息卡：累计认养 = 该客户已支付且未取消的订单数，累计消费 = 其金额合计（分）
+    customer: { name: m?.nickname ?? '', mobile: m?.mobile ?? '', orderCount: mine.length, totalAmount: mine.reduce((s, x) => s + x.amount, 0) },
+    steward: st ? { name: st.nickname, mobile: maskMobile(st.mobile) } : null,
     adoption: ad ? adoptionView(ad) : null,
     records: ad ? db().records.filter((r) => r.adoptionId === ad.id && r.status === 10).sort(byNewest).slice(0, 10).map(recordView) : [],
     shipments: ad ? db().shipments.filter((s) => s.adoptionId === ad.id).map(shipmentView) : []
@@ -267,6 +329,24 @@ farmAdminRouter.get('/record/page', (req, res) => {
   const rows = db().records.filter((r) => r.tenantId === t && eqNum(r.status, q(req, 'status')) && eqNum(r.stewardId, q(req, 'stewardId')))
     .map(recordView).filter((r) => like(r.assetCode, q(req, 'assetCode'))).sort(byNewest)
   return ok(res, page(req, rows))
+})
+/** 统计卡（原型 archivePub）：今日提交 / 待审核 / 本月自动过检 / 本月需人工复核 / 本月累计 */
+farmAdminRouter.get('/record/stats', (req, res) => {
+  const t = tenantOf(req)
+  const startToday = new Date(new Date().toDateString()).getTime()
+  const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).getTime()
+  const all = db().records.filter((r) => r.tenantId === t)
+  const month = all.filter((r) => r.createTime >= monthStart)
+  const allPass = (r: { checks: { exifTime: boolean; gpsFence: boolean; duplicate: boolean } }) => !!(r.checks?.exifTime && r.checks?.gpsFence && r.checks?.duplicate)
+  const assetCount = new Set(month.map((r) => r.assetId)).size
+  return ok(res, {
+    todayCount: all.filter((r) => r.createTime >= startToday).length,
+    pendingCount: all.filter((r) => r.status === 0).length,
+    autoPassCount: month.filter(allPass).length,
+    manualReviewCount: month.filter((r) => !allPass(r)).length,
+    monthCount: month.length,
+    avgPerAsset: assetCount ? Math.round((month.length / assetCount) * 10) / 10 : 0
+  })
 })
 farmAdminRouter.get('/record/get', (req, res) => {
   const r = own(db().records, req.query.id, tenantOf(req))
@@ -286,9 +366,8 @@ farmAdminRouter.put('/record/audit', (req, res) => {
 
 // ---------- 2.7 代管工单 ----------
 farmAdminRouter.get('/service-order/page', (req, res) => {
-  const t = tenantOf(req)
-  const rows = db().serviceOrders.filter((s) => s.tenantId === t && eqNum(s.status, q(req, 'status')) && like(s.no, q(req, 'no'))).sort(byNewest).map(serviceOrderView)
-  return ok(res, page(req, rows))
+  // 带 stats 与派生字段（careModeName、proofCount），见 farm/stats.ts
+  return ok(res, serviceOrderPage(req, tenantOf(req)))
 })
 farmAdminRouter.get('/service-order/get', (req, res) => {
   const s = own(db().serviceOrders, req.query.id, tenantOf(req))
@@ -300,9 +379,8 @@ function normalizeSupply(s: Partial<Supply>) {
   if (s.cat === 'pesticide') { s.retailAllowed = false; s.needWorkorder = true }
 }
 farmAdminRouter.get('/supply/page', (req, res) => {
-  const t = tenantOf(req)
-  const rows = db().supplies.filter((s) => s.tenantId === t && like(s.name, q(req, 'name')) && (q(req, 'cat') === undefined || s.cat === q(req, 'cat')) && eqNum(s.status, q(req, 'status')))
-  return ok(res, page(req, rows))
+  // 带 stats 与派生字段（code、grossMargin、stateName），支持 batchNo 筛选，见 farm/stats.ts
+  return ok(res, supplyPage(req, tenantOf(req)))
 })
 farmAdminRouter.get('/supply/get', (req, res) => {
   const s = own(db().supplies, req.query.id, tenantOf(req))
@@ -333,9 +411,8 @@ farmAdminRouter.put('/supply/update', (req, res) => {
   return ok(res, true)
 })
 farmAdminRouter.get('/supply-order/page', (req, res) => {
-  const t = tenantOf(req)
-  const rows = db().supplyOrders.filter((o) => o.tenantId === t && eqNum(o.traceState, q(req, 'traceState')) && like(o.no, q(req, 'no'))).sort(byNewest).map(supplyOrderView)
-  return ok(res, page(req, rows))
+  // 带 stats 与 stateName；筛选 no / keyword（订单号或认养人）/ assetCode / state / traceState，见 farm/stats.ts
+  return ok(res, supplyOrderPage(req, tenantOf(req)))
 })
 farmAdminRouter.put('/supply-order/trace', (req, res) => {
   const o = own(db().supplyOrders, req.body?.id, tenantOf(req))
@@ -354,10 +431,7 @@ farmAdminRouter.put('/supply-order/trace', (req, res) => {
 
 // ---------- 2.9 收成、配送 ----------
 farmAdminRouter.get('/harvest/page', (req, res) => {
-  const t = tenantOf(req)
-  const rows = db().harvests.filter((h) => h.tenantId === t).sort((a, b) => b.harvestDate - a.harvestDate).map(harvestView)
-    .filter((h) => like(h.assetCode, q(req, 'assetCode')) && (q(req, 'shipped') === undefined || (q(req, 'shipped') === 'true') === !!h.shipmentId))
-  return ok(res, page(req, rows))
+  return ok(res, harvestPage(req, tenantOf(req)))
 })
 farmAdminRouter.get('/adoption/simple-list', (req, res) =>
   ok(res, db().adoptions.filter((a) => a.tenantId === tenantOf(req) && a.status === 10).map((a) => {
@@ -369,25 +443,39 @@ farmAdminRouter.post('/harvest/create', (req, res) => {
   const t = tenantOf(req)
   const ad = own(db().adoptions, req.body?.adoptionId, t)
   if (!ad) return badRequest(res, '请选择认养关系')
-  const w = Number(req.body.weightJin)
-  if (!(w > 0)) return badRequest(res, '重量要大于 0')
-  if (!String(req.body.crop ?? '').trim()) return badRequest(res, '请填写作物')
-  const weightJin = Math.round(w * 10) / 10
-  const h = { id: nextId(db().harvests), tenantId: t, adoptionId: ad.id, assetId: ad.assetId, crop: String(req.body.crop).trim(), weightJin,
-    harvestDate: Number(req.body.harvestDate) || Date.now(), photos: req.body.photos ?? [], remark: req.body.remark ?? '', shipmentId: null }
+  // 支持多品类明细 items:[{crop,weightJin}]；老的单作物 crop + weightJin 仍可用
+  const rawItems: { crop?: unknown; weightJin?: unknown }[] = Array.isArray(req.body.items) && req.body.items.length ? req.body.items : [{ crop: req.body.crop, weightJin: req.body.weightJin }]
+  const items: { crop: string; weightJin: number }[] = []
+  for (const it of rawItems) {
+    const crop = String(it.crop ?? '').trim()
+    const w = Number(it.weightJin)
+    if (!crop) return badRequest(res, '请填写作物')
+    if (!(w > 0)) return badRequest(res, '重量要大于 0')
+    items.push({ crop, weightJin: Math.round(w * 10) / 10 })
+  }
+  const weightJin = Math.round(items.reduce((s, x) => s + x.weightJin, 0) * 10) / 10
+  const cropText = items.map((x) => x.crop).join('、')
+  const farmType = String(req.body.farmType ?? '').trim() || '采摘采收'
+  const detail = items.length > 1 ? `明细：${items.map((x) => `${x.crop} ${x.weightJin} 斤`).join('、')}` : ''
+  const userRemark = String(req.body.remark ?? '').trim()
+  const remark = [userRemark, detail].filter(Boolean).join('；')
+  // 库里 crop 是 varchar(64)、remark 是 varchar(255)，mock 也按这个限制，免得联调时才发现
+  if (cropText.length > 64) return badRequest(res, '品类名称合计不能超过 64 个字')
+  if (remark.length > 255) return badRequest(res, '备注加明细不能超过 255 个字')
+  const h = { id: nextId(db().harvests), tenantId: t, adoptionId: ad.id, assetId: ad.assetId, crop: cropText, weightJin,
+    harvestDate: Number(req.body.harvestDate) || Date.now(), photos: req.body.photos ?? [], remark, shipmentId: null }
   db().harvests.push(h)
   ad.harvestedJin = Math.round((ad.harvestedJin + weightJin) * 10) / 10
   // 采收写进生长档案（经营者录入的，直接算已审核）
   const u = currentUser(req)
   db().records.push({ id: nextId(db().records), tenantId: t, adoptionId: ad.id, assetId: ad.assetId, stewardId: ad.stewardId, taskId: null, kind: 'harvest',
-    title: `采收 ${h.crop} ${weightJin} 斤`, content: `${u?.nickname ?? '农场'}录入收成，称重 ${weightJin} 斤。${h.remark}`, photos: h.photos, lng: 0, lat: 0,
+    title: `采收 ${h.crop} ${weightJin} 斤`, content: `${u?.nickname ?? '农场'}录入收成（农事类型：${farmType}），称重 ${weightJin} 斤。${h.remark}`, photos: h.photos, lng: 0, lat: 0,
     env: { airTemp: 0, airHumidity: 0, soilMoisture: 0 }, checks: { exifTime: true, gpsFence: true, duplicate: true }, status: 10, auditRemark: null, createTime: Date.now(), auditTime: Date.now() })
   return ok(res, h.id)
 })
 farmAdminRouter.get('/shipment/page', (req, res) => {
-  const t = tenantOf(req)
-  const rows = db().shipments.filter((s) => s.tenantId === t && eqNum(s.status, q(req, 'status')) && like(s.no, q(req, 'no'))).sort(byNewest).map(shipmentView)
-  return ok(res, page(req, rows))
+  // 带 stats 与派生字段（batchNo、planDate、progress），见 farm/stats.ts
+  return ok(res, shipmentPage(req, tenantOf(req)))
 })
 farmAdminRouter.post('/shipment/create', (req, res) => {
   const t = tenantOf(req)
