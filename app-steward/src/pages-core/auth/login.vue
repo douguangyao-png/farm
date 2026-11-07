@@ -46,7 +46,8 @@
       </view>
 
       <!-- 登录按钮 -->
-      <view class="mb-2 mt-2 flex justify-between">
+      <!-- farmer-saas: 按用户名登录（演示/真后端）时，验证码登录、忘记密码、第三方登录、注册都不开放 -->
+      <view v-if="!loginByUsername" class="mb-2 mt-2 flex justify-between">
         <text v-if="!socialBindingContext && !authLoading" class="text-28rpx text-[#1890ff]" @click="goToSmsLogin">
           验证码登录
         </text>
@@ -60,6 +61,7 @@
 
       <!-- 第三方登录 -->
       <SocialLoginPanel
+        v-if="!loginByUsername"
         v-model="socialBindingContext"
         v-model:loading="socialLoginLoading"
         :disabled="authLoading"
@@ -68,7 +70,7 @@
         :validate-tenant="validateTenant"
       />
       <!-- 创建账号 -->
-      <view v-if="!socialBindingContext && !authLoading" class="mt-40rpx flex items-center justify-center">
+      <view v-if="!loginByUsername && !socialBindingContext && !authLoading" class="mt-40rpx flex items-center justify-center">
         <text class="text-28rpx text-[#666]">还没有账号？</text>
         <text class="text-28rpx text-[#1890ff]" @click="goToRegister">
           创建账号
