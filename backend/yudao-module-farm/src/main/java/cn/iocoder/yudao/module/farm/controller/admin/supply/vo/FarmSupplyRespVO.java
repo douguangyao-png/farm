@@ -1,0 +1,27 @@
+package cn.iocoder.yudao.module.farm.controller.admin.supply.vo;
+
+import lombok.Data;
+
+import java.util.List;
+
+/** 对应 mock 的 supplyView（即 Supply 本身） */
+@Data
+public class FarmSupplyRespVO {
+    private Long id;
+    private Long tenantId;
+    private String name;
+    private String cat;
+    private String cover;
+    private Long price;
+    private Long cost;
+    private Integer stock;
+    private String unit;
+    private String spec;
+    private List<String> fitModes;
+    private String batchNo;
+    private Boolean retailAllowed;
+    private Boolean needWorkorder;
+    private Integer status;
+    private Integer sold;
+    private String description;
+}
