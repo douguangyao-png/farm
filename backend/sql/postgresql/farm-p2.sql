@@ -55,7 +55,7 @@ CREATE TABLE farm_device (
 
 CREATE TABLE farm_app_extra (
   id int8 PRIMARY KEY, member_id int8 NOT NULL, kind varchar(16) NOT NULL, target_id int8,
-  payload jsonb NOT NULL DEFAULT '{}'::jsonb,
+  payload text NOT NULL DEFAULT '{}',
   creator varchar(64) DEFAULT '', create_time timestamp NOT NULL DEFAULT now(),
   updater varchar(64) DEFAULT '', update_time timestamp NOT NULL DEFAULT now(),
   deleted int2 NOT NULL DEFAULT 0, tenant_id int8 NOT NULL DEFAULT 0
