@@ -810,4 +810,27 @@ $prefix-cls: #{$namespace}-menu-popper;
     }
   }
 }
+
+// farmer-saas: 侧栏待办角标（原型 08 的红色数字）与选中态
+.farm-menu-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 4px;
+  margin-left: auto;
+  font-size: 10px;
+  line-height: 1;
+  color: #fff;
+  background: #e5484d;
+  border-radius: 8px;
+}
+
+div.v-menu.v-menu .el-menu .el-menu-item.is-active.is-active,
+div.v-menu.v-menu .el-menu .el-menu-item.is-active.is-active:hover {
+  background-color: rgba(34, 160, 107, 0.22) !important;
+  border-left: 2.5px solid #22a06b;
+  font-weight: 600;
+}
 </style>

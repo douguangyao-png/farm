@@ -67,11 +67,6 @@
           class="!w-240px"
         />
       </el-form-item>
-      <el-form-item label="托管方式">
-        <el-select v-model="queryParams.careMode" placeholder="全部" clearable class="!w-110px">
-          <el-option v-for="m in CARE_MODES" :key="m.value" :label="m.label" :value="m.value" />
-        </el-select>
-      </el-form-item>
       <el-form-item>
         <el-button @click="handleQuery"><Icon icon="ep:search" class="mr-5px" />搜索</el-button>
         <el-button @click="resetQuery"><Icon icon="ep:refresh" class="mr-5px" />重置</el-button>
@@ -95,13 +90,6 @@
       <el-table-column label="认养商品" prop="productTitle" min-width="170" show-overflow-tooltip />
       <el-table-column label="标的编号" width="90" align="center">
         <template #default="{ row }">{{ row.assetCode || '待分配' }}</template>
-      </el-table-column>
-      <el-table-column label="托管方式" width="90" align="center">
-        <template #default="{ row }">
-          <el-tag :type="enumOf(CARE_MODES, row.careMode).type" effect="plain">
-            {{ enumLabel(CARE_MODES, row.careMode) }}
-          </el-tag>
-        </template>
       </el-table-column>
       <el-table-column
         label="金额"
@@ -153,7 +141,10 @@
     />
     <div class="text-12px text-[var(--el-text-color-secondary)] mt-8px">
       履约进度 = 已收斤数 / 约定交付斤数，约定交付不足的部分按同等品质补发。支付方式为演示数据。
-      所有订单款项进入经营者对公账户，由第三方支付机构按约定比例自动分账，平台不经手资金。
+    </div>
+    <div class="split-note mt-12px">
+      <Icon icon="ep:lock" class="mr-5px" />
+      所有订单款项进入经营者对公账户，由第三方支付机构按约定比例自动分账（见「财务结算 - 分账结算」），平台不经手资金。
     </div>
   </ContentWrap>
 </template>
@@ -161,7 +152,6 @@
 import * as OrderApi from '@/api/farm/order'
 import * as ProductApi from '@/api/farm/product'
 import {
-  CARE_MODES,
   ORDER_STATUS,
   enumLabel,
   enumOf,
@@ -256,3 +246,16 @@ onActivated(() => {
   mounted = true
 })
 </script>
+
+<style lang="scss" scoped>
+// 对齐原型 08：订单页底部绿色分账提示条
+.split-note {
+  padding: 9px 11px;
+  font-size: 12px;
+  line-height: 1.75;
+  color: #2f7358;
+  background: #eaf7f0;
+  border: 1px dashed #9ad7b6;
+  border-radius: 8px;
+}
+</style>

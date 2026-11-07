@@ -210,10 +210,10 @@ public class FarmDashboardService {
 
         List<Map<String, Object>> todos = new ArrayList<>();
         todos.add(todo("record", "农事记录待审核", pendingRecordCount, "管家上传记录需复核后发布到 C 端", "warning", "/farm-work/record"));
-        todos.add(todo("service", "代管工单待接单", pendingServiceOrderCount, "工单池里还没有管家接单", "warning", "/farm-work/service-order"));
+        todos.add(todo("service", "代管工单待接单", pendingServiceOrderCount, "工单池里还没有管家接单", "warning", "/farm-supply/service-order"));
         todos.add(todo("harvest", "收成待发货", unshipped, "已录入收成但还没生成配送单", "primary", "/farm-order/shipment"));
         todos.add(todo("trace", "农资待登记施用", untraced, "自购农资未登记批次和施用时间，地块档案会标「待补充」", "warning", "/farm-supply/supply-order"));
-        todos.add(todo("risk", "风险自检待改进", riskBadCount, "合规自检有未达标项，建议尽快处理", "danger", "/farm-board/self-check"));
+        todos.add(todo("risk", "风险自检待改进", riskBadCount, "合规自检有未达标项，建议尽快处理", "danger", "/farm-compliance/self-check"));
 
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("gmvToday", gmvToday);

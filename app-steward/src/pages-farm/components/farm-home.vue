@@ -80,6 +80,18 @@
       <wd-icon name="arrow-right" size="32rpx" color="#98a0aa" />
     </view>
 
+    <!-- 第二期入口：原型「我的」里的工具与首页入口卡 -->
+    <view class="farm-card quick-grid">
+      <view v-for="e in QUICK" :key="e.text" class="qg" @click="goto(e.url)">
+        <view class="ic">
+          {{ e.ic }}
+        </view>
+        <view class="farm-t12 lb">
+          {{ e.text }}
+        </view>
+      </view>
+    </view>
+
     <!-- 任务列表 -->
     <view class="farm-hd">
       <text>今日任务</text>
@@ -146,6 +158,17 @@ import { fmtDate, fmtDeadline, fmtTime, greeting, SOURCE_META } from './farm-uti
 
 defineOptions({ name: 'FarmHome' })
 
+const QUICK = [
+  { text: '配送确认', ic: '送', url: '/pages-farm/delivery/index' },
+  { text: '农资代办', ic: '资', url: '/pages-farm/supply-task/index' },
+  { text: '自管指导', ic: '导', url: '/pages-farm/self-guide/index' },
+  { text: '我的记录', ic: '记', url: '/pages-farm/record/index' },
+  { text: '标的管理', ic: '地', url: '/pages-farm/land/index' },
+  { text: '异常上报', ic: '警', url: '/pages-farm/alarm/index' },
+  { text: '客户消息', ic: '信', url: '/pages-farm/message/index' },
+  { text: '绩效', ic: '绩', url: '/pages-farm/mine/index' },
+]
+
 const CARE_NAME: Record<string, string> = { full: '全托管', semi: '半托管', self: '不托管' }
 
 const { userInfo } = storeToRefs(useUserStore())
@@ -189,6 +212,10 @@ watch(tab, () => {
 
 function gotoTask(id: number) {
   uni.navigateTo({ url: `/pages-farm/task/detail?id=${id}` })
+}
+
+function goto(url: string) {
+  uni.navigateTo({ url })
 }
 
 function gotoOrders(scope: 'pool' | 'mine') {
@@ -290,6 +317,28 @@ defineExpose({ refresh })
     margin-top: 14rpx;
     padding-top: 14rpx;
     border-top: 1rpx solid $line;
+  }
+}
+
+.quick-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 28rpx 0;
+  .qg {
+    text-align: center;
+  }
+  .ic {
+    width: 76rpx;
+    height: 76rpx;
+    margin: 0 auto 8rpx;
+    font-size: 30rpx;
+    line-height: 76rpx;
+    color: $gd;
+    background: $gl;
+    border-radius: 50%;
+  }
+  .lb {
+    color: $tx2;
   }
 }
 </style>

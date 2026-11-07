@@ -37,11 +37,11 @@ public class FarmContractService {
         }
         if (req.getStatus() != null) {
             if (req.getStatus() == 20) {
-                w.eq(FarmOrderDO::getStatus, 30);
+                w.in(FarmOrderDO::getStatus, 30, 50);
             } else if (req.getStatus() == 10) {
-                w.ne(FarmOrderDO::getStatus, 30).eq(FarmOrderDO::getContractAgreed, true).isNotNull(FarmOrderDO::getPayTime);
+                w.notIn(FarmOrderDO::getStatus, 30, 50).eq(FarmOrderDO::getContractAgreed, true).isNotNull(FarmOrderDO::getPayTime);
             } else {
-                w.ne(FarmOrderDO::getStatus, 30)
+                w.notIn(FarmOrderDO::getStatus, 30, 50)
                         .and(x -> x.eq(FarmOrderDO::getContractAgreed, false)
                                 .or().isNull(FarmOrderDO::getContractAgreed)
                                 .or().isNull(FarmOrderDO::getPayTime));
@@ -93,7 +93,7 @@ public class FarmContractService {
 
     /** 与 mock contractStatusOf 一致 */
     private static int statusOf(FarmOrderDO o) {
-        if (o.getStatus() != null && o.getStatus() == 30) return 20;
+        if (o.getStatus() != null && (o.getStatus() == 30 || o.getStatus() == 50)) return 20;
         return Boolean.TRUE.equals(o.getContractAgreed()) && o.getPayTime() != null ? 10 : 0;
     }
 }

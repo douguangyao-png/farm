@@ -16,6 +16,7 @@
         <view class="f-kv"><text class="k">物流</text><text class="v">{{ s.carrier || '—' }} {{ s.logisticsNo }}</text></view>
         <view class="f-kv"><text class="k">收货人</text><text class="v">{{ s.receiverName }} {{ s.receiverMobile }}</text></view>
         <view class="f-kv"><text class="k">地址</text><text class="v">{{ s.address }}</text></view>
+        <view class="f-more link" @tap="sheep.$router.go('/pages/farm/logistics/detail', { id: s.id })">物流详情（本批清单、复制单号）›</view>
         <view class="f-timeline tracks" v-if="s.tracks?.length">
           <view class="f-tl-item" :class="{ gray: i > 0 }" v-for="(t, i) in [...s.tracks].reverse()" :key="i">
             <view class="t-content">{{ t.content }}</view>
@@ -75,6 +76,10 @@
       font-weight: 700;
       color: $fgd;
     }
+  }
+  .link {
+    text-align: right;
+    padding: 8rpx 0;
   }
   .tracks {
     margin-top: 16rpx;

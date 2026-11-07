@@ -69,6 +69,26 @@
               <view class="e-icon">单</view>
               <view>我的农资</view>
             </view>
+            <view class="entry" @tap="go('/pages/farm/report/index', { adoptionId: a.id })">
+              <view class="e-icon">检</view>
+              <view>质检报告</view>
+            </view>
+            <view class="entry" @tap="go('/pages/farm/visit/index')">
+              <view class="e-icon">访</view>
+              <view>预约到访</view>
+            </view>
+            <view class="entry" @tap="go('/pages/farm/service/chat')">
+              <view class="e-icon">管</view>
+              <view>专属管家</view>
+            </view>
+            <view class="entry" @tap="go('/pages/farm/transfer/index', { adoptionId: a.id })">
+              <view class="e-icon">赠</view>
+              <view>认养转赠</view>
+            </view>
+            <view class="entry" @tap="go('/pages/farm/review/edit', { adoptionId: a.id })">
+              <view class="e-icon">评</view>
+              <view>发表评价</view>
+            </view>
           </view>
         </view>
       </view>
@@ -106,7 +126,7 @@
           <view class="s-line">{{ s.weightJin }} 斤<text class="f-tag" v-if="s.coldChain">冷链</text></view>
           <view class="f-between foot">
             <text class="f-sub">{{ s.carrier || '—' }} {{ s.logisticsNo }}</text>
-            <text class="f-more">物流详情 {{ openId === s.id ? '︿' : '﹀' }}</text>
+            <text class="f-more" @tap.stop="go('/pages/farm/logistics/detail', { id: s.id })">物流详情 ›</text>
           </view>
           <view class="f-timeline tracks" v-if="openId === s.id && s.tracks?.length">
             <view class="f-tl-item" :class="{ gray: ti > 0 }" v-for="(t, ti) in [...s.tracks].reverse()" :key="ti">
@@ -141,6 +161,7 @@
               <text class="f-sub">{{ fmtTime(r.createTime, 'MM-DD HH:mm') }}</text>
             </view>
             <view class="r-content">{{ r.content }}</view>
+            <view class="f-more" style="text-align: right" @tap="go('/pages/farm/record/detail', { id: r.id })">记录详情 ›</view>
             <view class="photos" v-if="r.photos?.length">
               <image v-for="(ph, i) in r.photos" :key="i" class="photo" :src="ph" mode="aspectFill" @tap="preview(r.photos, i)" />
             </view>

@@ -10,6 +10,11 @@ import { farmAdminRouter } from './routes/farm-admin.js'
 import { farmContractRouter } from './routes/farm-contract.js'
 import { farmStewardRouter } from './routes/farm-steward.js'
 import { farmAppRouter } from './routes/farm-app.js'
+import { farmRefundRouter, farmAppRefundRouter } from './routes/farm-refund.js'
+import { farmCustomerRouter, farmCustomerTierRouter, farmStewardManageRouter } from './routes/farm-people.js'
+import { farmExtBRouter } from './routes/farm-ext-b.js'
+import { farmAppExtraRouter } from './routes/farm-app-extra.js'
+import { farmStewardExtraRouter } from './routes/farm-steward-extra.js'
 import { contentRouter, uploadHandler } from './routes/content.js'
 import { docsRouter } from './routes/docs.js'
 import { requireLogin } from './http.js'
@@ -29,9 +34,17 @@ export function createApp() {
   app.use('/admin-api', contentRouter)
   app.use('/admin-api/farm/doc', docsRouter)
   app.use('/admin-api/farm/steward', farmStewardRouter)
+  app.use('/admin-api/farm/steward', farmStewardExtraRouter)
   app.use('/admin-api/farm/contract', farmContractRouter)
+  app.use('/admin-api/farm/refund', farmRefundRouter)
+  app.use('/admin-api/farm/customer-tier', farmCustomerTierRouter)
+  app.use('/admin-api/farm/customer', farmCustomerRouter)
+  app.use('/admin-api/farm/steward-manage', farmStewardManageRouter)
+  app.use('/app-api/farm/refund', farmAppRefundRouter)
+  app.use('/admin-api/farm', farmExtBRouter)
   app.use('/admin-api/farm', farmAdminRouter)
   app.use('/app-api', appRouter)
+  app.use('/app-api/farm', farmAppExtraRouter)
   app.use('/app-api/farm', farmAppRouter)
   app.post('/app-api/infra/file/upload', requireLogin('member'), ...uploadHandler)
 

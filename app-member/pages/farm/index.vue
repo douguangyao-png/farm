@@ -3,6 +3,15 @@
   <s-layout :title="home.tenantName || '认养农场'" tabbar="/pages/farm/index" navbarBackgroundColor="#22a06b" color="#ffffff">
     <demo-badge />
     <view class="f-page">
+      <!-- 搜索 + 快捷入口 -->
+      <view class="searchbar" @tap="go('/pages/farm/search/index')">搜一分地、跑山鸡、基地名</view>
+      <view class="quick f-card">
+        <view class="q" @tap="go('/pages/farm/mall/index')"><view class="qi">商</view>分类商城</view>
+        <view class="q" @tap="go('/pages/farm/base/list')"><view class="qi">基</view>找基地</view>
+        <view class="q" @tap="go('/pages/farm/visit/index')"><view class="qi">访</view>预约到访</view>
+        <view class="q" @tap="go('/pages/farm/message/list')"><view class="qi">信</view>消息</view>
+      </view>
+
       <!-- 轮播 -->
       <swiper
         v-if="home.banners.length"
@@ -104,6 +113,33 @@
 
 <style lang="scss" scoped>
   @import '@/pages/farm/common/farm.scss';
+  .searchbar {
+    height: 72rpx;
+    line-height: 72rpx;
+    background: #fff;
+    border-radius: 36rpx;
+    padding: 0 28rpx;
+    color: $fsub;
+    font-size: 26rpx;
+    margin-bottom: 20rpx;
+  }
+  .quick {
+    display: flex;
+    justify-content: space-around;
+    font-size: 24rpx;
+    text-align: center;
+  }
+  .qi {
+    width: 80rpx;
+    height: 80rpx;
+    line-height: 80rpx;
+    border-radius: 50%;
+    background: $fgl;
+    color: $fgd;
+    font-weight: 700;
+    font-size: 32rpx;
+    margin: 0 auto 8rpx;
+  }
   .banner {
     height: 300rpx;
     border-radius: 20rpx;

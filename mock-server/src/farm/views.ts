@@ -55,7 +55,7 @@ export function contractOf(o: Order) {
 
 /** 合同状态：10 已签署 / 0 待签署 / 20 已解除（订单已取消）。合同台账由订单派生 */
 export function contractStatusOf(o: Order): number {
-  if (o.status === 30) return 20
+  if (o.status === 30 || o.status === 50) return 20
   return o.contractAgreed && o.payTime ? 10 : 0
 }
 

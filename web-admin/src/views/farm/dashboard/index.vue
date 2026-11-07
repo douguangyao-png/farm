@@ -301,7 +301,7 @@ const kpis = computed(() => {
       label: '在养认养人',
       value: d.adoptingMemberCount,
       sub: `续费率 ${d.repurchaseRate}%`,
-      path: '/farm-asset/asset'
+      path: '/farm-product/asset'
     }
   ] as { label: string; value: any; sub: string; delta?: string; deltaUp?: boolean; path?: string }[]
 })

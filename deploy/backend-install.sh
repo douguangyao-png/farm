@@ -3,7 +3,7 @@
 # 前提：已经跑过 bash deploy/backend-build.sh（源码在 /opt/farmer-saas/backend-src，jar 已构建）。
 # 用法：bash deploy/backend-install.sh [redis|db|service|all]     （默认 all）
 #   redis   新建独立 Redis 实例 farm-redis（127.0.0.1:6380，带口令），不碰服务器上 6379 的那个
-#   db      初始化 farm 库：芋道 ruoyi-vue-pro.sql → farm.sql → farm-seed.sql（库里已有 farm_base 表就跳过，FORCE=1 才重灌）
+#   db      初始化 farm 库：芋道 ruoyi-vue-pro.sql → farm.sql → farm-seed.sql → farm-p2.sql → farm-p2-seed.sql（库里已有 farm_base 表就跳过，FORCE=1 才重灌）
 #   service 安装并启动 farm-backend.service（127.0.0.1:48080，profile=farm）。不改 nginx，现有 mock(48090) 不受影响
 # 回滚：见脚本末尾的输出，或方案文件第 5 节。
 set -euo pipefail
@@ -74,6 +74,8 @@ if [ "$STAGE" = db ] || [ "$STAGE" = all ]; then
     echo "-- 芋道自带表与数据"; $P -f $SRC/sql/postgresql/ruoyi-vue-pro.sql >/dev/null
     echo "-- 业务表";          $P -f $SRC/sql/postgresql/farm.sql
     echo "-- 演示数据";        $P -f $SRC/sql/postgresql/farm-seed.sql
+    echo "-- 第二期业务表";    $P -f $SRC/sql/postgresql/farm-p2.sql
+    echo "-- 第二期演示数据";  $P -f $SRC/sql/postgresql/farm-p2-seed.sql
     $P -tAc "select 'tenant='||(select count(*) from system_tenant)||' users='||(select count(*) from system_users)||' menus='||(select count(*) from system_menu)||' orders='||(select count(*) from farm_order)||' products='||(select count(*) from farm_product)"
   fi
 fi

@@ -9,6 +9,7 @@ import { Breadcrumb } from '@/layout/components/Breadcrumb'
 import { SizeDropdown } from '@/layout/components/SizeDropdown'
 import { LocaleDropdown } from '@/layout/components/LocaleDropdown'
 import RouterSearch from '@/components/RouterSearch/index.vue'
+import FarmHeaderChips from '@/layout/components/FarmHeader/index.vue'
 import TenantVisit from '@/layout/components/TenantVisit/index.vue'
 import FmsAccountSetSwitch from '@/views/fms/components/account-set/FmsAccountSetSwitch.vue'
 import { useSetting } from '@/layout/components/Setting'
@@ -95,6 +96,7 @@ export default defineComponent({
         ) : undefined}
         <div class="h-full flex items-center">
           <FmsAccountSetSwitch />
+          <FarmHeaderChips />
           {hasTenantVisitPermission.value ? <TenantVisit /> : undefined}
           <div
             class="v-setting custom-hover"

@@ -30,13 +30,22 @@
             </template>
             <template v-else-if="o.adoptionId">
               <button class="f-btn mini ghost" @tap.stop="toLogistics(o)">查看物流</button>
-              <button v-if="o.status === 20" class="f-btn mini" @tap.stop="toReview">去评价</button>
+              <button v-if="o.status === 20" class="f-btn mini" @tap.stop="toReview(o)">去评价</button>
               <button v-else class="f-btn mini" @tap.stop="toDetail(o)">看长势</button>
+              <button v-if="o.status === 10 && !refundedIds.includes(o.id)" class="f-btn mini ghost" @tap.stop="toRefund(o)">申请退款</button>
             </template>
           </view>
         </view>
       </view>
-      <view v-if="loaded && !shown.length" class="f-empty">
+      <view class="f-card" v-for="r in refunds" v-show="tab === 'refund'" :key="'r' + r.id">
+        <view class="f-between">
+          <text class="no">退款单 {{ r.no || r.id }}</text>
+          <text class="f-tag orange">{{ r.statusName || REFUND_STATUS[r.status] || '处理中' }}</text>
+        </view>
+        <view class="f-sub">订单 {{ r.orderNo || r.orderId }}<text v-if="r.amount"> · {{ yuan(r.amount) }}</text></view>
+        <view class="f-sub">{{ r.reason }}</view>
+      </view>
+      <view v-if="loaded && !shown.length && !(tab === 'refund' && refunds.length)" class="f-empty">
         <view class="f-empty-title">{{ tab === 'refund' ? '暂无退款订单' : '暂无订单' }}</view>
         <button class="f-btn" v-if="tab !== 'refund'" @tap="toHome">去认养一块地</button>
       </view>
@@ -65,6 +74,9 @@
   const tab = ref('all');
   const list = ref([]);
   const loaded = ref(false);
+  const refunds = ref([]);
+  const REFUND_STATUS = { 0: '待审核', 10: '已同意', 20: '已退款', 30: '已驳回' };
+  const refundedIds = computed(() => refunds.value.filter((r) => r.status !== 30).map((r) => r.orderId));
 
   const shown = computed(() => {
     if (tab.value === 'all') return list.value;
@@ -77,6 +89,9 @@
   async function load() {
     if (needLogin()) return;
     list.value = (await call(FarmApi.getOrderList())) || [];
+    // 退款单由 A 的接口提供（GET /app-api/farm/refund/list）；接口未就绪时静默当作没有
+    const rf = await call(FarmApi.getRefundList());
+    refunds.value = Array.isArray(rf) ? rf : (rf && rf.list) || [];
     loaded.value = true;
   }
 
@@ -86,8 +101,11 @@
   function toLogistics(o) {
     sheep.$router.go('/pages/farm/shipment/list', { adoptionId: o.adoptionId });
   }
-  function toReview() {
-    sheep.$helper.toast('评价功能暂未开放');
+  function toReview(o) {
+    sheep.$router.go('/pages/farm/review/edit', { adoptionId: o.adoptionId });
+  }
+  function toRefund(o) {
+    sheep.$router.go('/pages/farm/refund/apply', { orderId: o.id });
   }
   function toHome() {
     sheep.$router.go('/pages/farm/index');

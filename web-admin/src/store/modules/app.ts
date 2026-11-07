@@ -11,6 +11,14 @@ import { store } from '../index'
 
 const { wsCache } = useCache()
 
+// farmer-saas: 浏览器里缓存的是旧的蓝黑侧栏配色时，换成原型的深绿（用户自己改过的配色不动）
+const migrateOldTheme = (t: any) => {
+  if (t && t.leftMenuBgColor === '#001529') {
+    return { ...t, leftMenuBgColor: '#1e2b26', leftMenuBgLightColor: '#17221e', leftMenuTextColor: '#a9bdb3' }
+  }
+  return t
+}
+
 interface AppState {
   breadcrumb: boolean
   breadcrumbIcon: boolean
@@ -57,11 +65,11 @@ export const useAppStore = defineStore('app', {
       uniqueOpened: true, // 是否只保持一个子菜单的展开
       hamburger: true, // 折叠图标
       screenfull: true, // 全屏图标
-      search: true, // 搜索图标
-      size: true, // 尺寸图标
-      locale: true, // 多语言图标
-      message: true, // 消息图标
-      im: true, //IM即时通讯图标
+      search: false, // 搜索图标（farmer-saas: 顶栏对齐原型，只留租户名 + 告警数）
+      size: false, // 尺寸图标
+      locale: false, // 多语言图标
+      message: false, // 消息图标
+      im: false, // IM即时通讯图标
       tagsView: true, // 标签页
       tagsViewImmerse: false, // 标签页沉浸
       tagsViewIcon: true, // 是否显示标签图标
@@ -74,21 +82,21 @@ export const useAppStore = defineStore('app', {
       layout: normalizeLayout(wsCache.get(CACHE_KEY.LAYOUT)), // layout布局
       isDark: wsCache.get(CACHE_KEY.IS_DARK) || false, // 是否是暗黑模式
       currentSize: wsCache.get(CACHE_KEY.CURRENT_SIZE) || 'default', // 组件尺寸
-      theme: wsCache.get(CACHE_KEY.THEME) || {
+      theme: migrateOldTheme(wsCache.get(CACHE_KEY.THEME)) || {
         // 主题色
         elColorPrimary: '#2e7d32', // farmer-saas: 主题色改为农场绿（原 #409eff）
         // 左侧菜单边框颜色
         leftMenuBorderColor: 'inherit',
         // 左侧菜单背景颜色
-        leftMenuBgColor: '#001529',
+        leftMenuBgColor: '#1e2b26', // farmer-saas: 对齐原型 08 的深绿侧栏（原 #001529）
         // 左侧菜单浅色背景颜色
-        leftMenuBgLightColor: '#0f2438',
+        leftMenuBgLightColor: '#17221e',
         // 左侧菜单选中背景颜色
         leftMenuBgActiveColor: 'var(--el-color-primary)',
         // 左侧菜单收起选中背景颜色
         leftMenuCollapseBgActiveColor: 'var(--el-color-primary)',
         // 左侧菜单字体颜色
-        leftMenuTextColor: '#bfcbd9',
+        leftMenuTextColor: '#a9bdb3',
         // 左侧菜单选中字体颜色
         leftMenuTextActiveColor: '#fff',
         // logo字体颜色

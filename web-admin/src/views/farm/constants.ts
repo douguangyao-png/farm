@@ -41,7 +41,9 @@ export const ORDER_STATUS: EnumItem<number>[] = [
   { value: 0, label: '待付款', type: 'warning' },
   { value: 10, label: '认养中', type: 'success' },
   { value: 20, label: '已完成', type: 'primary' },
-  { value: 30, label: '已取消', type: 'info' }
+  { value: 30, label: '已取消', type: 'info' },
+  { value: 40, label: '退款中', type: 'danger' },
+  { value: 50, label: '已退款', type: 'info' }
 ]
 
 export const RECORD_STATUS: EnumItem<number>[] = [

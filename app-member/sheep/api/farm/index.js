@@ -38,6 +38,34 @@ const FarmApi = {
   // 收获配送
   getShipmentList: (adoptionId) => get('/farm/shipment/list', adoptionId ? { adoptionId } : {}),
   confirmShipment: (id) => post('/farm/shipment/confirm', { id }, { loadingMsg: '确认中' }),
+
+  // ---- 第二期补页（mock-server/src/routes/farm-app-extra.ts；退款由 A 提供）----
+  searchHot: () => get('/farm/search/hot'),
+  search: (params) => get('/farm/search', params),
+  getBaseList: () => get('/farm/base/list'),
+  getBase: (id) => get('/farm/base/get', { id }),
+  getFavoriteList: (type) => get('/farm/favorite/list', type ? { type } : {}),
+  checkFavorite: (type, targetId) => get('/farm/favorite/check', { type, targetId }),
+  toggleFavorite: (type, targetId) => post('/farm/favorite/toggle', { type, targetId }, { showLoading: false }),
+  getAddressList: () => get('/farm/address/list'),
+  saveAddress: (data) => post('/farm/address/save', data),
+  deleteAddress: (id) => post('/farm/address/delete', { id }),
+  getMessageList: (type) => get('/farm/message/list', type ? { type } : {}),
+  readMessage: (key) => post('/farm/message/read', key ? { key } : {}, { showLoading: false }),
+  getRecord: (id) => get('/farm/record/get', { id }),
+  getReport: (adoptionId) => get('/farm/report/get', { adoptionId }),
+  getLogistics: (id) => get('/farm/logistics/get', { id }),
+  getTransferList: () => get('/farm/transfer/list'),
+  createTransfer: (data) => post('/farm/transfer/create', data),
+  getReviewList: (productId) => get('/farm/review/list', productId ? { productId } : {}),
+  createReview: (data) => post('/farm/review/create', data),
+  getVisitList: () => get('/farm/visit/list'),
+  createVisit: (data) => post('/farm/visit/create', data),
+  getServiceMessages: () => get('/farm/service/messages'),
+  sendServiceMessage: (content) => post('/farm/service/send', { content }, { showLoading: false }),
+  // 退款（A agent：POST /app-api/farm/refund/create {orderId, reason}、GET /app-api/farm/refund/list）
+  createRefund: (data) => post('/farm/refund/create', data),
+  getRefundList: () => get('/farm/refund/list'),
 };
 
 export default FarmApi;

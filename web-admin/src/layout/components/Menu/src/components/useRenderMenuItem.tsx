@@ -40,7 +40,7 @@ export const useRenderMenuItem = () =>
             return (
               <ElMenuItem index={resolvedOnlyOneChildPath}>
                 {{
-                  default: () => renderMenuTitle(onlyOneChild ? onlyOneChild?.meta : meta)
+                  default: () => renderMenuTitle(onlyOneChild ? onlyOneChild?.meta : meta, resolvedOnlyOneChildPath)
                 }}
               </ElMenuItem>
             )

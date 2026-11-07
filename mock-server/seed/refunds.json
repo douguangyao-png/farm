@@ -1,0 +1,3 @@
+[
+  {"id": 1, "tenantId": 2, "no": "R20261030001", "orderId": 2, "memberId": 2, "amount": 86000, "investDeduct": 1200, "deliverDeduct": 0, "deduct": 1200, "refundAmount": 84800, "reason": "产出未达约定", "status": 20, "auditRemark": "已核对台账，订单仍在约定交付期内，暂不退款；如有疑问请联系管家。", "prevOrderStatus": 10, "createTime": "2026-10-30T10:20:00+08:00", "auditTime": "2026-10-30T16:45:00+08:00"}
+]

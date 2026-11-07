@@ -227,6 +227,198 @@
 			}
 		},
 		{
+			"path": "pages/farm/search/index",
+			"style": {
+				"navigationBarTitleText": "搜索"
+			},
+			"meta": {
+				"auth": false,
+				"sync": true,
+				"title": "搜索",
+				"group": "认养农场"
+			}
+		},
+		{
+			"path": "pages/farm/mall/index",
+			"style": {
+				"navigationBarTitleText": "分类商城"
+			},
+			"meta": {
+				"auth": false,
+				"sync": true,
+				"title": "分类商城",
+				"group": "认养农场"
+			}
+		},
+		{
+			"path": "pages/farm/base/list",
+			"style": {
+				"navigationBarTitleText": "找基地"
+			},
+			"meta": {
+				"auth": false,
+				"sync": true,
+				"title": "找基地",
+				"group": "认养农场"
+			}
+		},
+		{
+			"path": "pages/farm/base/detail",
+			"style": {
+				"navigationBarTitleText": "基地详情"
+			},
+			"meta": {
+				"auth": false,
+				"sync": true,
+				"title": "基地详情",
+				"group": "认养农场"
+			}
+		},
+		{
+			"path": "pages/farm/favorite/list",
+			"style": {
+				"navigationBarTitleText": "我的收藏"
+			},
+			"meta": {
+				"auth": true,
+				"sync": true,
+				"title": "我的收藏",
+				"group": "认养农场"
+			}
+		},
+		{
+			"path": "pages/farm/address/list",
+			"style": {
+				"navigationBarTitleText": "收货地址"
+			},
+			"meta": {
+				"auth": true,
+				"sync": true,
+				"title": "收货地址",
+				"group": "认养农场"
+			}
+		},
+		{
+			"path": "pages/farm/message/list",
+			"style": {
+				"navigationBarTitleText": "消息中心"
+			},
+			"meta": {
+				"auth": true,
+				"sync": true,
+				"title": "消息中心",
+				"group": "认养农场"
+			}
+		},
+		{
+			"path": "pages/farm/settings/index",
+			"style": {
+				"navigationBarTitleText": "设置"
+			},
+			"meta": {
+				"auth": false,
+				"sync": true,
+				"title": "设置",
+				"group": "认养农场"
+			}
+		},
+		{
+			"path": "pages/farm/record/detail",
+			"style": {
+				"navigationBarTitleText": "农事记录"
+			},
+			"meta": {
+				"auth": true,
+				"sync": true,
+				"title": "农事记录",
+				"group": "认养农场"
+			}
+		},
+		{
+			"path": "pages/farm/report/index",
+			"style": {
+				"navigationBarTitleText": "质检报告"
+			},
+			"meta": {
+				"auth": true,
+				"sync": true,
+				"title": "质检报告",
+				"group": "认养农场"
+			}
+		},
+		{
+			"path": "pages/farm/logistics/detail",
+			"style": {
+				"navigationBarTitleText": "物流详情"
+			},
+			"meta": {
+				"auth": true,
+				"sync": true,
+				"title": "物流详情",
+				"group": "认养农场"
+			}
+		},
+		{
+			"path": "pages/farm/transfer/index",
+			"style": {
+				"navigationBarTitleText": "认养转赠"
+			},
+			"meta": {
+				"auth": true,
+				"sync": true,
+				"title": "认养转赠",
+				"group": "认养农场"
+			}
+		},
+		{
+			"path": "pages/farm/review/edit",
+			"style": {
+				"navigationBarTitleText": "发表评价"
+			},
+			"meta": {
+				"auth": true,
+				"sync": true,
+				"title": "发表评价",
+				"group": "认养农场"
+			}
+		},
+		{
+			"path": "pages/farm/visit/index",
+			"style": {
+				"navigationBarTitleText": "预约到访"
+			},
+			"meta": {
+				"auth": false,
+				"sync": true,
+				"title": "预约到访",
+				"group": "认养农场"
+			}
+		},
+		{
+			"path": "pages/farm/service/chat",
+			"style": {
+				"navigationBarTitleText": "在线管家"
+			},
+			"meta": {
+				"auth": true,
+				"sync": true,
+				"title": "在线管家",
+				"group": "认养农场"
+			}
+		},
+		{
+			"path": "pages/farm/refund/apply",
+			"style": {
+				"navigationBarTitleText": "申请退款"
+			},
+			"meta": {
+				"auth": true,
+				"sync": true,
+				"title": "申请退款",
+				"group": "认养农场"
+			}
+		},
+		{
 			"path": "pages/index/index",
 			"aliasPath": "/",
 			"style": {

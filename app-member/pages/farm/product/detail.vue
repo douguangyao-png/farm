@@ -71,10 +71,18 @@
         <view class="f-kv"><text class="k">地址</text><text class="v">{{ p.base.address }}</text></view>
         <view class="f-kv"><text class="k">资质编号</text><text class="v">{{ p.base.certNo }}</text></view>
       </view>
+      <view class="f-card" v-if="reviews.length">
+        <view class="f-title">认养人评价</view>
+        <view class="rv" v-for="r in reviews" :key="r.id">
+          <view class="f-between"><text>{{ r.memberName }}</text><text class="f-tag orange">{{ r.score }} 分</text></view>
+          <view class="f-sub">{{ r.content || '（未填写文字）' }}</view>
+        </view>
+      </view>
       <view class="f-bottom-space" />
     </view>
 
     <view class="f-bottom-bar" v-if="p">
+      <view class="fav-btn" @tap="toggleFav"><view class="fav-star" :class="{ on: faved }">{{ faved ? '★' : '☆' }}</view><view class="f-sub">收藏</view></view>
       <view>
         <view class="f-sub">{{ cur ? CARE_MODE_NAME[cur.mode] : '请选择托管方式' }}</view>
         <view class="f-price big">{{ cur ? yuan(cur.price) : '' }}</view>
@@ -97,6 +105,17 @@
   const p = ref(null);
   const sel = ref('');
   const id = ref(0);
+  const faved = ref(false);
+  const reviews = ref([]);
+
+  async function toggleFav() {
+    if (needLogin()) return;
+    const r = await call(FarmApi.toggleFavorite('product', id.value));
+    if (r !== null) {
+      faved.value = r;
+      sheep.$helper.toast(r ? '已收藏' : '已取消收藏');
+    }
+  }
 
   const cur = computed(() => p.value?.careModes.find((m) => m.mode === sel.value && m.enabled));
   const farmDuty = computed(() => (cur.value?.duty || []).filter((d) => d.owner === 'farm').map((d) => d.item));
@@ -126,6 +145,8 @@
     const data = await call(FarmApi.getProduct(id.value));
     if (!data) return;
     p.value = data;
+    reviews.value = (await call(FarmApi.getReviewList(id.value))) || [];
+    if (sheep.$store('user').isLogin) faved.value = !!(await call(FarmApi.checkFavorite('product', id.value)));
     const preferred = data.careModes.find((m) => m.mode === options.mode && m.enabled);
     sel.value = (preferred || data.careModes.find((m) => m.enabled))?.mode || '';
   });
@@ -133,6 +154,22 @@
 
 <style lang="scss" scoped>
   @import '@/pages/farm/common/farm.scss';
+  .rv {
+    padding: 14rpx 0;
+    border-bottom: 2rpx solid $fline;
+  }
+  .fav-btn {
+    text-align: center;
+    margin-right: 24rpx;
+  }
+  .fav-star {
+    font-size: 40rpx;
+    line-height: 1;
+    color: $fsub;
+  }
+  .fav-star.on {
+    color: $fo;
+  }
   .cover {
     width: 100%;
     height: 380rpx;

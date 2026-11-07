@@ -45,6 +45,14 @@
     { label: '我的农资', sub: '订单和溯源登记', url: '/pages/farm/supply/order-list', auth: true },
     { label: '收获配送', sub: '物流轨迹', url: '/pages/farm/shipment/list', auth: true },
     { label: '农资商城', sub: '种子、肥料、代管服务', url: '/pages/farm/supply/list', auth: false },
+    { label: '消息中心', sub: '系统、物流、农事、互动', url: '/pages/farm/message/list', auth: true },
+    { label: '我的收藏', sub: '商品、基地', url: '/pages/farm/favorite/list', auth: true },
+    { label: '收货地址', sub: '新增、默认、编辑', url: '/pages/farm/address/list', auth: true },
+    { label: '预约到访', sub: '去基地看看自己的地', url: '/pages/farm/visit/index', auth: false },
+    { label: '在线管家', sub: '问农事、问配送', url: '/pages/farm/service/chat', auth: true },
+    { label: '找基地', sub: '基地资质与动态', url: '/pages/farm/base/list', auth: false },
+    { label: '分类商城', sub: '一分地、畜牧、果树', url: '/pages/farm/mall/index', auth: false },
+    { label: '设置', sub: '账号、推送、关于', url: '/pages/farm/settings/index', auth: false },
     { label: '平台合规说明', sub: '我们不是理财，是农产品预售', url: '/pages/farm/notice/index', auth: false },
   ];
 

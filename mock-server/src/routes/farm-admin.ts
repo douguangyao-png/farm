@@ -109,10 +109,10 @@ farmAdminRouter.get('/dashboard/summary', (req, res) => {
     // level：danger 红点（风控）/ primary 绿点 / warning 橙点；desc 是一句话说明
     todos: [
       { type: 'record', title: '农事记录待审核', count: pendingRecordCount, desc: '管家上传记录需复核后发布到 C 端', level: 'warning', path: '/farm-work/record' },
-      { type: 'service', title: '代管工单待接单', count: pendingServiceOrderCount, desc: '工单池里还没有管家接单', level: 'warning', path: '/farm-work/service-order' },
+      { type: 'service', title: '代管工单待接单', count: pendingServiceOrderCount, desc: '工单池里还没有管家接单', level: 'warning', path: '/farm-supply/service-order' },
       { type: 'harvest', title: '收成待发货', count: unshipped, desc: '已录入收成但还没生成配送单', level: 'primary', path: '/farm-order/shipment' },
       { type: 'trace', title: '农资待登记施用', count: untraced, desc: '自购农资未登记批次和施用时间，地块档案会标「待补充」', level: 'warning', path: '/farm-supply/supply-order' },
-      { type: 'risk', title: '风险自检待改进', count: riskBadCount, desc: '合规自检有未达标项，建议尽快处理', level: 'danger', path: '/farm-board/self-check' }
+      { type: 'risk', title: '风险自检待改进', count: riskBadCount, desc: '合规自检有未达标项，建议尽快处理', level: 'danger', path: '/farm-compliance/self-check' }
     ],
     todayRecords: db().records.filter((r) => r.tenantId === t && r.createTime >= startToday - DAY).sort(byNewest).slice(0, 6).map(recordView),
     demo: true

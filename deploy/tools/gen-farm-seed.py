@@ -154,7 +154,7 @@ for t in load('tenants'):
 
 menus = load('menus')
 for i, m in enumerate(menus):
-    insert('system_menu', {'id': mapmenu(m['id']), 'name': m['name'], 'permission': m.get('permission', ''), 'type': 1 if m['parentId'] == 0 else 2, 'sort': i,
+    insert('system_menu', {'id': mapmenu(m['id']), 'name': m['name'], 'permission': m.get('permission', ''), 'type': 3 if m.get('permission') else (1 if m['parentId'] == 0 else 2), 'sort': i,
                             'parent_id': mapmenu(m['parentId']), 'path': m.get('path', ''), 'icon': m.get('icon', ''), 'component': m.get('component'),
                             'component_name': m.get('componentName'), 'status': 0, 'visible': m.get('visible', True), 'keep_alive': m.get('keepAlive', True),
                             'always_show': m.get('alwaysShow', False), 'creator': 'admin'})
