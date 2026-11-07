@@ -9,7 +9,7 @@ import cn.iocoder.yudao.module.farm.dal.dataobject.FarmArticleCategoryDO;
 import cn.iocoder.yudao.module.farm.dal.dataobject.FarmArticleDO;
 import cn.iocoder.yudao.module.farm.dal.mysql.FarmArticleCategoryMapper;
 import cn.iocoder.yudao.module.farm.dal.mysql.FarmArticleMapper;
-import jakarta.annotation.Resource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -29,9 +29,9 @@ public class FarmNoticeService {
 
     private static final Long PLATFORM_TENANT_ID = 1L;
 
-    @Resource
+    @Autowired
     private FarmArticleMapper articleMapper;
-    @Resource
+    @Autowired
     private FarmArticleCategoryMapper categoryMapper;
 
     public List<FarmNoticeListRespVO> list() {

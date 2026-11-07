@@ -5,7 +5,7 @@ import cn.iocoder.yudao.module.farm.controller.admin.notice.vo.FarmNoticeListRes
 import cn.iocoder.yudao.module.farm.controller.admin.notice.vo.FarmNoticeRespVO;
 import cn.iocoder.yudao.module.farm.service.FarmNoticeService;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.annotation.Resource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -21,7 +21,7 @@ import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 @RequestMapping("/farm/notice")
 public class FarmNoticeController {
 
-    @Resource
+    @Autowired
     private FarmNoticeService service;
 
     @GetMapping("/list")

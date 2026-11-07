@@ -16,7 +16,7 @@ import cn.iocoder.yudao.module.farm.dal.mysql.FarmAdoptionMapper;
 import cn.iocoder.yudao.module.farm.dal.mysql.FarmAssetMapper;
 import cn.iocoder.yudao.module.farm.dal.mysql.FarmBaseMapper;
 import cn.iocoder.yudao.module.farm.dal.mysql.FarmMemberMapper;
-import jakarta.annotation.Resource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -37,13 +37,13 @@ public class FarmAssetService {
 
     private static final Set<String> ASSET_TYPES = Set.of("plot", "animal", "tree");
 
-    @Resource
+    @Autowired
     private FarmAssetMapper assetMapper;
-    @Resource
+    @Autowired
     private FarmBaseMapper baseMapper;
-    @Resource
+    @Autowired
     private FarmAdoptionMapper adoptionMapper;
-    @Resource
+    @Autowired
     private FarmMemberMapper memberMapper;
 
     public PageResult<FarmAssetRespVO> page(FarmAssetPageReqVO req) {

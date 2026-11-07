@@ -26,3 +26,17 @@ location /farm-api/ {
     include /etc/nginx/hp-proxy.inc;
     client_max_body_size 20m;                    # 反馈截图、打卡照片
 }
+
+# ---- 真后端预览（2026-11-07，docs/plans/原型对齐与真后端-2026-11-06.md）：和上面的 mock 演示并存，互不影响 ----
+# 前端：/farm-real/ → /opt/farmer-saas/web/admin-real/；接口：/farm-real-api/ → 芋道 + farm 模块（127.0.0.1:48080）
+# 回滚：删掉本段，nginx -t && systemctl reload nginx（/etc/nginx/farm-locations.inc.bak-* 是上一版）
+location = /farm-real { return 301 /farm-real/; }
+location /farm-real/ {
+    alias /opt/farmer-saas/web/admin-real/;
+    try_files $uri $uri/ /farm-real/index.html;
+}
+location /farm-real-api/ {
+    proxy_pass http://127.0.0.1:48080/;          # 末尾斜杠：去掉 /farm-real-api 前缀再转发
+    include /etc/nginx/hp-proxy.inc;
+    client_max_body_size 20m;
+}

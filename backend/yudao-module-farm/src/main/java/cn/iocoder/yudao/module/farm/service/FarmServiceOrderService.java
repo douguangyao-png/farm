@@ -9,7 +9,7 @@ import cn.iocoder.yudao.module.farm.dal.dataobject.FarmAssetDO;
 import cn.iocoder.yudao.module.farm.dal.dataobject.FarmMemberDO;
 import cn.iocoder.yudao.module.farm.dal.dataobject.FarmServiceOrderDO;
 import cn.iocoder.yudao.module.farm.dal.mysql.FarmServiceOrderMapper;
-import jakarta.annotation.Resource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -24,9 +24,9 @@ import static cn.iocoder.yudao.module.farm.enums.ErrorCodeConstants.NOT_FOUND;
 @Service
 public class FarmServiceOrderService {
 
-    @Resource
+    @Autowired
     private FarmServiceOrderMapper serviceOrderMapper;
-    @Resource
+    @Autowired
     private FarmViewLookup lookup;
 
     public PageResult<FarmServiceOrderRespVO> page(FarmServiceOrderPageReqVO req) {

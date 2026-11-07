@@ -7,7 +7,7 @@ import cn.iocoder.yudao.module.farm.controller.admin.platform.vo.FarmRiskAlertPa
 import cn.iocoder.yudao.module.farm.controller.admin.platform.vo.FarmRiskAlertRespVO;
 import cn.iocoder.yudao.module.farm.service.FarmPlatformService;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.annotation.Resource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,7 +24,7 @@ import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 @RequestMapping("/farm")
 public class FarmPlatformController {
 
-    @Resource
+    @Autowired
     private FarmPlatformService service;
 
     @GetMapping("/risk-alert/page")

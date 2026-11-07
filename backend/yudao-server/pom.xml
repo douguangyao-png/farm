@@ -189,6 +189,11 @@
             <artifactId>yudao-spring-boot-starter-protection</artifactId>
         </dependency>
 
+        <!-- 认养农场用 PostgreSQL（芋道把各数据库驱动标成 optional，不会自动打进 jar） -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

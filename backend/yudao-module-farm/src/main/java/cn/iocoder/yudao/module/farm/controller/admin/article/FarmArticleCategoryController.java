@@ -8,7 +8,7 @@ import cn.iocoder.yudao.module.farm.controller.admin.article.vo.FarmArticleCateg
 import cn.iocoder.yudao.module.farm.controller.admin.article.vo.FarmArticleCategorySaveReqVO;
 import cn.iocoder.yudao.module.farm.service.FarmArticleCategoryService;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.annotation.Resource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.LinkedHashMap;
@@ -24,7 +24,7 @@ import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 @RequestMapping("/promotion/article-category")
 public class FarmArticleCategoryController {
 
-    @Resource
+    @Autowired
     private FarmArticleCategoryService service;
 
     @GetMapping("/page")

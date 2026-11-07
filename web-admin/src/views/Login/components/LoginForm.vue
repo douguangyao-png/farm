@@ -217,7 +217,7 @@ const loginByUsername = import.meta.env.VITE_APP_LOGIN_BY_USERNAME === 'true'
 
 // farmer-saas: 演示账号（种子数据 mock-server/seed/users.json，见 docs/demo/演示数据说明.md）；真后端构建不显示
 const demoAccounts =
-  import.meta.env.VITE_MOCK_BADGE === 'true'
+  import.meta.env.VITE_MOCK_BADGE === 'true' || import.meta.env.VITE_DEMO_ACCOUNTS === 'true'
     ? [
         { label: '平台管理员', tenantName: '平台运营中心', username: 'admin', password: 'admin123' },
         { label: '经营者 · 青山农场', tenantName: '青山农场', username: 'qingshan', password: 'demo123' },

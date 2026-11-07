@@ -7,7 +7,7 @@ import cn.iocoder.yudao.module.farm.controller.admin.asset.vo.FarmAssetRespVO;
 import cn.iocoder.yudao.module.farm.controller.admin.asset.vo.FarmAssetSaveReqVO;
 import cn.iocoder.yudao.module.farm.service.FarmAssetService;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.annotation.Resource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -20,7 +20,7 @@ import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 @RequestMapping("/farm/asset")
 public class FarmAssetController {
 
-    @Resource
+    @Autowired
     private FarmAssetService service;
 
     @GetMapping("/page")

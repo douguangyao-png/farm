@@ -23,7 +23,7 @@ import cn.iocoder.yudao.module.farm.dal.mysql.FarmMemberMapper;
 import cn.iocoder.yudao.module.farm.dal.mysql.FarmOrderMapper;
 import cn.iocoder.yudao.module.farm.dal.mysql.FarmShipmentMapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import jakarta.annotation.Resource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,23 +44,23 @@ public class FarmShipmentService {
     /** 契约 1_030_000_002：订单/单据状态已变化（提示语由调用处传入，与 mock 一致） */
     private static final ErrorCode SHIPMENT_STATE = new ErrorCode(1_030_000_002, "{}");
 
-    @Resource
+    @Autowired
     private FarmShipmentMapper shipmentMapper;
-    @Resource
+    @Autowired
     private FarmHarvestMapper harvestMapper;
-    @Resource
+    @Autowired
     private FarmAdoptionMapper adoptionMapper;
-    @Resource
+    @Autowired
     private FarmOrderMapper orderMapper;
-    @Resource
+    @Autowired
     private FarmMemberMapper memberMapper;
-    @Resource
+    @Autowired
     private FarmAssetMapper assetMapper;
-    @Resource
+    @Autowired
     private FarmBaseMapper baseMapper;
-    @Resource
+    @Autowired
     private FarmNoGenerator noGenerator;
-    @Resource
+    @Autowired
     private FarmViewLookup lookup;
 
     public PageResult<FarmShipmentRespVO> page(FarmShipmentPageReqVO req) {

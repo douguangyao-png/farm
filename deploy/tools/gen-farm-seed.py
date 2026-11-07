@@ -119,6 +119,13 @@ FARM = {
     'articles': 'farm_article', 'feedbacks': 'farm_feedback',
 }
 PW_HASH = {}
+# 菜单编号加偏移，避开芋道自带按钮权限（type 3）的编号；前端不依赖菜单 id 的具体值
+MENU_OFFSET = 100000
+
+
+def mapmenu(x):
+    return x + MENU_OFFSET if x else x
+
 
 
 def pw(p):
@@ -131,13 +138,15 @@ lines.append('-- 由 deploy/tools/gen-farm-seed.py 生成，不要手改；改 m
 lines.append('BEGIN;')
 
 # ---------- 系统表：清掉芋道默认数据，换成演示数据 ----------
-for t in ['system_user_role', 'system_role_menu', 'system_users', 'system_role', 'system_menu', 'system_dept', 'system_tenant_package', 'system_tenant']:
+for t in ['system_user_role', 'system_role_menu', 'system_users', 'system_role', 'system_dept', 'system_tenant_package', 'system_tenant']:
     lines.append(f'DELETE FROM {t};')
+# 菜单只删目录和菜单（type 1、2），保留芋道自带的按钮权限（type 3），经营者管理员按需授予其中一部分
+lines.append('DELETE FROM system_menu WHERE type <> 3;')
 
 packages = load('tenantPackages')
 for p in packages:
     insert('system_tenant_package', {'id': p['id'], 'name': p['name'], 'status': p['status'], 'remark': p.get('remark', ''),
-                                      'menu_ids': json.dumps(p['menuIds']), 'creator': 'admin', 'create_time': p.get('createTime')})
+                                      'menu_ids': json.dumps([mapmenu(i) for i in p['menuIds']]), 'creator': 'admin', 'create_time': p.get('createTime')})
 for t in load('tenants'):
     insert('system_tenant', {'id': t['id'], 'name': t['name'], 'contact_name': t.get('contactName', ''), 'contact_mobile': t.get('contactMobile', ''),
                               'status': t['status'], 'websites': ','.join(t.get('websites', [])), 'package_id': t['packageId'],
@@ -145,8 +154,8 @@ for t in load('tenants'):
 
 menus = load('menus')
 for i, m in enumerate(menus):
-    insert('system_menu', {'id': m['id'], 'name': m['name'], 'permission': m.get('permission', ''), 'type': 1 if m['parentId'] == 0 else 2, 'sort': i,
-                            'parent_id': m['parentId'], 'path': m.get('path', ''), 'icon': m.get('icon', ''), 'component': m.get('component'),
+    insert('system_menu', {'id': mapmenu(m['id']), 'name': m['name'], 'permission': m.get('permission', ''), 'type': 1 if m['parentId'] == 0 else 2, 'sort': i,
+                            'parent_id': mapmenu(m['parentId']), 'path': m.get('path', ''), 'icon': m.get('icon', ''), 'component': m.get('component'),
                             'component_name': m.get('componentName'), 'status': 0, 'visible': m.get('visible', True), 'keep_alive': m.get('keepAlive', True),
                             'always_show': m.get('alwaysShow', False), 'creator': 'admin'})
 
@@ -159,9 +168,15 @@ for r in load('roles'):
     insert('system_role', {'id': r['id'], 'name': r['name'], 'code': r['code'], 'sort': r['id'], 'data_scope': 1, 'status': 0,
                             'type': 1 if r['code'] in ('super_admin', 'tenant_admin') else 2, 'creator': 'admin', 'tenant_id': r['tenantId']})
     ids = [m['id'] for m in menus] if r['menuIds'] == '*' else r['menuIds']
+    ids = [mapmenu(i) for i in ids]
     for mid in ids:
         insert('system_role_menu', {'id': rm_id, 'role_id': r['id'], 'menu_id': mid, 'creator': 'admin', 'tenant_id': r['tenantId']})
         rm_id += 1
+
+# 经营者管理员（tenant_admin）不是芋道的「超级管理员」，权限校验要靠按钮权限：只授予用户 / 角色 / 部门相关的
+lines.append("INSERT INTO system_role_menu (id, role_id, menu_id, creator, tenant_id) "
+             "SELECT 200000 + row_number() OVER (), r.id, m.id, 'admin', r.tenant_id FROM system_menu m, system_role r "
+             "WHERE r.code = 'tenant_admin' AND m.type = 3 AND m.permission ~ '^(system:user|system:role|system:dept|system:permission|system:menu:query)';")
 
 ur_id, stewards = 1, []
 for u in load('users'):

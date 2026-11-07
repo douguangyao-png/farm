@@ -9,7 +9,7 @@ import cn.iocoder.yudao.module.farm.controller.admin.supply.vo.FarmSupplySaveReq
 import cn.iocoder.yudao.module.farm.service.FarmBannedWordsException;
 import cn.iocoder.yudao.module.farm.service.FarmSupplyService;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.annotation.Resource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
@@ -20,7 +20,7 @@ import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 @RequestMapping("/farm/supply")
 public class FarmSupplyController {
 
-    @Resource
+    @Autowired
     private FarmSupplyService service;
 
     @GetMapping("/page")

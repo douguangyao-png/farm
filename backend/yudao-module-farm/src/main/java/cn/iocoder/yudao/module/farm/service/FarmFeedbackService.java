@@ -15,7 +15,7 @@ import cn.iocoder.yudao.module.farm.dal.dataobject.FarmFeedbackDO;
 import cn.iocoder.yudao.module.farm.dal.mysql.FarmFeedbackMapper;
 import cn.iocoder.yudao.module.system.dal.dataobject.tenant.TenantDO;
 import cn.iocoder.yudao.module.system.service.tenant.TenantService;
-import jakarta.annotation.Resource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -39,9 +39,9 @@ public class FarmFeedbackService {
     private static final List<String> TYPES = List.of("bug", "advice", "ask");
     private static final List<Integer> STATUSES = List.of(0, 10, 20, 30);
 
-    @Resource
+    @Autowired
     private FarmFeedbackMapper feedbackMapper;
-    @Resource
+    @Autowired
     private TenantService tenantService;
 
     public Map<String, Object> create(FarmFeedbackCreateReqVO req, String requestUserAgent) {

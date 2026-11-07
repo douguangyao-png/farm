@@ -7,7 +7,7 @@ import cn.iocoder.yudao.module.farm.controller.admin.supply.vo.FarmSupplyPageReq
 import cn.iocoder.yudao.module.farm.controller.admin.supply.vo.FarmSupplySaveReqVO;
 import cn.iocoder.yudao.module.farm.dal.dataobject.FarmSupplyDO;
 import cn.iocoder.yudao.module.farm.dal.mysql.FarmSupplyMapper;
-import jakarta.annotation.Resource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -22,7 +22,7 @@ import static cn.iocoder.yudao.module.farm.enums.ErrorCodeConstants.NOT_FOUND;
 @Service
 public class FarmSupplyService {
 
-    @Resource
+    @Autowired
     private FarmSupplyMapper supplyMapper;
 
     public PageResult<FarmSupplyDO> page(FarmSupplyPageReqVO req) {

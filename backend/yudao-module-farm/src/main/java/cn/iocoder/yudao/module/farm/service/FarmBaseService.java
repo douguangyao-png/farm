@@ -13,7 +13,7 @@ import cn.iocoder.yudao.module.farm.dal.dataobject.FarmStewardDO;
 import cn.iocoder.yudao.module.farm.dal.mysql.FarmAssetMapper;
 import cn.iocoder.yudao.module.farm.dal.mysql.FarmBaseMapper;
 import cn.iocoder.yudao.module.farm.dal.mysql.FarmStewardMapper;
-import jakarta.annotation.Resource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -30,11 +30,11 @@ import static cn.iocoder.yudao.module.farm.enums.ErrorCodeConstants.NOT_FOUND;
 @Service
 public class FarmBaseService {
 
-    @Resource
+    @Autowired
     private FarmBaseMapper baseMapper;
-    @Resource
+    @Autowired
     private FarmAssetMapper assetMapper;
-    @Resource
+    @Autowired
     private FarmStewardMapper stewardMapper;
 
     public PageResult<FarmBaseRespVO> page(FarmBasePageReqVO req) {

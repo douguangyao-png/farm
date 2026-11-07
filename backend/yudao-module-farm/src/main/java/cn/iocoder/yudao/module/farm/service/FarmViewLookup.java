@@ -12,7 +12,7 @@ import cn.iocoder.yudao.module.farm.dal.mysql.FarmMemberMapper;
 import cn.iocoder.yudao.module.farm.dal.mysql.FarmProductMapper;
 import cn.iocoder.yudao.module.system.api.user.AdminUserApi;
 import cn.iocoder.yudao.module.system.api.user.dto.AdminUserRespDTO;
-import jakarta.annotation.Resource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -31,17 +31,17 @@ import java.util.stream.Collectors;
 @Component
 public class FarmViewLookup {
 
-    @Resource
+    @Autowired
     private FarmMemberMapper memberMapper;
-    @Resource
+    @Autowired
     private FarmAssetMapper assetMapper;
-    @Resource
+    @Autowired
     private FarmProductMapper productMapper;
-    @Resource
+    @Autowired
     private FarmBaseMapper baseMapper;
-    @Resource
+    @Autowired
     private FarmAdoptionMapper adoptionMapper;
-    @Resource
+    @Autowired
     private AdminUserApi adminUserApi;
 
     /** 托管方式中文名（mock CARE_MODE_NAME） */

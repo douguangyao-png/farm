@@ -9,7 +9,7 @@ import cn.iocoder.yudao.module.farm.dal.dataobject.FarmArticleCategoryDO;
 import cn.iocoder.yudao.module.farm.dal.dataobject.FarmArticleDO;
 import cn.iocoder.yudao.module.farm.dal.mysql.FarmArticleCategoryMapper;
 import cn.iocoder.yudao.module.farm.dal.mysql.FarmArticleMapper;
-import jakarta.annotation.Resource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,9 +22,9 @@ import static cn.iocoder.yudao.module.farm.enums.ErrorCodeConstants.NOT_FOUND;
 @Service
 public class FarmArticleCategoryService {
 
-    @Resource
+    @Autowired
     private FarmArticleCategoryMapper categoryMapper;
-    @Resource
+    @Autowired
     private FarmArticleMapper articleMapper;
 
     public PageResult<FarmArticleCategoryDO> page(FarmArticleCategoryPageReqVO req) {

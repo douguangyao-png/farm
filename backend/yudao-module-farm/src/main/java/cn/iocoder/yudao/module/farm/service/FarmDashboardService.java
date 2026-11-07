@@ -23,7 +23,7 @@ import cn.iocoder.yudao.module.farm.dal.mysql.FarmTaskMapper;
 import cn.iocoder.yudao.module.system.api.user.AdminUserApi;
 import cn.iocoder.yudao.module.system.api.user.dto.AdminUserRespDTO;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import jakarta.annotation.Resource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -52,27 +52,27 @@ public class FarmDashboardService {
     private static final long DAY = 86400_000L;
     private static final ZoneId ZONE = ZoneId.systemDefault();
 
-    @Resource
+    @Autowired
     private FarmOrderMapper orderMapper;
-    @Resource
+    @Autowired
     private FarmSupplyOrderMapper supplyOrderMapper;
-    @Resource
+    @Autowired
     private FarmAssetMapper assetMapper;
-    @Resource
+    @Autowired
     private FarmAdoptionMapper adoptionMapper;
-    @Resource
+    @Autowired
     private FarmRecordMapper recordMapper;
-    @Resource
+    @Autowired
     private FarmServiceOrderMapper serviceOrderMapper;
-    @Resource
+    @Autowired
     private FarmTaskMapper taskMapper;
-    @Resource
+    @Autowired
     private FarmHarvestMapper harvestMapper;
-    @Resource
+    @Autowired
     private FarmMemberMapper memberMapper;
-    @Resource
+    @Autowired
     private AdminUserApi adminUserApi;
-    @Resource
+    @Autowired
     private FarmRiskService riskService;
 
     /** 工作台曲线的演示底数（每天 ¥1,800–¥5,600），仅租户 2 有；叠加真实下单金额 */

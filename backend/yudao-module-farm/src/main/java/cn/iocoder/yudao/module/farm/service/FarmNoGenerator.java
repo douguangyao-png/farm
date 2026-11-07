@@ -1,6 +1,6 @@
 package cn.iocoder.yudao.module.farm.service;
 
-import jakarta.annotation.Resource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -15,7 +15,7 @@ import java.time.format.DateTimeFormatter;
 @Component
 public class FarmNoGenerator {
 
-    @Resource
+    @Autowired
     private StringRedisTemplate redisTemplate;
 
     public String next(String prefix) {

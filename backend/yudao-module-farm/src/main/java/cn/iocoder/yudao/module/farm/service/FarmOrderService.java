@@ -24,7 +24,7 @@ import cn.iocoder.yudao.module.farm.dal.mysql.FarmOrderMapper;
 import cn.iocoder.yudao.module.farm.dal.mysql.FarmRecordMapper;
 import cn.iocoder.yudao.module.farm.dal.mysql.FarmShipmentMapper;
 import cn.iocoder.yudao.module.farm.dal.mysql.FarmTaskMapper;
-import jakarta.annotation.Resource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -39,23 +39,23 @@ import static cn.iocoder.yudao.module.farm.enums.ErrorCodeConstants.NOT_FOUND;
 @Service
 public class FarmOrderService {
 
-    @Resource
+    @Autowired
     private FarmOrderMapper orderMapper;
-    @Resource
+    @Autowired
     private FarmMemberMapper memberMapper;
-    @Resource
+    @Autowired
     private FarmAdoptionMapper adoptionMapper;
-    @Resource
+    @Autowired
     private FarmRecordMapper recordMapper;
-    @Resource
+    @Autowired
     private FarmShipmentMapper shipmentMapper;
-    @Resource
+    @Autowired
     private FarmTaskMapper taskMapper;
-    @Resource
+    @Autowired
     private FarmRecordService recordService;
-    @Resource
+    @Autowired
     private FarmShipmentService shipmentService;
-    @Resource
+    @Autowired
     private FarmViewLookup lookup;
 
     public PageResult<FarmOrderRespVO> page(FarmOrderPageReqVO req) {

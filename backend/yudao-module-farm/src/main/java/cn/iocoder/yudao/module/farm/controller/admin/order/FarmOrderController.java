@@ -7,7 +7,7 @@ import cn.iocoder.yudao.module.farm.controller.admin.order.vo.FarmOrderPageReqVO
 import cn.iocoder.yudao.module.farm.controller.admin.order.vo.FarmOrderRespVO;
 import cn.iocoder.yudao.module.farm.service.FarmOrderService;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.annotation.Resource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -21,7 +21,7 @@ import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 @RequestMapping("/farm/order")
 public class FarmOrderController {
 
-    @Resource
+    @Autowired
     private FarmOrderService service;
 
     @GetMapping("/page")

@@ -3,7 +3,7 @@ package cn.iocoder.yudao.module.farm.controller.admin.risk;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.module.farm.service.FarmRiskService;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.annotation.Resource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,7 +18,7 @@ import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 @RequestMapping("/farm/risk")
 public class FarmRiskController {
 
-    @Resource
+    @Autowired
     private FarmRiskService service;
 
     @GetMapping("/self-check")

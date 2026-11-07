@@ -7,7 +7,7 @@ import cn.iocoder.yudao.module.farm.controller.admin.harvest.vo.FarmHarvestPageR
 import cn.iocoder.yudao.module.farm.controller.admin.harvest.vo.FarmHarvestRespVO;
 import cn.iocoder.yudao.module.farm.service.FarmHarvestService;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.annotation.Resource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -22,7 +22,7 @@ import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 @RequestMapping("/farm/harvest")
 public class FarmHarvestController {
 
-    @Resource
+    @Autowired
     private FarmHarvestService service;
 
     @GetMapping("/page")

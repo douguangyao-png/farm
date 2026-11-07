@@ -13,7 +13,7 @@ ROOT=$(cd "$(dirname "$0")/.." && pwd)
 TMP=$(mktemp -d)
 quiet() { grep -v "post-quantum\|store now\|pq.html" || true; }
 
-tar -czf "$TMP/backend.tgz" -C "$ROOT" --exclude=target --exclude=node_modules backend
+tar -czf "$TMP/backend.tgz" -C "$ROOT" --exclude=target --exclude=node_modules $( [ "${FULL:-0}" = 1 ] && echo "" || echo "--exclude=backend/sql/postgresql/ruoyi-vue-pro.sql" ) backend  # 芋道建库脚本约 8MB 服务器上已有，FULL=1 才重传
 $SCP "$TMP/backend.tgz" "$HOST:/tmp/farm-backend-src.tgz" 2>&1 | quiet
 rm -rf "$TMP"
 

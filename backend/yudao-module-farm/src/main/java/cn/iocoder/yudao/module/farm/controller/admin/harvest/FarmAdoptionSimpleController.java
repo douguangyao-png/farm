@@ -4,7 +4,7 @@ import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.module.farm.controller.admin.harvest.vo.FarmAdoptionSimpleRespVO;
 import cn.iocoder.yudao.module.farm.service.FarmHarvestService;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.annotation.Resource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,7 +19,7 @@ import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 @RequestMapping("/farm/adoption")
 public class FarmAdoptionSimpleController {
 
-    @Resource
+    @Autowired
     private FarmHarvestService service;
 
     @GetMapping("/simple-list")

@@ -3,7 +3,7 @@ package cn.iocoder.yudao.module.farm.service;
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.module.farm.dal.dataobject.FarmComplianceHitDO;
 import cn.iocoder.yudao.module.farm.dal.mysql.FarmComplianceHitMapper;
-import jakarta.annotation.Resource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -23,7 +23,7 @@ public class FarmComplianceService {
 
     public static final String SUGGESTION = "建议改为实物交付的说法，例如「约定交付 240 斤，不足部分按同等品质补发」";
 
-    @Resource
+    @Autowired
     private FarmComplianceHitMapper hitMapper;
 
     /** 把非空文本拼起来，按词表顺序返回命中的词 */

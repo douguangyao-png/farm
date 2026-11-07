@@ -44,8 +44,8 @@ spring:
         test-while-idle: true
         test-on-borrow: false
         test-on-return: false
-        pool-prepared-statements: true # 是否开启 PreparedStatement 缓存
-        max-pool-prepared-statement-per-connection-size: 20 # 每个连接缓存的 PreparedStatement 数量
+        pool-prepared-statements: false # 是否开启 PreparedStatement 缓存
+        max-pool-prepared-statement-per-connection-size: 0 # 每个连接缓存的 PreparedStatement 数量
       primary: master
       datasource:
         master:
@@ -296,3 +296,10 @@ justauth:
     type: REDIS
     prefix: 'social_auth_state:' # 缓存前缀，目前只对 Redis 缓存生效，默认 JUSTAUTH::STATE::
     timeout: 24h # 超时时长，目前只对 Redis 缓存生效，默认 3 分钟
+
+--- #################### 认养农场：登录页按用户名找租户，请求时还没有 tenant-id ####################
+yudao:
+  tenant:
+    ignore-urls:
+      - /jmreport/* # 沿用基础配置（列表会被整体覆盖，所以要带上）
+      - /admin-api/system/tenant/get-id-by-username

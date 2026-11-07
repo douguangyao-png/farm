@@ -19,7 +19,7 @@ import cn.iocoder.yudao.module.farm.dal.mysql.FarmInputRecordMapper;
 import cn.iocoder.yudao.module.farm.dal.mysql.FarmMemberMapper;
 import cn.iocoder.yudao.module.farm.dal.mysql.FarmSupplyMapper;
 import cn.iocoder.yudao.module.farm.dal.mysql.FarmSupplyOrderMapper;
-import jakarta.annotation.Resource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -41,15 +41,15 @@ import static cn.iocoder.yudao.module.farm.enums.ErrorCodeConstants.TASK_STATUS_
 @Service
 public class FarmSupplyOrderService {
 
-    @Resource
+    @Autowired
     private FarmSupplyOrderMapper orderMapper;
-    @Resource
+    @Autowired
     private FarmSupplyMapper supplyMapper;
-    @Resource
+    @Autowired
     private FarmMemberMapper memberMapper;
-    @Resource
+    @Autowired
     private FarmAssetMapper assetMapper;
-    @Resource
+    @Autowired
     private FarmInputRecordMapper inputRecordMapper;
 
     public PageResult<FarmSupplyOrderRespVO> page(FarmSupplyOrderPageReqVO req) {

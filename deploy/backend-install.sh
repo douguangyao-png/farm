@@ -92,7 +92,7 @@ After=network.target postgresql.service farm-redis.service
 WorkingDirectory=$B
 EnvironmentFile=$B/db.env
 EnvironmentFile=$B/redis.env
-ExecStart=$JAVA -Xms256m -Xmx768m -XX:+ExitOnOutOfMemoryError -jar $B/yudao-server.jar --spring.profiles.active=farm
+ExecStart=$JAVA -Xms256m -Xmx768m -XX:+ExitOnOutOfMemoryError -jar $B/yudao-server.jar --spring.profiles.active=farm --server.address=127.0.0.1 --spring.datasource.dynamic.druid.pool-prepared-statements=false --spring.datasource.dynamic.druid.max-pool-prepared-statement-per-connection-size=0
 Restart=on-failure
 RestartSec=10
 SuccessExitStatus=143

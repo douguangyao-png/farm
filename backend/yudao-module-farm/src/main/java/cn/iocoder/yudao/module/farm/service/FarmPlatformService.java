@@ -23,7 +23,7 @@ import cn.iocoder.yudao.module.system.dal.dataobject.tenant.TenantPackageDO;
 import cn.iocoder.yudao.module.system.service.tenant.TenantPackageService;
 import cn.iocoder.yudao.module.system.service.tenant.TenantService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import jakarta.annotation.Resource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -47,19 +47,19 @@ import static cn.iocoder.yudao.module.farm.service.FarmPlatformGuard.PLATFORM_TE
 @Service
 public class FarmPlatformService {
 
-    @Resource
+    @Autowired
     private FarmRiskAlertMapper riskAlertMapper;
-    @Resource
+    @Autowired
     private FarmOrderMapper orderMapper;
-    @Resource
+    @Autowired
     private FarmSupplyOrderMapper supplyOrderMapper;
-    @Resource
+    @Autowired
     private FarmAdoptionMapper adoptionMapper;
-    @Resource
+    @Autowired
     private FarmFeedbackMapper feedbackMapper;
-    @Resource
+    @Autowired
     private TenantService tenantService;
-    @Resource
+    @Autowired
     private TenantPackageService tenantPackageService;
 
     // ---------- 风控预警 ----------

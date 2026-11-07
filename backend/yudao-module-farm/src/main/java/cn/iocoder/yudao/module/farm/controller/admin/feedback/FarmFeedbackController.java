@@ -9,7 +9,7 @@ import cn.iocoder.yudao.module.farm.controller.admin.feedback.vo.FarmFeedbackRes
 import cn.iocoder.yudao.module.farm.controller.admin.feedback.vo.FarmFeedbackStatusReqVO;
 import cn.iocoder.yudao.module.farm.service.FarmFeedbackService;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.annotation.Resource;
+import org.springframework.beans.factory.annotation.Autowired;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,7 +29,7 @@ import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 @RequestMapping("/farm/feedback")
 public class FarmFeedbackController {
 
-    @Resource
+    @Autowired
     private FarmFeedbackService service;
 
     @PostMapping("/create")

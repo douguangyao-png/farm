@@ -18,7 +18,7 @@ import cn.iocoder.yudao.module.farm.dal.mysql.FarmAssetMapper;
 import cn.iocoder.yudao.module.farm.dal.mysql.FarmHarvestMapper;
 import cn.iocoder.yudao.module.farm.dal.mysql.FarmRecordMapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import jakarta.annotation.Resource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,15 +44,15 @@ public class FarmHarvestService {
     /** 采收日期按北京时间换算（与前端传来的「当天 0 点」毫秒时间戳对应，不受服务器时区影响） */
     private static final ZoneId ZONE = ZoneId.of("Asia/Shanghai");
 
-    @Resource
+    @Autowired
     private FarmHarvestMapper harvestMapper;
-    @Resource
+    @Autowired
     private FarmAdoptionMapper adoptionMapper;
-    @Resource
+    @Autowired
     private FarmAssetMapper assetMapper;
-    @Resource
+    @Autowired
     private FarmRecordMapper recordMapper;
-    @Resource
+    @Autowired
     private FarmViewLookup lookup;
 
     public PageResult<FarmHarvestRespVO> page(FarmHarvestPageReqVO req) {

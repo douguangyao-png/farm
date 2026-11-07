@@ -15,7 +15,7 @@ import cn.iocoder.yudao.module.farm.dal.dataobject.FarmRecordDO;
 import cn.iocoder.yudao.module.farm.dal.mysql.FarmAssetMapper;
 import cn.iocoder.yudao.module.farm.dal.mysql.FarmRecordMapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import jakarta.annotation.Resource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -35,11 +35,11 @@ public class FarmRecordService {
     /** 契约 1_030_000_006：状态已变化（提示语由调用处传入，与 mock 一致） */
     private static final ErrorCode RECORD_STATE = new ErrorCode(1_030_000_006, "{}");
 
-    @Resource
+    @Autowired
     private FarmRecordMapper recordMapper;
-    @Resource
+    @Autowired
     private FarmAssetMapper assetMapper;
-    @Resource
+    @Autowired
     private FarmViewLookup lookup;
 
     public PageResult<FarmRecordRespVO> page(FarmRecordPageReqVO req) {

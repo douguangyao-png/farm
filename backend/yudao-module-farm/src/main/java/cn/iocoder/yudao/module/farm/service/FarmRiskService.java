@@ -9,7 +9,7 @@ import cn.iocoder.yudao.module.farm.dal.mysql.FarmComplianceHitMapper;
 import cn.iocoder.yudao.module.farm.dal.mysql.FarmOrderMapper;
 import cn.iocoder.yudao.module.farm.dal.mysql.FarmSupplyOrderMapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import jakarta.annotation.Resource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -25,13 +25,13 @@ public class FarmRiskService {
     /** 与 mock-server/src/compliance.ts 的 SUGGESTION 一致 */
     public static final String SUGGESTION = "建议改为实物交付的说法，例如「约定交付 240 斤，不足部分按同等品质补发」";
 
-    @Resource
+    @Autowired
     private FarmBaseMapper baseMapper;
-    @Resource
+    @Autowired
     private FarmOrderMapper orderMapper;
-    @Resource
+    @Autowired
     private FarmSupplyOrderMapper supplyOrderMapper;
-    @Resource
+    @Autowired
     private FarmComplianceHitMapper complianceHitMapper;
 
     public Map<String, Object> selfCheck() {
