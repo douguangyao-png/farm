@@ -159,6 +159,29 @@ for i, m in enumerate(menus):
                             'component_name': m.get('componentName'), 'status': 0, 'visible': m.get('visible', True), 'keep_alive': m.get('keepAlive', True),
                             'always_show': m.get('alwaysShow', False), 'creator': 'admin'})
 
+# 文章（芋道商城自带页面的按钮权限：mall 模块没装，这里补上，页面上的 v-hasPermi 才会显示按钮）
+_btn_id = 190001
+for parent, prefix in ((204, 'promotion:article'), (205, 'promotion:article-category')):
+    for act in ('query', 'create', 'update', 'delete'):
+        insert('system_menu', {'id': mapmenu(_btn_id), 'name': f'{prefix}:{act}', 'permission': f'{prefix}:{act}', 'type': 3, 'sort': _btn_id,
+                                'parent_id': mapmenu(parent), 'path': '', 'icon': '', 'component': None, 'component_name': None, 'status': 0,
+                                'visible': True, 'keep_alive': True, 'always_show': False, 'creator': 'admin'})
+        _btn_id += 1
+
+# 芋道自带的按钮权限：只留本项目页面用到的，并挂到对应的页面菜单下（芋道会丢掉「父菜单不存在」的按钮，
+# 而它原来的父菜单（目录/菜单）已被上面删掉）。短信、OAuth、邮件等无关的按钮直接清掉。
+_keep = r'^(system:(user|role|dept|dict|tenant|tenant-package|permission)|system:menu:query)'
+lines.append(f"DELETE FROM system_role_menu WHERE menu_id IN (SELECT id FROM system_menu WHERE type = 3 AND id < {MENU_OFFSET} AND permission !~ '{_keep}');")
+lines.append(f"DELETE FROM system_menu WHERE type = 3 AND id < {MENU_OFFSET} AND permission !~ '{_keep}';")
+lines.append(f"""UPDATE system_menu SET parent_id = CASE
+  WHEN permission ~ '^system:user' THEN {mapmenu(201)}
+  WHEN permission ~ '^system:(role|permission|menu)' THEN {mapmenu(202)}
+  WHEN permission ~ '^system:dict' THEN {mapmenu(203)}
+  WHEN permission ~ '^system:dept' THEN {mapmenu(208)}
+  WHEN permission ~ '^system:tenant-package' THEN {mapmenu(103)}
+  ELSE {mapmenu(102)} END
+WHERE type = 3 AND id < {MENU_OFFSET};""")
+
 for d in load('depts'):
     insert('system_dept', {'id': d['id'], 'name': d['name'], 'parent_id': d['parentId'], 'sort': d['sort'], 'status': d['status'],
                             'creator': 'admin', 'tenant_id': d['tenantId']})
@@ -176,7 +199,10 @@ for r in load('roles'):
 # 经营者管理员（tenant_admin）不是芋道的「超级管理员」，权限校验要靠按钮权限：只授予用户 / 角色 / 部门相关的
 lines.append("INSERT INTO system_role_menu (id, role_id, menu_id, creator, tenant_id) "
              "SELECT 200000 + row_number() OVER (), r.id, m.id, 'admin', r.tenant_id FROM system_menu m, system_role r "
-             "WHERE r.code = 'tenant_admin' AND m.type = 3 AND m.permission ~ '^(system:user|system:role|system:dept|system:permission|system:menu:query)';")
+             "WHERE r.code = 'tenant_admin' AND m.type = 3 AND m.permission ~ '^(system:user|system:role|system:dept|system:permission|system:menu:query|promotion:article)';")
+lines.append("INSERT INTO system_role_menu (id, role_id, menu_id, creator, tenant_id) "
+             "SELECT 300000 + row_number() OVER (), r.id, m.id, 'admin', r.tenant_id FROM system_menu m, system_role r "
+             "WHERE r.code = 'super_admin' AND m.type = 3;")
 
 ur_id, stewards = 1, []
 for u in load('users'):

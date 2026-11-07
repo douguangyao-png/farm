@@ -35,6 +35,8 @@ location /farm-real/ {
     alias /opt/farmer-saas/web/admin-real/;
     try_files $uri $uri/ /farm-real/index.html;
 }
+# 只放行业务接口：芋道自带的 actuator、接口文档、druid 控制台、websocket 等调试入口一律 404（2026-11-07 实测它们经 nginx 对外可达）
+location ~ ^/farm-real-api/(?!(admin-api|app-api)/) { return 404; }
 location /farm-real-api/ {
     proxy_pass http://127.0.0.1:48080/;          # 末尾斜杠：去掉 /farm-real-api 前缀再转发
     include /etc/nginx/hp-proxy.inc;
