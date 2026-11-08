@@ -44,6 +44,16 @@
         </uni-easyinput>
       </uni-forms-item>
     </uni-forms>
+
+    <!-- farmer-saas: 演示账号（点一下自动填好；只在演示/真后端演示构建显示） -->
+    <view v-if="demoAccounts.length" class="demo-accounts">
+      <view class="demo-title">演示账号（点一下自动填好，密码 demo123）</view>
+      <view class="demo-list">
+        <view v-for="a in demoAccounts" :key="a.mobile" class="demo-item" @tap="useDemo(a)">
+          {{ a.label }} {{ a.mobile }}
+        </view>
+      </view>
+    </view>
   </view>
 </template>
 
@@ -77,6 +87,21 @@
     },
   });
 
+  // farmer-saas: 演示账号（种子 mock-server/seed/members.json）
+  const demoAccounts =
+    import.meta.env.SHOPRO_MOCK_BADGE === 'true' || import.meta.env.SHOPRO_DEMO_ACCOUNTS === 'true'
+      ? [
+          { label: '周女士 · 青山农场', mobile: '13800000001', password: 'demo123' },
+          { label: '陈先生 · 青山农场', mobile: '13800000002', password: 'demo123' },
+          { label: '王女士 · 青山农场', mobile: '13800000003', password: 'demo123' },
+          { label: '赵先生 · 绿野农庄', mobile: '13800000004', password: 'demo123' },
+        ]
+      : [];
+  function useDemo(a) {
+    state.model.mobile = a.mobile;
+    state.model.password = a.password;
+  }
+
   // 账号登录
   async function accountLoginSubmit() {
     // 表单验证
@@ -108,4 +133,25 @@
 
 <style lang="scss" scoped>
   @import '../index.scss';
+
+  .demo-accounts {
+    margin-top: 30rpx;
+    .demo-title {
+      font-size: 24rpx;
+      color: #999;
+      margin-bottom: 12rpx;
+    }
+    .demo-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12rpx;
+    }
+    .demo-item {
+      padding: 8rpx 20rpx;
+      font-size: 24rpx;
+      color: #2f7d4f;
+      border: 1rpx solid #2f7d4f;
+      border-radius: 30rpx;
+    }
+  }
 </style>

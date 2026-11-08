@@ -59,6 +59,21 @@
         登录
       </wd-button>
 
+      <!-- farmer-saas: 演示账号（点一下自动填好） -->
+      <view v-if="demoAccounts.length" class="mt-32rpx">
+        <view class="mb-12rpx text-24rpx text-[#999]">演示账号（点一下自动填好，密码 demo123）</view>
+        <view class="flex flex-wrap gap-12rpx">
+          <view
+            v-for="a in demoAccounts"
+            :key="a.username"
+            class="rounded-30rpx border border-[#1890ff] border-solid px-20rpx py-8rpx text-24rpx text-[#1890ff]"
+            @click="useDemoAccount(a)"
+          >
+            {{ a.label }} {{ a.username }}
+          </view>
+        </view>
+      </view>
+
       <!-- 第三方登录 -->
       <SocialLoginPanel
         v-if="!loginByUsername"
@@ -130,6 +145,18 @@ const formData = reactive({
   password: import.meta.env.DEV || import.meta.env.VITE_MOCK_BADGE === 'true' ? import.meta.env.VITE_APP_DEFAULT_LOGIN_PASSWORD || '' : '',
   captchaVerification: '', // 验证码校验值
 }) // 表单数据
+// farmer-saas: 演示账号（种子 mock-server/seed/users.json，kind=steward）
+const demoAccounts = import.meta.env.VITE_MOCK_BADGE === 'true' || import.meta.env.VITE_DEMO_ACCOUNTS === 'true'
+  ? [
+      { label: '张管家 · 青山农场', username: 'zhangguanjia', password: 'demo123' },
+      { label: '李管家 · 青山农场', username: 'liguanjia', password: 'demo123' },
+      { label: '吕管家 · 绿野农庄', username: 'lvguanjia', password: 'demo123' },
+    ]
+  : []
+function useDemoAccount(a: { username: string, password: string }) {
+  formData.username = a.username
+  formData.password = a.password
+}
 const socialBindingContext = ref<SocialLoginBindingContext>() // 待绑定的三方授权上下文
 const socialLoginLoading = ref(false) // 三方登录进行状态
 const authLoading = computed(() => loading.value || socialLoginLoading.value) // 任一登录流程进行状态

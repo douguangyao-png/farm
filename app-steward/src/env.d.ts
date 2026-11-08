@@ -39,6 +39,7 @@ interface ImportMetaEnv {
   readonly VITE_IM_RTC_MP_GATEWAY_URL?: string
   /** 显示「演示数据」角标、演示账号预填（认养农场 R-7） */
   readonly VITE_MOCK_BADGE?: 'true' | 'false'
+  readonly VITE_DEMO_ACCOUNTS?: 'true' | 'false'
   /** farmer-saas: 登录不选租户，按用户名确定租户 */
   readonly VITE_APP_LOGIN_BY_USERNAME?: string
   // 更多环境变量...
