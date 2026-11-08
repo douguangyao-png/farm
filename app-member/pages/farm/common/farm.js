@@ -35,7 +35,7 @@ export const ORDER_DELIVER_WAYS = [
 
 /** 首页金刚区 10 项（常量配置；只放已有目标页的入口） */
 export const HOME_ENTRIES = [
-  { label: '搜索', icon: '搜', url: '/pages/farm/search/index' },
+  { label: '预约到访', icon: '访', url: '/pages/farm/visit/index', auth: true },
   { label: '分类商城', icon: '商', url: '/pages/farm/mall/index' },
   { label: '找基地', icon: '基', url: '/pages/farm/base/list' },
   { label: '收藏', icon: '藏', url: '/pages/farm/favorite/list', auth: true },

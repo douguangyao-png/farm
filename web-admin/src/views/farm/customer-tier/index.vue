@@ -8,7 +8,7 @@
         </div>
       </div>
       <div>
-        <el-button type="primary" @click="notImp"
+        <el-button v-hasPermi="['farm:customertier:create']" type="primary" @click="notImp"
           ><Icon icon="ep:plus" class="mr-5px" />新建人群包</el-button
         >
       </div>
@@ -86,8 +86,8 @@
       </el-table-column>
       <el-table-column label="操作" width="130" align="center">
         <template #default="{ row }">
-          <el-button link type="primary" @click="notImp">推送</el-button>
-          <el-button link type="primary" @click="openPack(row)">明细</el-button>
+          <el-button v-hasPermi="['farm:customertier:push']" link type="primary" @click="notImp">推送</el-button>
+          <el-button v-hasPermi="['farm:customertier:query']" link type="primary" @click="openPack(row)">明细</el-button>
         </template>
       </el-table-column>
     </el-table>

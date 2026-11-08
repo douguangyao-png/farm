@@ -8,9 +8,9 @@
         </div>
       </div>
       <div>
-        <el-button @click="notImp">导出名单</el-button>
-        <el-button @click="notImp">批量打标签</el-button>
-        <el-button type="primary" @click="notImp"
+        <el-button v-hasPermi="['farm:customer:export']" @click="notImp">导出名单</el-button>
+        <el-button v-hasPermi="['farm:customer:update']" @click="notImp">批量打标签</el-button>
+        <el-button v-hasPermi="['farm:customer:create']" type="primary" @click="notImp"
           ><Icon icon="ep:plus" class="mr-5px" />新增客户</el-button
         >
       </div>
@@ -127,9 +127,9 @@
       </el-table-column>
       <el-table-column label="操作" width="170" align="center" fixed="right">
         <template #default>
-          <el-button link type="primary" @click="notImp">档案</el-button>
-          <el-button link type="primary" @click="notImp">发消息</el-button>
-          <el-button link type="primary" @click="notImp">关怀</el-button>
+          <el-button v-hasPermi="['farm:customer:query']" link type="primary" @click="notImp">档案</el-button>
+          <el-button v-hasPermi="['farm:customer:message']" link type="primary" @click="notImp">发消息</el-button>
+          <el-button v-hasPermi="['farm:customer:care']" link type="primary" @click="notImp">关怀</el-button>
         </template>
       </el-table-column>
     </el-table>

@@ -176,7 +176,7 @@ createTime
 | 方法 | 路径 | 说明 |
 |---|---|---|
 | GET/POST/PUT | `/admin-api/farm/supply/page|get|create|update` | 字段 `id, name, cat, cover, price, cost, stock, unit, spec, fitModes[], batchNo, retailAllowed, needWorkorder, status, sold, description`。`cat = pesticide` 时服务端强制 `retailAllowed=false, needWorkorder=true` |
-| GET | `/admin-api/farm/supply-order/page` | 字段 `id, no, memberName, adoptionId, assetCode, spuId, spuName, cat, qty, amount, deliverWay, batchNo, traceState, createTime` |
+| GET | `/admin-api/farm/supply-order/page` | 字段 `id, no, memberName, adoptionId, assetCode, spuId, spuName, cat, qty, amount, deliverWay, receiverName, receiverMobile, address, batchNo, traceState, createTime` |
 | PUT | `/admin-api/farm/supply-order/trace` | `{ id, usedAt, dosage }` 登记施用，`traceState → 10`，并写一条投入品记录 |
 
 2026-11-07 对齐原型 08，`supply/page` 与 `supply-order/page` 返回 `{ list, total, stats }`（mock：`farm/stats.ts supplyPage / supplyOrderPage`；Java：`FarmSupplyService.page` / `FarmSupplyOrderService.page`，返回类型 `FarmFulfillPage`）。以下是新增部分，原有字段不变：
@@ -240,7 +240,7 @@ createTime
 | 方法 | 路径 | 登录 | 说明 |
 |---|---|---|---|
 | GET | `/farm/home` | 否 | `banners[{ image, title, url }]`、`bases[{ id, name, cover, live: boolean }]`、`products[]`（上架商品摘要：`id, title, cover, minPrice, basePrice, sold, stock, careModes[mode]`）、`notices[{ title }]` |
-| GET | `/farm/product/get?id=` | 否 | 和后台 2.4 字段一致，另加 `base{ name, address, certNo }`、`compareRows[{ item, full, semi, self }]`（托管对比） |
+| GET | `/farm/product/get?id=` | 否 | 和后台 2.4 字段一致，另加 `base{ name, address, certNo }`、`compareRows[{ item, full, semi, self }]`（托管对比）、`supplyPackages[{ mode, items[{ id, name, cat, price, unit, recommended }] }]`（商品每个已配置托管方式的农资套餐，口径同后台 `hosting-config` 的 `modes[].supplyPackage`：在售且可零售、适配该方式、按品类排序、第一个 `recommended`；`full` 为空数组；只做展示，不改下单金额） |
 | POST | `/farm/order/create` | 是 | `{ productId, careMode, contractAgreed, receiverName, receiverMobile, address, deliverWay }`（`deliverWay`：`cold` 冷链快递到家 / `pickup` 基地自提 / `monthly` 月度集中配送，演示口径，只接收不落库）。未勾选合同 → `1_030_000_001`；商品下架/该档未开放 → 400。返回 `{ id, no, amount }`，状态待付款 |
 | POST | `/farm/order/pay` | 是 | `{ id }` 模拟支付：状态 → 认养中，绑定一个空闲资产，生成认养关系；按托管方式生成自管任务（全托管 0 项、半托管 2 项、不托管 5 项）和管家任务。返回 `{ orderId, adoptionId }`。错误 `1_030_000_002`、`1_030_000_003` |
 | GET | `/farm/order/get?id=` | 是 | 订单字段（同 2.7 订单，含 `payMethod`、`promisedJin`、`harvestedJin`、`progress`）+ `contract{ no, version, title, agreed, signedAt }`，2026-11-07 新增认养摘要（未支付时 `adoptionNo/adoptionStatus/startAt/endAt/areaM2/insuranceNo/traceCode` 为 null，`shipmentCount` 为 0，`assetName/stewardName/stewardMobile` 为空串）：`adoptionNo`（演示口径 `A{年}-{认养 id 补 4 位}`）、`adoptionStatus`、`startAt`、`endAt`（服务周期）、`shipmentCount`（该认养已有配送单数）、`assetName`、`areaM2`、`stewardName`、`stewardMobile`（脱敏）、`insuranceNo`（演示保单号 `PICC-{年}-{订单 id 补 4 位}`）、`traceCode`（演示溯源码 `TR`+订单号去掉前两位）。用于支付结果页 |
@@ -256,8 +256,8 @@ createTime
 | POST | `/farm/self-task/entrust` | 是 | `{ id }` 委托管家代办：生成一张待接单的代管工单（价格取 `entrustPrice`），任务状态 → 已委托（R-5）。返回 `{ serviceOrderId, no }` |
 | GET | `/farm/supply/list?cat=` | 否 | 只返回 `retailAllowed=true` 且上架的 |
 | GET | `/farm/supply/get?id=` | 否 | 单个 |
-| POST | `/farm/supply-order/create` | 是 | `{ spuId, qty, adoptionId, deliverWay }`。没有 `adoptionId` → `1_030_000_004`；`retailAllowed=false` → `1_030_000_005`；`qty < 1` 或超库存 → 400。生成后 `traceState=0` |
-| GET | `/farm/supply-order/list` | 是 | 我的农资 |
+| POST | `/farm/supply-order/create` | 是 | `{ spuId, qty, adoptionId, deliverWay, receiverName?, receiverMobile?, address? }`。`deliverWay=express` 时 `receiverName`、`receiverMobile`（11 位数字）、`address` 三项必填，缺或手机号不是 11 位 → 400；`store/pickup/apply` 可不传（落库为空串）。没有 `adoptionId` → `1_030_000_004`；`retailAllowed=false` → `1_030_000_005`；`qty < 1` 或超库存 → 400。生成后 `traceState=0` |
+| GET | `/farm/supply-order/list` | 是 | 我的农资（含 `receiverName, receiverMobile, address`） |
 | GET | `/farm/shipment/list?adoptionId=` | 是 | 收获配送：同 2.9 shipment 字段 |
 | POST | `/farm/shipment/confirm` | 是 | `{ id }` 确认收货（认养详情「收获配送」页签）。只有属于当前会员的配送单；不是自己的/不存在 → 404；状态不是运输中（10）→ `1_030_000_002`「只有运输中的配送单能确认签收」。成功后状态 → 已签收（20），追加一条轨迹「已签收，签收人：xxx」，与后台 `PUT /shipment/sign` 逻辑一致。返回 `true` |
 
@@ -284,7 +284,7 @@ createTime
 | GET `/app-api/farm/refund/list` | - | 我的退款单数组，字段同上 | 新的在前 |
 | GET `/app-api/farm/refund/preview?orderId=` | `orderId` | `orderId, orderNo, canApply, orderStatus, amount, elapsedRate, investDeduct, deliverDeduct, deduct, refundAmount` | 退款页试算；别人的订单 404 |
 
-备注：C 端登记（C端.md）按 0 待审核 / 10 已同意 / 20 已退款 / 30 已驳回四档显示退款状态，与 A 和 mock 的三档（0 / 10 已通过 / 20 已驳回）不一致，以 A 和 mock 为准，C 端页面需对齐 [待对齐]。订单 `status` 会出现 40/50，C 端订单为 50 时 `adoptionStatus=30`；2.5 合同台账 50 按「已解除」（`contractStatusOf` 需同步，主线程跟进项）。
+备注：C 端退款状态已对齐为三档 0 待审核 / 10 已同意（后台称已通过）/ 20 已驳回（2026-11-08，order/list.vue、refund/apply.vue），驳回的退款单不挡再次申请。订单 `status` 会出现 40/50，C 端订单为 50 时 `adoptionStatus=30`；2.5 合同台账 50 按「已解除」（`contractStatusOf` 需同步，主线程跟进项）。
 
 ### 6.2 客户、分层、管家管理（A，全部只读，经营者）
 

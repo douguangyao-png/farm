@@ -130,7 +130,43 @@ public class FarmAppBrowseService {
             v.setBase(b);
         }
         v.setCompareRows(compareRows(p.getCareModes()));
+        v.setSupplyPackages(supplyPackages(p.getCareModes()));
         return v;
+    }
+
+    private static final List<String> CAT_ORDER = java.util.Arrays.asList("seed", "fert", "tool", "bio", "svc", "ins");
+
+    /** 农资套餐：口径同后台 hosting-config 的 modes[].supplyPackage（在售、可零售、适配该托管方式，按品类排序，第一个推荐；full 为空） */
+    private List<Map<String, Object>> supplyPackages(List<Map<String, Object>> modes) {
+        List<Map<String, Object>> out = new ArrayList<>();
+        if (modes == null || modes.isEmpty()) return out;
+        List<FarmSupplyDO> supplies = supplyMapper.selectList(new LambdaQueryWrapper<FarmSupplyDO>().orderByAsc(FarmSupplyDO::getId)).stream()
+                .filter(s -> s.getStatus() != null && s.getStatus() == 0 && !Boolean.FALSE.equals(s.getRetailAllowed())).collect(Collectors.toList());
+        for (Map<String, Object> c : modes) {
+            String mode = String.valueOf(c.get("mode"));
+            List<Map<String, Object>> items = new ArrayList<>();
+            if (!"full".equals(mode)) {
+                List<FarmSupplyDO> fit = supplies.stream().filter(s -> s.getFitModes() != null && s.getFitModes().contains(mode))
+                        .sorted(java.util.Comparator.comparingInt((FarmSupplyDO s) -> CAT_ORDER.indexOf(s.getCat())).thenComparing(FarmSupplyDO::getId))
+                        .collect(Collectors.toList());
+                for (int i = 0; i < fit.size(); i++) {
+                    FarmSupplyDO s = fit.get(i);
+                    Map<String, Object> it = new LinkedHashMap<>();
+                    it.put("id", s.getId());
+                    it.put("name", s.getName());
+                    it.put("cat", s.getCat());
+                    it.put("price", s.getPrice());
+                    it.put("unit", s.getUnit());
+                    it.put("recommended", i == 0);
+                    items.add(it);
+                }
+            }
+            Map<String, Object> pk = new LinkedHashMap<>();
+            pk.put("mode", mode);
+            pk.put("items", items);
+            out.add(pk);
+        }
+        return out;
     }
 
     /** 托管对比表：以第一档的责任清单为行，每个档位一列（mock：farm-app.ts 42–45 行） */

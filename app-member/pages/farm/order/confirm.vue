@@ -51,7 +51,23 @@
         <view class="f-kv"><text class="k">农资套餐</text><text class="v">{{ packageName }}</text></view>
       </view>
 
+      <!-- 推荐农资套餐：单独的农资订单，不并入认养金额 -->
+      <view class="f-card" v-if="supplyItems.length">
+        <view class="f-title">推荐农资套餐<text class="f-more">农资单独结算</text></view>
+        <view class="ship" v-for="it in supplyItems" :key="it.id">
+          <view>
+            <view class="ship-name">{{ it.name }}<text class="f-tag orange" v-if="it.recommended">推荐</text></view>
+            <view class="f-sub">{{ yuan(it.price) }}<text v-if="it.unit">/{{ it.unit }}</text></view>
+          </view>
+          <text class="f-more" @tap="goSupply(it)">去结算 ›</text>
+        </view>
+      </view>
+
       <!-- 收货人：快递到家必填；自提 / 基地配送不需要地址 -->
+      <view class="f-card">
+        <view class="f-sub">下单时记录大致位置，用于服务核验（可拒绝，不影响下单）</view>
+      </view>
+
       <view class="f-card">
         <view class="f-title">收货信息<text class="f-more" v-if="needAddress" @tap="pickAddress">选择地址 ›</text><text class="f-more" v-else>当前交付方式无需收货地址</text></view>
         <view class="field">
@@ -162,6 +178,11 @@
   const mode = computed(() => p.value?.careModes.find((m) => m.mode === modeKey.value && m.enabled));
   const contractName = computed(() => (mode.value ? contractTitle(mode.value.mode, mode.value.contractVersion) : ''));
   const needNotice = computed(() => mode.value && mode.value.mode !== 'full');
+  const supplyItems = computed(() => {
+    if (!mode.value || mode.value.mode === 'full') return [];
+    const pk = (p.value?.supplyPackages || []).find((x) => x.mode === mode.value.mode);
+    return pk?.items || [];
+  });
 
   const docText = computed(() => {
     const m = mode.value;
@@ -205,6 +226,45 @@
     agreed.value = true;
   }
 
+  // 取大致位置：3 秒超时，拒绝或失败返回 null，不阻塞下单
+  function getLoc() {
+    return new Promise((resolve) => {
+      let done = false;
+      const fin = (v) => {
+        if (!done) {
+          done = true;
+          resolve(v);
+        }
+      };
+      setTimeout(() => fin(null), 3000);
+      try {
+        uni.getLocation({
+          type: 'wgs84',
+          success: (r) => fin(r && typeof r.longitude === 'number' ? { lng: r.longitude, lat: r.latitude } : null),
+          fail: () => {
+            try {
+              if (typeof navigator !== 'undefined' && navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                  (pos) => fin({ lng: pos.coords.longitude, lat: pos.coords.latitude }),
+                  () => fin(null),
+                  { timeout: 2800 },
+                );
+              } else fin(null);
+            } catch (e) {
+              fin(null);
+            }
+          },
+        });
+      } catch (e) {
+        fin(null);
+      }
+    });
+  }
+
+  function goSupply(it) {
+    sheep.$router.go('/pages/farm/supply/checkout', { id: it.id, qty: 1 });
+  }
+
   async function submit() {
     if (!agreed.value) {
       sheep.$helper.toast('请先阅读并勾选认养合同');
@@ -219,8 +279,11 @@
         if (!/^1\d{10}$/.test(form.receiverMobile)) return sheep.$helper.toast('请填写 11 位手机号');
         if (!form.address.trim()) return sheep.$helper.toast('请填写或选择收货地址');
       }
+      const loc = await getLoc();
       const data = await call(
         FarmApi.createOrder({
+          ...(loc ? { lng: loc.lng, lat: loc.lat } : {}),
+          gpsText: needAddress.value ? form.address : '',
           productId: p.value.id,
           careMode: mode.value.mode,
           contractAgreed: true,

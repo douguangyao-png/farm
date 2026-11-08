@@ -7,7 +7,7 @@
         微信订阅消息 + 短信 + App 推送；触发时机由业务事件驱动（演示版只维护模板，不真实下发）
       </div>
     </div>
-    <el-button type="primary" @click="openForm()">
+    <el-button v-hasPermi="['farm:msgtemplate:create']" type="primary" @click="openForm()">
       <Icon icon="ep:plus" class="mr-5px" />新建模板
     </el-button>
   </div>
@@ -49,9 +49,9 @@
       </el-table-column>
       <el-table-column label="操作" width="210" align="center" fixed="right">
         <template #default="{ row }">
-          <el-button link type="primary" @click="openForm(row)">编辑</el-button>
-          <el-button link type="primary" :disabled="row.status !== 0" @click="testSend(row)">测试发送</el-button>
-          <el-button link :type="row.status === 0 ? 'danger' : 'primary'" @click="toggleStatus(row)">
+          <el-button v-hasPermi="['farm:msgtemplate:update']" link type="primary" @click="openForm(row)">编辑</el-button>
+          <el-button v-hasPermi="['farm:msgtemplate:send']" link type="primary" :disabled="row.status !== 0" @click="testSend(row)">测试发送</el-button>
+          <el-button v-hasPermi="['farm:msgtemplate:update']" link :type="row.status === 0 ? 'danger' : 'primary'" @click="toggleStatus(row)">
             {{ row.status === 0 ? '停用' : '启用' }}
           </el-button>
         </template>
@@ -100,7 +100,7 @@
       </el-form-item>
     </el-form>
     <template #footer>
-      <el-button type="primary" :loading="formLoading" @click="submitForm">保 存</el-button>
+      <el-button v-hasPermi="['farm:msgtemplate:update']" type="primary" :loading="formLoading" @click="submitForm">保 存</el-button>
       <el-button @click="dialogVisible = false">取 消</el-button>
     </template>
   </Dialog>

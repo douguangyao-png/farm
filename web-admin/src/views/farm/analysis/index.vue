@@ -14,7 +14,7 @@
           <el-radio-button :value="30">近 30 天</el-radio-button>
           <el-radio-button :value="90">近 90 天</el-radio-button>
         </el-radio-group>
-        <el-button @click="message.info('演示版暂未开放')">导出报表</el-button>
+        <el-button v-hasPermi="['farm:analysis:export']" @click="message.info('演示版暂未开放')">导出报表</el-button>
       </div>
     </div>
 

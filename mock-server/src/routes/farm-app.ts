@@ -1,5 +1,5 @@
 import { Router, type Request } from 'express'
-import { getDb, nextId, placeholderImage, type Adoption, type CareMode, type Order } from '../store.js'
+import { getDb, nextId, placeholderImage, type Adoption, type CareMode, type Order, type Product } from '../store.js'
 import { ok, fail, requireLogin } from '../http.js'
 import { BIZ, q, byNewest, browseTenant, currentMember, own, notFound, badRequest, envView, makeNo, maskMobile, CARE_MODE_NAME } from '../farm/common.js'
 import { productView, orderView, contractOf, adoptionView, adoptionDetail, recordView, supplyOrderView, shipmentView } from '../farm/views.js'
@@ -34,6 +34,18 @@ farmAppRouter.get('/home', (req, res) => {
   })
 })
 
+/** 按托管方式给出农资套餐（口径同后台 hosting-config 的 modes[].supplyPackage；full 为空数组） */
+function supplyPackagesOf(p: Product, t: number) {
+  const order = ['seed', 'fert', 'tool', 'bio', 'svc', 'ins']
+  const supplies = db().supplies.filter((s) => s.tenantId === t && s.status === 0 && s.retailAllowed !== false)
+  return p.careModes.map((c) => ({
+    mode: c.mode,
+    items: c.mode === 'full' ? [] : supplies.filter((s) => s.fitModes.includes(c.mode))
+      .sort((a, b) => order.indexOf(a.cat) - order.indexOf(b.cat) || a.id - b.id)
+      .map((s, i) => ({ id: s.id, name: s.name, cat: s.cat, price: s.price, unit: s.unit, recommended: i === 0 }))
+  }))
+}
+
 farmAppRouter.get('/product/get', (req, res) => {
   const t = needTenant(req)
   const p = t ? own(db().products, req.query.id, t) : undefined
@@ -43,7 +55,7 @@ farmAppRouter.get('/product/get', (req, res) => {
     item: d.item,
     ...Object.fromEntries(p.careModes.map((m) => [m.mode, m.enabled ? (m.duty[i]?.owner === 'member' ? '您来做' : '农场做') : '—']))
   }))
-  return ok(res, { ...productView(p), base: base ? { name: base.name, address: base.address, certNo: base.certNo } : null, compareRows: rows })
+  return ok(res, { ...productView(p), base: base ? { name: base.name, address: base.address, certNo: base.certNo } : null, compareRows: rows, supplyPackages: supplyPackagesOf(p, t!) })
 })
 
 farmAppRouter.get('/supply/list', (req, res) => {
@@ -286,10 +298,20 @@ farmAppRouter.post('/supply-order/create', login, (req, res) => {
   const qty = Number(b.qty)
   if (!Number.isInteger(qty) || qty < 1) return badRequest(res, '数量至少 1 件')
   if (qty > spu.stock) return badRequest(res, `库存只剩 ${spu.stock} 件`)
+  // 快递到家（express）必须填收货信息；其它方式可空
+  const deliverWay = ['store', 'express', 'pickup', 'apply'].includes(b.deliverWay) ? b.deliverWay : 'store'
+  const receiverName = String(b.receiverName ?? '').trim().slice(0, 32)
+  const receiverMobile = String(b.receiverMobile ?? '').trim()
+  const address = String(b.address ?? '').trim().slice(0, 200)
+  if (deliverWay === 'express') {
+    if (!receiverName) return badRequest(res, '请填写收货人')
+    if (!/^\d{11}$/.test(receiverMobile)) return badRequest(res, '请填写 11 位手机号')
+    if (!address) return badRequest(res, '请填写收货地址')
+  }
   const now = Date.now()
   const o = { id: nextId(db().supplyOrders), tenantId: m.tenantId, no: makeNo('NZ'), memberId: m.id, adoptionId: ad.id, assetId: ad.assetId, spuId: spu.id, qty, amount: spu.price * qty,
-    deliverWay: ['store', 'express', 'pickup', 'apply'].includes(b.deliverWay) ? b.deliverWay : 'store', batchNo: spu.batchNo,
-    traceState: spu.cat === 'svc' || spu.cat === 'ins' ? 10 : 0, usedAt: null, dosage: null, createTime: now }
+    deliverWay, batchNo: spu.batchNo,
+    traceState: spu.cat === 'svc' || spu.cat === 'ins' ? 10 : 0, usedAt: null, dosage: null, receiverName, receiverMobile, address, createTime: now }
   db().supplyOrders.push(o)
   spu.stock -= qty
   spu.sold += qty

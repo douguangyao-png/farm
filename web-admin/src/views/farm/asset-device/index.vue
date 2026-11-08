@@ -11,8 +11,8 @@
       </div>
     </div>
     <div class="flex gap-8px">
-      <el-button @click="message.info('演示版暂未开放')">查看接入文档</el-button>
-      <el-button type="primary" @click="openCreate">
+      <el-button v-hasPermi="['farm:assetdevice:query']" @click="message.info('演示版暂未开放')">查看接入文档</el-button>
+      <el-button v-hasPermi="['farm:assetdevice:create']" type="primary" @click="openCreate">
         <Icon icon="ep:plus" class="mr-5px" />添加设备
       </el-button>
     </div>
@@ -64,9 +64,9 @@
       <el-table-column label="固件" prop="firmware" width="90" />
       <el-table-column label="操作" width="170" align="center" fixed="right">
         <template #default="{ row }">
-          <el-button link type="primary" @click="openConfig(row)">配置</el-button>
-          <el-button link type="primary" @click="message.info('演示版暂未开放录像回放')">回放</el-button>
-          <el-button
+          <el-button v-hasPermi="['farm:assetdevice:update']" link type="primary" @click="openConfig(row)">配置</el-button>
+          <el-button v-hasPermi="['farm:assetdevice:query']" link type="primary" @click="message.info('演示版暂未开放录像回放')">回放</el-button>
+          <el-button v-hasPermi="['farm:assetdevice:update']"
             v-if="row.status === 'offline' && !row.dispatched"
             link
             type="danger"
@@ -129,7 +129,7 @@
       </div>
     </el-form>
     <template #footer>
-      <el-button type="primary" :loading="formLoading" @click="submitCreate">确 定</el-button>
+      <el-button v-hasPermi="['farm:assetdevice:create']" type="primary" :loading="formLoading" @click="submitCreate">确 定</el-button>
       <el-button @click="createVisible = false">取 消</el-button>
     </template>
   </Dialog>
@@ -140,7 +140,7 @@
       <el-form-item label="固件版本"><el-input v-model="configForm.firmware" /></el-form-item>
     </el-form>
     <template #footer>
-      <el-button type="primary" :loading="formLoading" @click="submitConfig">保 存</el-button>
+      <el-button v-hasPermi="['farm:assetdevice:update']" type="primary" :loading="formLoading" @click="submitConfig">保 存</el-button>
       <el-button @click="configVisible = false">取 消</el-button>
     </template>
   </Dialog>

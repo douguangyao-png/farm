@@ -186,6 +186,21 @@ P1C_BTNS = [_btn(pid * 100 + i + 1, pid, _A[a], f'farm:{mod}:{a}')
             for pid, mod, acts in P1C_PAGES for i, a in enumerate(acts)]
 for pid, _mod, _acts in P1C_PAGES:
     EXTRA_MENUS.append((pid, [b for b in P1C_BTNS if b['parentId'] == pid]))
+
+# 第二期后台页的按钮级权限：query/create/update/delete/export/approve 已在 mock 菜单里有的不重复；这里只补缺的。
+# 增量 SQL：backend/sql/postgresql/farm-p2c-perm.sql
+P2C_NEW = [
+    (335, 'refund', 'contact', '联系客户', 4),
+    (361, 'customer', 'create', '新增', 4),
+    (361, 'customer', 'message', '发消息', 5),
+    (361, 'customer', 'care', '关怀', 6),
+    (362, 'customertier', 'push', '推送', 5),
+    (363, 'stewardmanage', 'dispatch', '派单', 5),
+    (209, 'msgtemplate', 'send', '测试发送', 5),
+]
+P2C_BTNS = [_btn(pid * 100 + n, pid, lbl, f'farm:{mod}:{act}') for pid, mod, act, lbl, n in P2C_NEW]
+for pid in sorted({b['parentId'] for b in P2C_BTNS}):
+    EXTRA_MENUS.append((pid, [b for b in P2C_BTNS if b['parentId'] == pid]))
 EXTRA_IDS = [m['id'] for _, ms in EXTRA_MENUS for m in ms]
 
 packages = load('tenantPackages')
@@ -296,30 +311,35 @@ lines.append('COMMIT;')
 
 OUT.write_text('\n'.join(lines) + '\n', encoding='utf-8', newline='\n')
 
-# ---------- 增量 SQL：第一期按钮权限（可重复执行，只 INSERT / 追加，不删数据） ----------
-_ids = [b['id'] + MENU_OFFSET for b in P1C_BTNS]
-_arr = 'ARRAY[' + ', '.join(str(i) for i in _ids) + ']::bigint[]'
-inc = ['-- 由 deploy/tools/gen-farm-seed.py 生成，不要手改。第一期页面按钮级权限（type=3）的增量脚本，可重复执行：',
-       '--   1) 新增按钮菜单（已存在的 id 跳过）；2) 授予所有 tenant_admin 角色（已有的跳过）；3) 追加进所有租户套餐的 menu_ids（已含的跳过）。',
-       f'-- 共 {len(_ids)} 个按钮，菜单 id {min(_ids)}~{max(_ids)}（含 +{MENU_OFFSET} 偏移）。', 'BEGIN;']
-for b in P1C_BTNS:
-    inc.append("INSERT INTO system_menu (id, name, permission, type, sort, parent_id, path, icon, component, component_name, status, visible, keep_alive, always_show, creator) "
-               f"VALUES ({mapmenu(b['id'])}, {lit(b['name'])}, {lit(b['permission'])}, 3, {b['id'] % 100}, {mapmenu(b['parentId'])}, '', '', NULL, NULL, 0, true, true, false, 'admin') "
-               "ON CONFLICT (id) DO NOTHING;")
-inc.append(f"""INSERT INTO system_role_menu (id, role_id, menu_id, creator, tenant_id)
+# ---------- 增量 SQL：按钮权限（可重复执行，只 INSERT / 追加，不删数据） ----------
+def write_inc(btns, fname, title):
+    _ids = [b['id'] + MENU_OFFSET for b in btns]
+    _arr = 'ARRAY[' + ', '.join(str(i) for i in _ids) + ']::bigint[]'
+    inc = [f'-- 由 deploy/tools/gen-farm-seed.py 生成，不要手改。{title}按钮级权限（type=3）的增量脚本，可重复执行：',
+           '--   1) 新增按钮菜单（已存在的 id 跳过）；2) 授予所有 tenant_admin 角色（已有的跳过）；3) 追加进所有租户套餐的 menu_ids（已含的跳过）。',
+           f'-- 共 {len(_ids)} 个按钮，菜单 id {min(_ids)}~{max(_ids)}（含 +{MENU_OFFSET} 偏移）。', 'BEGIN;']
+    for b in btns:
+        inc.append("INSERT INTO system_menu (id, name, permission, type, sort, parent_id, path, icon, component, component_name, status, visible, keep_alive, always_show, creator) "
+                   f"VALUES ({mapmenu(b['id'])}, {lit(b['name'])}, {lit(b['permission'])}, 3, {b['id'] % 100}, {mapmenu(b['parentId'])}, '', '', NULL, NULL, 0, true, true, false, 'admin') "
+                   "ON CONFLICT (id) DO NOTHING;")
+    inc.append(f"""INSERT INTO system_role_menu (id, role_id, menu_id, creator, tenant_id)
 SELECT nextval('system_role_menu_seq'), r.id, m.id, 'admin', r.tenant_id
 FROM system_role r CROSS JOIN unnest({_arr}) AS m(id)
 WHERE r.code = 'tenant_admin' AND r.deleted = 0
   AND EXISTS (SELECT 1 FROM system_menu x WHERE x.id = m.id)
   AND NOT EXISTS (SELECT 1 FROM system_role_menu e WHERE e.role_id = r.id AND e.menu_id = m.id AND e.deleted = 0);""")
-inc.append(f"""UPDATE system_tenant_package p
+    inc.append(f"""UPDATE system_tenant_package p
 SET menu_ids = (p.menu_ids::jsonb || (SELECT COALESCE(jsonb_agg(i), '[]'::jsonb) FROM unnest({_arr}) AS i WHERE NOT (p.menu_ids::jsonb @> to_jsonb(i))))::text
 WHERE p.deleted = 0;""")
-inc.append("SELECT setval('system_role_menu_seq', GREATEST((SELECT COALESCE(MAX(id), 0) FROM system_role_menu) + 1, nextval('system_role_menu_seq')), false);")
-inc.append('COMMIT;')
-INC_OUT = OUT.with_name('farm-p1c-perm.sql')
-INC_OUT.write_text(chr(10).join(inc) + chr(10), encoding='utf-8', newline=chr(10))
-print(f'写出 {INC_OUT}，{len(P1C_BTNS)} 个按钮')
+    inc.append("SELECT setval('system_role_menu_seq', GREATEST((SELECT COALESCE(MAX(id), 0) FROM system_role_menu) + 1, nextval('system_role_menu_seq')), false);")
+    inc.append('COMMIT;')
+    out = OUT.with_name(fname)
+    out.write_text(chr(10).join(inc) + chr(10), encoding='utf-8', newline=chr(10))
+    print(f'写出 {out}，{len(btns)} 个按钮')
+
+
+write_inc(P1C_BTNS, 'farm-p1c-perm.sql', '第一期页面')
+write_inc(P2C_BTNS, 'farm-p2c-perm.sql', '第二期页面')
 
 print(f'写出 {OUT}，{len(lines)} 行；密码哈希 {len(PW_HASH)} 种')
 if dropped:

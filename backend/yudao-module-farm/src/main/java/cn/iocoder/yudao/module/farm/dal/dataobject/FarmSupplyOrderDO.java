@@ -30,4 +30,7 @@ public class FarmSupplyOrderDO extends TenantBaseDO {
     private Integer traceState;
     private LocalDateTime usedAt;
     private String dosage;
+    private String receiverName;
+    private String receiverMobile;
+    private String address;
 }

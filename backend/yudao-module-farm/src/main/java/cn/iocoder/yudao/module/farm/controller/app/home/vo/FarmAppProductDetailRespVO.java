@@ -14,4 +14,6 @@ public class FarmAppProductDetailRespVO extends FarmProductRespVO {
     private Map<String, Object> base;
     /** [{ item, full, semi, self }]：每项对应各托管档位「您来做 / 农场做 / —」 */
     private List<Map<String, Object>> compareRows;
+    /** [{ mode, items:[{id,name,cat,price,unit,recommended}] }]：每个已配置托管方式的农资套餐；full 为空数组 */
+    private List<Map<String, Object>> supplyPackages;
 }

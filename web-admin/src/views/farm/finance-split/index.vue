@@ -11,7 +11,7 @@
           多方合作场景（农户 / 合作社 / 平台 / 渠道）下的自动分账规则；规则由支付机构执行，未接入真实分账
         </div>
       </div>
-      <el-button type="primary" @click="message.info('演示版暂未开放')">
+      <el-button v-hasPermi="['farm:financesplit:create']" type="primary" @click="message.info('演示版暂未开放')">
         <Icon icon="ep:plus" class="mr-5px" />新增分账方
       </el-button>
     </div>

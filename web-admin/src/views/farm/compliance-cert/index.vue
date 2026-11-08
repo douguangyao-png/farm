@@ -8,7 +8,7 @@
           到期前 30 天自动提醒；未上传必备证照将限制商品上架
         </div>
       </div>
-      <el-button type="primary" @click="openForm">
+      <el-button v-hasPermi="['farm:compliancecert:create']" type="primary" @click="openForm">
         <Icon icon="ep:upload" class="mr-5px" />上传证照
       </el-button>
     </div>
@@ -81,7 +81,7 @@
         </el-table-column>
         <el-table-column label="操作" width="100" align="center">
           <template #default="{ row }">
-            <el-button link type="primary" @click="showDetail(row)">查看</el-button>
+            <el-button v-hasPermi="['farm:compliancecert:query']" link type="primary" @click="showDetail(row)">查看</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -154,7 +154,7 @@
       </div>
     </el-form>
     <template #footer>
-      <el-button type="primary" :loading="formLoading" @click="submitForm">提 交</el-button>
+      <el-button v-hasPermi="['farm:compliancecert:create']" type="primary" :loading="formLoading" @click="submitForm">提 交</el-button>
       <el-button @click="dialogVisible = false">取 消</el-button>
     </template>
   </Dialog>

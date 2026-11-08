@@ -12,8 +12,8 @@
         </div>
       </div>
       <div class="flex gap-8px">
-        <el-button @click="message.info('演示版暂未开放')">批量配置</el-button>
-        <el-button type="primary" @click="router.push('/farm-product/asset-device')">
+        <el-button v-hasPermi="['farm:camera:update']" @click="message.info('演示版暂未开放')">批量配置</el-button>
+        <el-button v-hasPermi="['farm:assetdevice:create']" type="primary" @click="router.push('/farm-product/asset-device')">
           <Icon icon="ep:plus" class="mr-5px" />接入新设备
         </el-button>
       </div>
@@ -84,9 +84,9 @@
         </el-table-column>
         <el-table-column label="操作" width="170" align="center">
           <template #default="{ row }">
-            <el-button link type="primary" @click="currentCode = row.code">预览</el-button>
-            <el-button link type="primary" @click="message.info('演示版暂未开放录像回放')">回放</el-button>
-            <el-button link type="primary" @click="message.info('演示版暂未开放')">设置</el-button>
+            <el-button v-hasPermi="['farm:camera:query']" link type="primary" @click="currentCode = row.code">预览</el-button>
+            <el-button v-hasPermi="['farm:camera:query']" link type="primary" @click="message.info('演示版暂未开放录像回放')">回放</el-button>
+            <el-button v-hasPermi="['farm:camera:update']" link type="primary" @click="message.info('演示版暂未开放')">设置</el-button>
           </template>
         </el-table-column>
       </el-table>

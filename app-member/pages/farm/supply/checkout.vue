@@ -32,7 +32,6 @@
           <view class="f-sub">{{ addr.detail }}</view>
         </view>
         <view v-else class="f-sub">还没有收货地址，点右上「选择地址」</view>
-        <view class="f-sub note">演示口径：农资订单暂不保存收货地址，寄送由管家按账户地址联系确认。</view>
       </view>
 
       <view class="f-warn" v-if="s.needWorkorder">下单后自动生成代管工单，由管家到地块完成。</view>
@@ -87,7 +86,15 @@
     if (deliverWay.value === 'express' && !addr.value) return sheep.$helper.toast('请先选择收货地址');
     busy.value = true;
     const data = await call(
-      FarmApi.createSupplyOrder({ spuId: s.value.id, qty: qty.value, adoptionId: adoptionId.value, deliverWay: deliverWay.value }),
+      FarmApi.createSupplyOrder({
+        spuId: s.value.id,
+        qty: qty.value,
+        adoptionId: adoptionId.value,
+        deliverWay: deliverWay.value,
+        ...(deliverWay.value === 'express' && addr.value
+          ? { receiverName: addr.value.name, receiverMobile: addr.value.mobile, address: addr.value.detail }
+          : {}),
+      }),
     );
     busy.value = false;
     if (!data) return;

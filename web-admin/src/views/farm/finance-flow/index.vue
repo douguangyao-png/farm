@@ -10,8 +10,8 @@
       </div>
     </div>
     <div class="flex gap-8px">
-      <el-button @click="notOpen">下载对账单</el-button>
-      <el-button @click="notOpen">导出凭证</el-button>
+      <el-button v-hasPermi="['farm:financeflow:export']" @click="notOpen">下载对账单</el-button>
+      <el-button v-hasPermi="['farm:financeflow:export']" @click="notOpen">导出凭证</el-button>
     </div>
   </div>
 

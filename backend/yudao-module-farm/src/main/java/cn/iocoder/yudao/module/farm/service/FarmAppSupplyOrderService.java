@@ -61,6 +61,18 @@ public class FarmAppSupplyOrderService {
         FarmAdoptionDO ad = support.myAdoption(req.getAdoptionId());
         if (ad == null) throw exception(SUPPLY_NEED_ADOPTION);
 
+        String deliverWay = req.getDeliverWay() != null && DELIVER_WAYS.contains(req.getDeliverWay()) ? req.getDeliverWay() : "store";
+        String receiverName = req.getReceiverName() == null ? "" : req.getReceiverName().trim();
+        if (receiverName.length() > 32) receiverName = receiverName.substring(0, 32);
+        String receiverMobile = req.getReceiverMobile() == null ? "" : req.getReceiverMobile().trim();
+        String address = req.getAddress() == null ? "" : req.getAddress().trim();
+        if (address.length() > 200) address = address.substring(0, 200);
+        if ("express".equals(deliverWay)) {
+            if (receiverName.isEmpty()) throw exception(BAD_REQUEST, "请填写收货人");
+            if (!receiverMobile.matches("\\d{11}")) throw exception(BAD_REQUEST, "请填写 11 位手机号");
+            if (address.isEmpty()) throw exception(BAD_REQUEST, "请填写收货地址");
+        }
+
         Double q = req.getQty();
         if (q == null || q.isNaN() || q.isInfinite() || q != Math.floor(q) || q < 1) throw exception(BAD_REQUEST, "数量至少 1 件");
         int qty = q > Integer.MAX_VALUE ? Integer.MAX_VALUE : q.intValue();
@@ -83,7 +95,10 @@ public class FarmAppSupplyOrderService {
         o.setSpuId(spu.getId());
         o.setQty(qty);
         o.setAmount(price * qty);
-        o.setDeliverWay(req.getDeliverWay() != null && DELIVER_WAYS.contains(req.getDeliverWay()) ? req.getDeliverWay() : "store");
+        o.setDeliverWay(deliverWay);
+        o.setReceiverName(receiverName);
+        o.setReceiverMobile(receiverMobile);
+        o.setAddress(address);
         o.setBatchNo(spu.getBatchNo());
         // 代管服务、保险类没有「施用」动作，直接视为已留痕
         o.setTraceState("svc".equals(spu.getCat()) || "ins".equals(spu.getCat()) ? 10 : 0);

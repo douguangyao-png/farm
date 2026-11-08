@@ -21,6 +21,10 @@ public class FarmSupplyOrderRespVO {
     private Integer traceState;
     private LocalDateTime usedAt;
     private String dosage;
+    /** 收货信息：deliverWay=express 时必填，其它方式可空 */
+    private String receiverName;
+    private String receiverMobile;
+    private String address;
     private LocalDateTime createTime;
     private String memberName;
     private String assetCode;

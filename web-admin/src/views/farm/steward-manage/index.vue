@@ -8,8 +8,8 @@
         </div>
       </div>
       <div>
-        <el-button @click="notImp">派单</el-button>
-        <el-button type="primary" @click="notImp"
+        <el-button v-hasPermi="['farm:stewardmanage:dispatch']" @click="notImp">派单</el-button>
+        <el-button v-hasPermi="['farm:stewardmanage:create']" type="primary" @click="notImp"
           ><Icon icon="ep:plus" class="mr-5px" />添加管家</el-button
         >
       </div>
@@ -95,8 +95,8 @@
       </el-table-column>
       <el-table-column label="操作" width="120" align="center" fixed="right">
         <template #default>
-          <el-button link type="primary" @click="notImp">绩效</el-button>
-          <el-button link type="primary" @click="notImp">调整</el-button>
+          <el-button v-hasPermi="['farm:stewardmanage:query']" link type="primary" @click="notImp">绩效</el-button>
+          <el-button v-hasPermi="['farm:stewardmanage:update']" link type="primary" @click="notImp">调整</el-button>
         </template>
       </el-table-column>
     </el-table>

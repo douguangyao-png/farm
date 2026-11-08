@@ -51,7 +51,7 @@ COMMENT ON TABLE farm_app_extra IS 'C 端会员小数据：favorite 收藏 / add
 | GET /service/messages、POST /service/send | 是 | {content} | 聊天记录；发送后自动追加一条演示回复 |
 
 退款（A 提供，C 端按约定调用）：`POST /app-api/farm/refund/create {orderId, reason}`、`GET /app-api/farm/refund/list`。
-**待对 A 的契约**：①`reason` 目前把「原因 + 补充说明」拼成一个字符串传，A 若有独立 `remark` 字段需改 refund/apply.vue；②列表项 C 端读取 `id,no,orderId,orderNo,amount,reason,status,statusName`（缺哪个就不显示哪个），status 暂按 0 待审核/10 已同意/20 已退款/30 已驳回显示，驳回的退款单不挡住再次申请；③创建失败（订单状态不允许）依赖接口返回的错误提示。
+**待对 A 的契约**：①`reason` 目前把「原因 + 补充说明」拼成一个字符串传，A 若有独立 `remark` 字段需改 refund/apply.vue；②列表项 C 端读取 `id,no,orderId,orderNo,amount,reason,status,statusName`（缺哪个就不显示哪个），status 按 0 待审核/10 已同意/20 已驳回显示（2026-11-08 已按 A 的三档对齐），驳回的退款单不挡住再次申请；③创建失败（订单状态不允许）依赖接口返回的错误提示。
 
 ## ④ 测试用例（可粘贴 vitest，沿用 farm.test.ts 的登录/请求辅助，辅助函数名以该文件为准）
 ```ts

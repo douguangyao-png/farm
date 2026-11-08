@@ -12,4 +12,8 @@ public class FarmAppSupplyOrderCreateReqVO {
     private Long adoptionId;
     /** store 寄存基地、express 快递到家、pickup 基地自提、apply 农场代施；其它值按 store */
     private String deliverWay;
+    /** deliverWay=express 时三项必填（手机号 11 位）；其它方式可空 */
+    private String receiverName;
+    private String receiverMobile;
+    private String address;
 }

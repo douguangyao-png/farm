@@ -8,7 +8,7 @@
         </div>
       </div>
       <div>
-        <el-button @click="notImp">导出退款台账</el-button>
+        <el-button v-hasPermi="['farm:refund:export']" @click="notImp">导出退款台账</el-button>
       </div>
     </div>
 
@@ -104,11 +104,11 @@
       </el-table-column>
       <el-table-column label="操作" width="160" align="center" fixed="right">
         <template #default="{ row }">
-          <el-button v-if="row.status === 0" link type="primary" @click="openDetail(row.id)">
+          <el-button v-hasPermi="['farm:refund:approve']" v-if="row.status === 0" link type="primary" @click="openDetail(row.id)">
             审核
           </el-button>
-          <el-button v-else link type="primary" @click="openDetail(row.id)">查看</el-button>
-          <el-button link type="primary" @click="notImp">联系客户</el-button>
+          <el-button v-hasPermi="['farm:refund:query']" v-else link type="primary" @click="openDetail(row.id)">查看</el-button>
+          <el-button v-hasPermi="['farm:refund:contact']" link type="primary" @click="notImp">联系客户</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -211,8 +211,8 @@
             placeholder="请填写审核说明（将同步给客户；驳回时必填）"
           />
           <div class="mt-16px text-right">
-            <el-button :loading="submitting" @click="submitAudit(false)">驳回</el-button>
-            <el-button type="primary" :loading="submitting" @click="submitAudit(true)">
+            <el-button v-hasPermi="['farm:refund:approve']" :loading="submitting" @click="submitAudit(false)">驳回</el-button>
+            <el-button v-hasPermi="['farm:refund:approve']" type="primary" :loading="submitting" @click="submitAudit(true)">
               通过并退款
             </el-button>
           </div>

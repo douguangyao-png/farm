@@ -18,8 +18,8 @@
         <el-select v-model="productId" class="!w-260px" @change="load">
           <el-option v-for="p in data.products || []" :key="p.id" :label="p.title" :value="p.id" />
         </el-select>
-        <el-button @click="message.info('演示版暂未开放')">查看 C 端对比页</el-button>
-        <el-button type="primary" :loading="saving" @click="save">保存配置</el-button>
+        <el-button v-hasPermi="['farm:hostingconfig:query']" @click="message.info('演示版暂未开放')">查看 C 端对比页</el-button>
+        <el-button v-hasPermi="['farm:hostingconfig:update']" type="primary" :loading="saving" @click="save">保存配置</el-button>
       </div>
     </div>
 

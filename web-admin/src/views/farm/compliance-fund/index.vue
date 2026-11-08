@@ -8,7 +8,7 @@
           向 C 端公开资金去向，是这个行业建立信任成本最低、效果最好的动作
         </div>
       </div>
-      <el-button type="primary" :loading="saving" @click="save">保存公示设置</el-button>
+      <el-button v-hasPermi="['farm:compliancefund:update']" type="primary" :loading="saving" @click="save">保存公示设置</el-button>
     </div>
 
     <el-row :gutter="12">

@@ -103,6 +103,7 @@ CREATE TABLE farm_supply_order (
   id int8 PRIMARY KEY, no varchar(32) NOT NULL, member_id int8 NOT NULL, adoption_id int8 NOT NULL, asset_id int8 NOT NULL, spu_id int8 NOT NULL,
   qty int4 NOT NULL DEFAULT 1, amount int8 NOT NULL DEFAULT 0, deliver_way varchar(16) NOT NULL, batch_no varchar(64) DEFAULT '',
   trace_state int2 NOT NULL DEFAULT 0, used_at timestamp, dosage varchar(64),
+  receiver_name varchar(32) DEFAULT '', receiver_mobile varchar(16) DEFAULT '', address varchar(200) DEFAULT '',
   creator varchar(64) DEFAULT '', create_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, updater varchar(64) DEFAULT '',
   update_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, deleted int2 NOT NULL DEFAULT 0, tenant_id int8 NOT NULL DEFAULT 0
 );

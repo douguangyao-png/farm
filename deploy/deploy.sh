@@ -76,11 +76,11 @@ esac
 
 echo "== 公网回归（状态码）"
 for u in / /training/ /ziheng/ /farm/ /farm/m/ /farm/steward/ /farm-api/__mock/reset; do
-  printf "%-24s %s\n" "$u" "$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 http://121.40.221.126$u)"
+  printf "%-24s %s\n" "$u" "$(curl -sk -o /dev/null -w '%{http_code}' --max-time 10 https://121.40.221.126$u)"
 done
-TOK=$(curl -s -H "tenant-id: 2" -H "Content-Type: application/json" -d '{"username":"qingshan","password":"demo123"}' \
-  http://121.40.221.126/farm-api/admin-api/system/auth/login | sed -n 's/.*"accessToken":"\([^"]*\)".*/\1/p')
+TOK=$(curl -sk -H "tenant-id: 2" -H "Content-Type: application/json" -d '{"username":"qingshan","password":"demo123"}' \
+  https://121.40.221.126/farm-api/admin-api/system/auth/login | sed -n 's/.*"accessToken":"\([^"]*\)".*/\1/p')
 printf "登录后 farm/dashboard/summary: "
-curl -s -H "tenant-id: 2" -H "Authorization: Bearer $TOK" http://121.40.221.126/farm-api/admin-api/farm/dashboard/summary | head -c 80; echo
+curl -sk -H "tenant-id: 2" -H "Authorization: Bearer $TOK" https://121.40.221.126/farm-api/admin-api/farm/dashboard/summary | head -c 80; echo
 rm -rf "$TMP"
 echo "== 完成 $T。浏览器里登录后的页面需要人工走一遍。"
