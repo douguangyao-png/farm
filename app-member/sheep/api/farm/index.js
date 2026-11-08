@@ -63,6 +63,9 @@ const FarmApi = {
   createVisit: (data) => post('/farm/visit/create', data),
   getServiceMessages: () => get('/farm/service/messages'),
   sendServiceMessage: (content) => post('/farm/service/send', { content }, { showLoading: false }),
+  // 合同（第一期补齐 §9）：GET /farm/contract/get?orderId=；POST /farm/contract/sign {orderId, signature(dataURL)}
+  getContract: (orderId) => get('/farm/contract/get', { orderId }),
+  signContract: (data) => post('/farm/contract/sign', data, { loadingMsg: '提交签名' }),
   // 退款（A agent：POST /app-api/farm/refund/create {orderId, reason}、GET /app-api/farm/refund/list）
   createRefund: (data) => post('/farm/refund/create', data),
   getRefundList: () => get('/farm/refund/list'),

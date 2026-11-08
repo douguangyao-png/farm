@@ -46,6 +46,7 @@
           <view class="f-title">托管方式 · {{ CARE_MODE_NAME[a.careMode] }}</view>
           <view class="slogan">「{{ a.careModeInfo.slogan }}」</view>
           <view class="f-kv"><text class="k">合同</text><text class="v">{{ contractTitle(a.careMode, a.careModeInfo.contractVersion) }}</text></view>
+          <view class="f-kv" @tap="toContract"><text class="k">合同全文</text><text class="v">查看合同 ›</text></view>
           <view class="f-kv"><text class="k">保险</text><text class="v">{{ a.careModeInfo.insurance }}</text></view>
           <view class="f-kv"><text class="k">您负责</text><text class="v">{{ memberDuty.length ? memberDuty.join('、') : '无，全部由农场完成' }}</text></view>
         </view>
@@ -420,6 +421,14 @@
     () => sheep.$store('user').isLogin,
     (v) => v && load(),
   );
+
+  // 合同独立页按订单号取：认养详情没有 orderId，用订单列表按 adoptionId 反查
+  async function toContract() {
+    const list = (await call(FarmApi.getOrderList())) || [];
+    const o = list.find((x) => x.adoptionId === a.value.id);
+    if (!o) return sheep.$helper.toast('没找到这份认养对应的订单');
+    sheep.$router.go('/pages/farm/contract/detail', { orderId: o.id });
+  }
 </script>
 
 <style lang="scss" scoped>

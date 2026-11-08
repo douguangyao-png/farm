@@ -8,8 +8,8 @@
         </div>
       </div>
       <div>
-        <el-button @click="notImp"><Icon icon="ep:upload" class="mr-5px" />导出 Excel</el-button>
-        <el-button type="primary" @click="notImp"
+        <el-button v-hasPermi="['farm:order:export']" @click="notImp"><Icon icon="ep:upload" class="mr-5px" />导出 Excel</el-button>
+        <el-button v-hasPermi="['farm:order:create']" type="primary" @click="notImp"
           ><Icon icon="ep:plus" class="mr-5px" />代客下单</el-button
         >
       </div>
@@ -88,6 +88,12 @@
         </template>
       </el-table-column>
       <el-table-column label="认养商品" prop="productTitle" min-width="170" show-overflow-tooltip />
+      <el-table-column label="渠道" width="100" align="center">
+        <template #default="{ row }">{{ enumLabel(ORDER_CHANNELS, row.channel) }}</template>
+      </el-table-column>
+      <el-table-column label="交付方式" width="110" align="center">
+        <template #default="{ row }">{{ enumLabel(ORDER_DELIVER_WAYS, row.deliverWay) }}</template>
+      </el-table-column>
       <el-table-column label="标的编号" width="90" align="center">
         <template #default="{ row }">{{ row.assetCode || '待分配' }}</template>
       </el-table-column>
@@ -152,6 +158,8 @@
 import * as OrderApi from '@/api/farm/order'
 import * as ProductApi from '@/api/farm/product'
 import {
+  ORDER_CHANNELS,
+  ORDER_DELIVER_WAYS,
   ORDER_STATUS,
   enumLabel,
   enumOf,

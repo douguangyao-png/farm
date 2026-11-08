@@ -1,6 +1,6 @@
 <template>
   <view class="farm-page">
-    <wd-navbar title="标的管理" left-arrow placeholder safe-area-inset-top fixed @click-left="goBack" />
+    <wd-navbar title="标的管理" placeholder safe-area-inset-top fixed />
     <view class="tabs">
       <view v-for="t in TABS" :key="t.k" class="tab" :class="{ on: tab === t.k }" @click="tab = t.k">
         {{ t.text }}{{ data ? `（${data.counts[t.k]}）` : '' }}
@@ -41,8 +41,7 @@
 import type { StewardAssetItem } from '@/api/farm/steward'
 import { ref, watch } from 'vue'
 import { getStewardAssets } from '@/api/farm/steward'
-import { navigateBackPlus } from '@/utils'
-import DemoBadge from '../components/demo-badge.vue'
+import DemoBadge from '@/pages-farm/components/demo-badge.vue'
 
 definePage({ style: { navigationBarTitleText: '标的管理', navigationStyle: 'custom' } })
 
@@ -63,13 +62,10 @@ onShow(() => load())
 function goDetail(id: number) {
   uni.navigateTo({ url: `/pages-farm/asset/detail?id=${id}` })
 }
-function goBack() {
-  navigateBackPlus('/pages/index/index')
-}
 </script>
 
 <style lang="scss" scoped>
-@import '../components/farm-extra.scss';
+@import '@/pages-farm/components/farm-extra.scss';
 
 .bar {
   height: 10rpx;

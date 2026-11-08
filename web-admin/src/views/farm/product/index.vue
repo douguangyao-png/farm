@@ -53,7 +53,7 @@
           ><Icon icon="ep:search" class="mr-5px" />查询</el-button
         >
         <el-button @click="resetQuery"><Icon icon="ep:refresh" class="mr-5px" />重置</el-button>
-        <el-button type="primary" plain @click="formRef?.open()">
+        <el-button v-hasPermi="['farm:product:create']" type="primary" plain @click="formRef?.open()">
           <Icon icon="ep:plus" class="mr-5px" />发布认养商品
         </el-button>
       </el-form-item>
@@ -125,9 +125,10 @@
       </el-table-column>
       <el-table-column label="操作" width="170" align="center" fixed="right">
         <template #default="{ row }">
-          <el-button link type="primary" @click="formRef?.open(row.id)">编辑</el-button>
+          <el-button v-hasPermi="['farm:product:update']" link type="primary" @click="formRef?.open(row.id)">编辑</el-button>
           <el-button link type="primary" @click="openPreview(row)">预览</el-button>
           <el-button
+            v-hasPermi="['farm:product:status']"
             link
             :type="row.status === 0 ? 'warning' : 'success'"
             @click="toggleStatus(row)"
@@ -196,6 +197,11 @@ import {
 
 defineOptions({ name: 'FarmProduct' })
 
+// 「发布认养商品」菜单（product-create.vue）和 ?create=1 都会让页面打开就弹出新建表单
+const props = defineProps<{ autoCreate?: boolean }>()
+const route = useRoute()
+const wantCreate = () => props.autoCreate || route.query.create === '1'
+
 const message = useMessage()
 const loading = ref(false)
 const list = ref<any[]>([])
@@ -260,7 +266,15 @@ const openPreview = (row: any) => {
   previewVisible.value = true
 }
 
-onMounted(getList)
+onMounted(() => {
+  getList()
+  if (wantCreate()) nextTick(() => formRef.value?.open())
+})
+let mounted = false
+onActivated(() => {
+  if (mounted && props.autoCreate) nextTick(() => formRef.value?.open())
+  mounted = true
+})
 </script>
 <style scoped>
 .icon-box {

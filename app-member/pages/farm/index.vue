@@ -6,10 +6,13 @@
       <!-- 搜索 + 快捷入口 -->
       <view class="searchbar" @tap="go('/pages/farm/search/index')">搜一分地、跑山鸡、基地名</view>
       <view class="quick f-card">
-        <view class="q" @tap="go('/pages/farm/mall/index')"><view class="qi">商</view>分类商城</view>
-        <view class="q" @tap="go('/pages/farm/base/list')"><view class="qi">基</view>找基地</view>
-        <view class="q" @tap="go('/pages/farm/visit/index')"><view class="qi">访</view>预约到访</view>
-        <view class="q" @tap="go('/pages/farm/message/list')"><view class="qi">信</view>消息</view>
+        <view class="q" v-for="e in HOME_ENTRIES" :key="e.url" @tap="enter(e)"><view class="qi">{{ e.icon }}</view>{{ e.label }}</view>
+      </view>
+      <!-- 秋播横幅（演示文案） -->
+      <view class="season" @tap="go('/pages/farm/mall/index')">
+        <view class="season-t">秋播认养季</view>
+        <view class="season-s">冬小麦、油菜、萝卜开播，现在认养一块地，明春收成</view>
+        <text class="season-tag">演示</text>
       </view>
 
       <!-- 轮播 -->
@@ -79,7 +82,7 @@
   import { onLoad, onPullDownRefresh } from '@dcloudio/uni-app';
   import sheep from '@/sheep';
   import FarmApi from '@/sheep/api/farm';
-  import { CARE_MODE_NAME, yuan, call } from '@/pages/farm/common/farm';
+  import { CARE_MODE_NAME, HOME_ENTRIES, yuan, call, needLogin } from '@/pages/farm/common/farm';
   import DemoBadge from '@/pages/farm/components/demo-badge.vue';
 
   uni.hideTabBar({ fail: () => {} });
@@ -100,6 +103,10 @@
     });
   }
 
+  function enter(e) {
+    if (e.auth && needLogin()) return;
+    go(e.url);
+  }
   function go(url) {
     if (url) sheep.$router.go(url);
   }
@@ -125,9 +132,39 @@
   }
   .quick {
     display: flex;
-    justify-content: space-around;
+    flex-wrap: wrap;
     font-size: 24rpx;
     text-align: center;
+    .q {
+      width: 20%;
+      margin-bottom: 20rpx;
+    }
+  }
+  .season {
+    position: relative;
+    background: linear-gradient(135deg, #f6b73c, #e8863a);
+    color: #fff;
+    border-radius: 20rpx;
+    padding: 28rpx 30rpx;
+    margin-bottom: 20rpx;
+    .season-t {
+      font-size: 34rpx;
+      font-weight: 700;
+    }
+    .season-s {
+      font-size: 24rpx;
+      margin-top: 8rpx;
+      opacity: 0.95;
+    }
+    .season-tag {
+      position: absolute;
+      right: 20rpx;
+      top: 20rpx;
+      font-size: 20rpx;
+      background: rgba(255, 255, 255, 0.28);
+      padding: 2rpx 12rpx;
+      border-radius: 16rpx;
+    }
   }
   .qi {
     width: 80rpx;

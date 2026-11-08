@@ -172,6 +172,20 @@ public class FarmAssetService {
         return m;
     }
 
+    /** 收成环境快照（mock makeEnvSnapshot）：按资产在 ts 时刻的环境数据；老数据按采收日补，标「演示数据」 */
+    public static Map<String, Object> snapshotAt(FarmAssetDO asset, long ts) {
+        if (asset == null) return null;
+        Map<String, Object> e = envAt(asset, ts);
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("temp", e.get("airTemp"));
+        m.put("humidity", e.get("airHumidity"));
+        m.put("soilMoisture", e.get("soilMoisture"));
+        m.put("light", e.get("light"));
+        m.put("capturedAt", ts);
+        m.put("source", "演示数据");
+        return m;
+    }
+
     public Map<String, Object> env(Long assetId) {
         FarmAssetDO asset = get(assetId);
         long now = System.currentTimeMillis();

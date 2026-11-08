@@ -34,7 +34,9 @@ farmContractRouter.get('/page', (req, res) => {
         // 演示口径：已签署的合同都标 CA 认证、已上链（真实 CA/区块链存证不在本期范围）
         caAuth: status === 10,
         chainProof: status === 10,
-        signedAt: status === 10 ? c.signedAt : null,
+        // 手写签名过的合同显示签名时间；其余已签署的沿用支付时间
+        signedAt: o.signedAt ?? (status === 10 ? c.signedAt : null),
+        hasSignature: !!o.signature,
         createTime: o.createTime
       }
     })

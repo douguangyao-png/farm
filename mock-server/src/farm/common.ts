@@ -11,7 +11,9 @@ export const BIZ = {
   SUPPLY_NEED_ADOPTION: 1_030_000_004,
   SUPPLY_NOT_RETAIL: 1_030_000_005,
   TASK_STATE: 1_030_000_006,
-  NOT_MY_TASK: 1_030_000_007
+  NOT_MY_TASK: 1_030_000_007,
+  /** 合同已签署，不能重复签名（第一期补齐） */
+  CONTRACT_SIGNED: 1_030_000_011
 } as const
 
 export const CARE_MODE_NAME: Record<CareMode, string> = { full: '全托管', semi: '半托管', self: '不托管' }
@@ -31,8 +33,15 @@ export const like = (v: unknown, s: string | undefined) => s === undefined || St
 export const eqNum = (v: unknown, s: string | undefined) => s === undefined || Number(s) === Number(v)
 export const byNewest = <T extends { createTime: number }>(a: T, b: T) => b.createTime - a.createTime
 
-/** 当前登录账号的租户（后台、管家端、C 端都用它；不用请求头，防止伪造） */
-export const tenantOf = (req: Request): number => req.session!.tenantId
+/**
+ * 当前登录账号的租户（后台、管家端、C 端都用它；不用 tenant-id 请求头，防止伪造）。
+ * 例外：平台管理员（后台账号、租户 1）带 visit-tenant-id 头时，按所选租户查看（租户切换）；其它角色忽略该头。
+ */
+export const tenantOf = (req: Request): number => {
+  const s = req.session!
+  if (s.scope === 'admin' && s.tenantId === PLATFORM_TENANT_ID && req.visitTenantId !== undefined) return req.visitTenantId
+  return s.tenantId
+}
 export const isPlatform = (req: Request) => req.session?.tenantId === PLATFORM_TENANT_ID
 /** C 端浏览类接口不需要登录：租户取登录态，没登录取请求头 */
 export const browseTenant = (req: Request): number | undefined => req.session?.tenantId ?? req.tenantId

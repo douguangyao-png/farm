@@ -18,7 +18,7 @@
       <el-form-item>
         <el-button @click="handleQuery"><Icon icon="ep:search" class="mr-5px" />搜索</el-button>
         <el-button @click="resetQuery"><Icon icon="ep:refresh" class="mr-5px" />重置</el-button>
-        <el-button type="primary" plain @click="openForm()"
+        <el-button v-hasPermi="['farm:base:create']" type="primary" plain @click="openForm()"
           ><Icon icon="ep:plus" class="mr-5px" />新建基地</el-button
         >
       </el-form-item>
@@ -51,8 +51,8 @@
       <el-table-column label="创建时间" prop="createTime" width="160" :formatter="timeFormatter" />
       <el-table-column label="操作" width="130" align="center" fixed="right">
         <template #default="{ row }">
-          <el-button link type="primary" @click="openForm(row)">编辑</el-button>
-          <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
+          <el-button v-hasPermi="['farm:base:update']" link type="primary" @click="openForm(row)">编辑</el-button>
+          <el-button v-hasPermi="['farm:base:delete']" link type="danger" @click="handleDelete(row)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>

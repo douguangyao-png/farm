@@ -27,7 +27,9 @@ public class FarmContractRespVO {
     /** 演示口径：已签署即 true */
     private Boolean caAuth;
     private Boolean chainProof;
-    /** 已签署时 = 支付时间，否则 null */
+    /** 手写签名过 = 签名时间；否则已签署 = 支付时间，其余 null */
     private LocalDateTime signedAt;
     private LocalDateTime createTime;
+    /** 是否已手写签名 */
+    private Boolean hasSignature;
 }

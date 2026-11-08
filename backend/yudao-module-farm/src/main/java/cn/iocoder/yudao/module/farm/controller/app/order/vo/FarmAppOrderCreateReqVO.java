@@ -13,6 +13,12 @@ public class FarmAppOrderCreateReqVO {
     private String receiverName;
     private String receiverMobile;
     private String address;
-    /** 交付方式 cold / pickup / monthly；演示口径，只接收不落库（订单表暂无该列） */
+    /** 交付方式 express 快递到家 / pickup 到基地自提 / farm_deliver 基地配送；缺省 express，其它值 400 */
     private String deliverWay;
+    /** 来源渠道 mini/h5/scan/steward；缺省 h5，其它值 400 */
+    private String channel;
+    private String packageName;
+    private java.math.BigDecimal lng;
+    private java.math.BigDecimal lat;
+    private String gpsText;
 }

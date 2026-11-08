@@ -58,7 +58,7 @@ function tierOf(paidCount: number, spend365: number, firstPaid: number | null, l
 }
 const REP: Record<TierKey, string> = { core: '高', growth: '中', new: '新客', sleep: '低', other: '—' }
 
-function buildCustomers(t: number, now: number) {
+export function buildCustomers(t: number, now: number) {
   const d = db()
   return d.members.filter((m: Member) => m.tenantId === t).map((m) => {
     const orders = d.orders.filter((o) => o.tenantId === t && o.memberId === m.id)
@@ -85,6 +85,11 @@ function buildCustomers(t: number, now: number) {
       productIds: [...new Set(paid.map((o) => o.productId))], hasFull: paid.some((o) => o.careMode === 'full'), firstPaid
     }
   })
+}
+/** 订单详情用：该客户的标签（新客/多单客户/全托管用户/有退款记录）与分层名，复用客户管理的派生口径 */
+export function customerTagsOf(t: number, memberId: number): string[] {
+  const c = buildCustomers(t, Date.now()).find((x) => x.id === memberId)
+  return c ? [...c.tags, c.tierName] : []
 }
 type CustomerRow = ReturnType<typeof buildCustomers>[number]
 const publicRow = ({ mobileFull: _a, productIds: _b, hasFull: _c, firstPaid: _d, expiringAmount: _e, ...rest }: CustomerRow) => rest

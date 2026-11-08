@@ -6,8 +6,9 @@ import {
   BIZ, page, q, like, eqNum, byNewest, tenantOf, own, notFound, badRequest, currentUser, envView, makeNo, CARE_MODE_NAME, maskMobile
 } from '../farm/common.js'
 import {
-  productView, CATEGORY_NAME, assetView, orderView, contractOf, adoptionView, recordView, serviceOrderView, supplyOrderView, harvestView, shipmentView
+  productView, CATEGORY_NAME, assetView, orderView, makeEnvSnapshot, contractOf, adoptionView, recordView, serviceOrderView, supplyOrderView, harvestView, shipmentView
 } from '../farm/views.js'
+import { customerTagsOf } from './farm-people.js'
 import { serviceOrderPage, supplyPage, supplyOrderPage, harvestPage, shipmentPage } from '../farm/stats.js'
 
 /** /admin-api/farm/**：经营者后台（契约第 2 节） */
@@ -314,6 +315,8 @@ farmAdminRouter.get('/order/get', (req, res) => {
   return ok(res, {
     ...orderView(o),
     contract: contractOf(o),
+    // 客户标签：由客户分层/复购/认养数派生，不落库
+    customerTags: customerTagsOf(o.tenantId, o.memberId),
     // 客户信息卡：累计认养 = 该客户已支付且未取消的订单数，累计消费 = 其金额合计（分）
     customer: { name: m?.nickname ?? '', mobile: m?.mobile ?? '', orderCount: mine.length, totalAmount: mine.reduce((s, x) => s + x.amount, 0) },
     steward: st ? { name: st.nickname, mobile: maskMobile(st.mobile) } : null,
@@ -463,7 +466,9 @@ farmAdminRouter.post('/harvest/create', (req, res) => {
   if (cropText.length > 64) return badRequest(res, '品类名称合计不能超过 64 个字')
   if (remark.length > 255) return badRequest(res, '备注加明细不能超过 255 个字')
   const h = { id: nextId(db().harvests), tenantId: t, adoptionId: ad.id, assetId: ad.assetId, crop: cropText, weightJin,
-    harvestDate: Number(req.body.harvestDate) || Date.now(), photos: req.body.photos ?? [], remark, shipmentId: null }
+    harvestDate: Number(req.body.harvestDate) || Date.now(), photos: req.body.photos ?? [], remark, shipmentId: null,
+    // 环境快照：按资产此刻的环境数据（FarmAssetService 同口径的 IoT 演示数据）
+    envSnapshot: makeEnvSnapshot(db().assets.find((a) => a.id === ad.assetId), Date.now()) }
   db().harvests.push(h)
   ad.harvestedJin = Math.round((ad.harvestedJin + weightJin) * 10) / 10
   // 采收写进生长档案（经营者录入的，直接算已审核）

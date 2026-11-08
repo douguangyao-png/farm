@@ -419,6 +419,30 @@
 			}
 		},
 		{
+			"path": "pages/farm/contract/detail",
+			"style": {
+				"navigationBarTitleText": "认养合同"
+			},
+			"meta": {
+				"auth": true,
+				"sync": true,
+				"title": "认养合同",
+				"group": "认养农场"
+			}
+		},
+		{
+			"path": "pages/farm/supply/checkout",
+			"style": {
+				"navigationBarTitleText": "农资结算"
+			},
+			"meta": {
+				"auth": true,
+				"sync": true,
+				"title": "农资结算",
+				"group": "认养农场"
+			}
+		},
+		{
 			"path": "pages/index/index",
 			"aliasPath": "/",
 			"style": {

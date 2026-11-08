@@ -34,4 +34,6 @@ public class FarmShipmentDO extends TenantBaseDO {
     private Integer status;
     @TableField(typeHandler = JacksonTypeHandler.class)
     private List<Map<String, Object>> tracks;
+    /** 所属配送批次（farm_ship_batch.id），未入批为空 */
+    private Long batchId;
 }

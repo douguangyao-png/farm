@@ -66,6 +66,8 @@ public class FarmOrderService {
     @Autowired
     private FarmViewLookup lookup;
     @Autowired
+    private FarmCustomerService customerService;
+    @Autowired
     private AdminUserApi adminUserApi;
 
     public PageResult<FarmOrderRespVO> page(FarmOrderPageReqVO req) {
@@ -99,8 +101,10 @@ public class FarmOrderService {
         c.setVersion(o.getContractVersion());
         c.setTitle("《认养服务合同（" + FarmViewLookup.careModeName(o.getCareMode()) + "）》" + o.getContractVersion());
         c.setAgreed(o.getContractAgreed());
-        c.setSignedAt(o.getPayTime());
+        c.setSignedAt(o.getSignedAt() != null ? o.getSignedAt() : o.getPayTime());
+        c.setHasSignature(StrUtil.isNotEmpty(o.getSignature()));
         d.setContract(c);
+        d.setCustomerTags(o.getMemberId() == null ? new ArrayList<>() : customerService.tagsOf(o.getMemberId()));
 
         // 客户信息卡：累计认养 = 该客户已支付且未取消的订单数，累计消费 = 其金额合计（分）
         FarmMemberDO mem = o.getMemberId() == null ? null : lookup.members(List.of(o.getMemberId())).get(o.getMemberId());
@@ -161,6 +165,10 @@ public class FarmOrderService {
             v.setProductCover(p == null || p.getCover() == null ? "" : p.getCover());
             v.setAssetCode(a == null || a.getCode() == null ? "" : a.getCode());
             v.setCareModeName(FarmViewLookup.careModeName(o.getCareMode()));
+            // 老订单没有这些字段时给缺省值（与 mock orderView 一致）
+            if (v.getChannel() == null) v.setChannel("h5");
+            if (v.getDeliverWay() == null) v.setDeliverWay("express");
+            if (v.getCouponAmount() == null) v.setCouponAmount(0L);
             // 演示口径：支付方式固定微信支付；履约进度 = 已收 / 约定交付
             FarmAdoptionDO ad = o.getAdoptionId() == null ? null : adoptions.get(o.getAdoptionId());
             BigDecimal promised = ad == null ? null : ad.getPromisedJin();

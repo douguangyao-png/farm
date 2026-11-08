@@ -65,7 +65,7 @@ public class FarmHostingConfigService {
     public Map<String, Object> get(Long productId) {
         List<FarmProductDO> products = productMapper.selectList(new LambdaQueryWrapperX<FarmProductDO>().orderByAsc(FarmProductDO::getId));
         FarmProductDO p = products.stream().filter(x -> x.getId().equals(productId)).findFirst().orElse(products.isEmpty() ? null : products.get(0));
-        if (p == null) throw exception(NOT_FOUND, "认养商品");
+        if (p == null) return m("empty", true, "products", new ArrayList<>(), "product", null, "modes", new ArrayList<>());
         List<Map<String, Object>> careModes = p.getCareModes() == null ? new ArrayList<>() : p.getCareModes();
         Map<String, Object> fullCfg = careModes.stream().filter(x -> "full".equals(x.get("mode"))).findFirst().orElse(null);
         long fullPrice = fullCfg != null ? num(fullCfg.get("price")) : p.getBasePrice();

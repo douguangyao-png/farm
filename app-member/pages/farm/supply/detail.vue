@@ -59,7 +59,7 @@
         <text class="f-sub">合计 </text>
         <text class="f-price big">{{ yuan(s.price * qty) }}</text>
       </view>
-      <button class="f-btn" :class="{ disabled: adoptionIdx < 0 }" @tap="buy">立即购买</button>
+      <button class="f-btn" :class="{ disabled: adoptionIdx < 0 }" @tap="buy">去结算</button>
     </view>
   </s-layout>
 </template>
@@ -108,16 +108,12 @@
       return;
     }
     const ad = adoptions.value[adoptionIdx.value];
-    const data = await call(
-      FarmApi.createSupplyOrder({ spuId: s.value.id, qty: qty.value, adoptionId: ad.id, deliverWay: deliverWay.value }),
-    );
-    if (!data) return;
-    uni.showModal({
-      title: '下单成功',
-      content: `订单号 ${data.no}，金额 ${yuan(data.amount)}（演示支付，不扣款）。已记到地块 ${ad.assetCode}。`,
-      showCancel: false,
-      confirmText: '查看我的农资',
-      success: () => sheep.$router.redirect('/pages/farm/supply/order-list'),
+    // 进入独立结算页确认商品、数量、金额和收货地址后再下单
+    sheep.$router.go('/pages/farm/supply/checkout', {
+      id: s.value.id,
+      qty: qty.value,
+      adoptionId: ad.id,
+      deliverWay: deliverWay.value,
     });
   }
 

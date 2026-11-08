@@ -13,6 +13,7 @@ import { farmAppRouter } from './routes/farm-app.js'
 import { farmRefundRouter, farmAppRefundRouter } from './routes/farm-refund.js'
 import { farmCustomerRouter, farmCustomerTierRouter, farmStewardManageRouter } from './routes/farm-people.js'
 import { farmExtBRouter } from './routes/farm-ext-b.js'
+import { farmShipBatchRouter, farmLivestockBatchRouter, farmAppP1bRouter } from './routes/farm-p1b.js'
 import { farmAppExtraRouter } from './routes/farm-app-extra.js'
 import { farmStewardExtraRouter } from './routes/farm-steward-extra.js'
 import { contentRouter, uploadHandler } from './routes/content.js'
@@ -41,9 +42,12 @@ export function createApp() {
   app.use('/admin-api/farm/customer', farmCustomerRouter)
   app.use('/admin-api/farm/steward-manage', farmStewardManageRouter)
   app.use('/app-api/farm/refund', farmAppRefundRouter)
+  app.use('/admin-api/farm/ship-batch', farmShipBatchRouter)
+  app.use('/admin-api/farm/livestock-batch', farmLivestockBatchRouter)
   app.use('/admin-api/farm', farmExtBRouter)
   app.use('/admin-api/farm', farmAdminRouter)
   app.use('/app-api', appRouter)
+  app.use('/app-api/farm', farmAppP1bRouter)
   app.use('/app-api/farm', farmAppExtraRouter)
   app.use('/app-api/farm', farmAppRouter)
   app.post('/app-api/infra/file/upload', requireLogin('member'), ...uploadHandler)

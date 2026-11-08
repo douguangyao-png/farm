@@ -7,8 +7,8 @@
       </div>
     </div>
     <div class="flex gap-8px">
-      <el-button @click="notOpen">导入批次</el-button>
-      <el-button type="primary" @click="openForm()">
+      <el-button v-hasPermi="['farm:supply:import']" @click="notOpen">导入批次</el-button>
+      <el-button v-hasPermi="['farm:supply:create']" type="primary" @click="openForm()">
         <Icon icon="ep:plus" class="mr-5px" />发布农资
       </el-button>
     </div>
@@ -114,9 +114,10 @@
       </el-table-column>
       <el-table-column label="操作" width="150" align="center" fixed="right">
         <template #default="{ row }">
-          <el-button link type="primary" @click="openForm(row.id)">编辑</el-button>
+          <el-button v-hasPermi="['farm:supply:update']" link type="primary" @click="openForm(row.id)">编辑</el-button>
           <el-button link type="primary" @click="notOpen">批次</el-button>
           <el-button
+            v-hasPermi="['farm:supply:status']"
             link
             :type="row.status === 0 ? 'danger' : 'success'"
             @click="toggleStatus(row)"

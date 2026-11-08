@@ -29,6 +29,7 @@
               <button class="f-btn mini" @tap.stop="pay(o)">去支付</button>
             </template>
             <template v-else-if="o.adoptionId">
+              <button class="f-btn mini ghost" @tap.stop="toContract(o)">查看合同</button>
               <button class="f-btn mini ghost" @tap.stop="toLogistics(o)">查看物流</button>
               <button v-if="o.status === 20" class="f-btn mini" @tap.stop="toReview(o)">去评价</button>
               <button v-else class="f-btn mini" @tap.stop="toDetail(o)">看长势</button>
@@ -40,7 +41,7 @@
       <view class="f-card" v-for="r in refunds" v-show="tab === 'refund'" :key="'r' + r.id">
         <view class="f-between">
           <text class="no">退款单 {{ r.no || r.id }}</text>
-          <text class="f-tag orange">{{ r.statusName || REFUND_STATUS[r.status] || '处理中' }}</text>
+          <text class="f-tag" :class="r.status === 20 ? 'red' : r.status === 10 ? '' : 'orange'">{{ REFUND_STATUS[r.status] || r.statusName || '处理中' }}</text>
         </view>
         <view class="f-sub">订单 {{ r.orderNo || r.orderId }}<text v-if="r.amount"> · {{ yuan(r.amount) }}</text></view>
         <view class="f-sub">{{ r.reason }}</view>
@@ -75,8 +76,8 @@
   const list = ref([]);
   const loaded = ref(false);
   const refunds = ref([]);
-  const REFUND_STATUS = { 0: '待审核', 10: '已同意', 20: '已退款', 30: '已驳回' };
-  const refundedIds = computed(() => refunds.value.filter((r) => r.status !== 30).map((r) => r.orderId));
+  const REFUND_STATUS = { 0: '待审核', 10: '已同意', 20: '已驳回' };
+  const refundedIds = computed(() => refunds.value.filter((r) => r.status !== 20).map((r) => r.orderId));
 
   const shown = computed(() => {
     if (tab.value === 'all') return list.value;
@@ -97,6 +98,9 @@
 
   function toDetail(o) {
     if (o.adoptionId) sheep.$router.go('/pages/farm/adoption/detail', { id: o.adoptionId });
+  }
+  function toContract(o) {
+    sheep.$router.go('/pages/farm/contract/detail', { orderId: o.id });
   }
   function toLogistics(o) {
     sheep.$router.go('/pages/farm/shipment/list', { adoptionId: o.adoptionId });

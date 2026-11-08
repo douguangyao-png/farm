@@ -1,5 +1,5 @@
 import { getDb, type Order, type Adoption, type GrowthRecord, type Task, type ServiceOrder, type SupplyOrder, type Harvest, type Shipment, type Product, type Asset, type Supply } from '../store.js'
-import { CARE_MODE_NAME, maskMobile } from './common.js'
+import { CARE_MODE_NAME, maskMobile, envAt } from './common.js'
 
 /** 把库里的记录拼成接口返回的样子（字段见 docs/api/farm-接口契约.md）。后台和 C 端共用，保证同一实体字段一致。 */
 
@@ -49,7 +49,9 @@ export function contractOf(o: Order) {
     version: o.contractVersion,
     title: `《认养服务合同（${CARE_MODE_NAME[o.careMode]}）》${o.contractVersion}`,
     agreed: o.contractAgreed,
-    signedAt: o.payTime
+    // 手写签名后以签名时间为准；没签名的老数据沿用支付时间
+    signedAt: o.signedAt ?? o.payTime,
+    hasSignature: !!o.signature
   }
 }
 
@@ -65,8 +67,20 @@ export function orderView(o: Order) {
   const ad = o.adoptionId ? db().adoptions.find((a) => a.id === o.adoptionId) : undefined
   const promisedJin = ad?.promisedJin ?? null
   const harvestedJin = ad?.harvestedJin ?? 0
+  const { signature: _sig, ...rest } = o // 签名图片不放进订单视图
   return {
-    ...o,
+    ...rest,
+    // 第一期补齐的订单字段：老订单没有时给缺省值
+    channel: o.channel ?? 'h5',
+    packageName: o.packageName ?? `${CARE_MODE_NAME[o.careMode]}${p ? ' · ' + (p.cycleDays >= 360 ? '一年' : p.cycleDays + ' 天') : ''}`,
+    couponName: o.couponName ?? null,
+    couponAmount: o.couponAmount ?? 0,
+    gpsLng: o.gpsLng ?? null,
+    gpsLat: o.gpsLat ?? null,
+    gpsText: o.gpsText ?? null,
+    deliverWay: o.deliverWay ?? 'express',
+    hasSignature: !!o.signature,
+    signedAt: o.signedAt ?? null,
     // 演示口径：支付方式固定微信支付；履约进度 = 已收 / 约定交付（百分比整数，0-100）
     payMethod: '微信支付',
     promisedJin,
@@ -171,9 +185,16 @@ export function supplyOrderView(o: SupplyOrder) {
   }
 }
 
+/** 收成环境快照：创建收成时按资产当时的环境数据写入；老数据（种子）按采收日的环境数据补，标「演示数据」 */
+export function makeEnvSnapshot(a: Asset | undefined, ts: number) {
+  if (!a) return null
+  const e = envAt(a, ts)
+  return { temp: e.airTemp, humidity: e.airHumidity, soilMoisture: e.soilMoisture, light: e.light, capturedAt: ts, source: '演示数据' }
+}
+
 export function harvestView(h: Harvest) {
   const ad = db().adoptions.find((x) => x.id === h.adoptionId)
-  return { ...h, assetCode: asset(h.assetId)?.code ?? '', memberName: ad ? member(ad.memberId)?.nickname ?? '' : '' }
+  return { ...h, envSnapshot: h.envSnapshot ?? makeEnvSnapshot(asset(h.assetId), h.harvestDate), assetCode: asset(h.assetId)?.code ?? '', memberName: ad ? member(ad.memberId)?.nickname ?? '' : '' }
 }
 
 export function shipmentView(s: Shipment) {

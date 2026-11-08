@@ -8,7 +8,7 @@
     </div>
     <div class="flex gap-8px">
       <el-button @click="scrollToHistory">历史录入</el-button>
-      <el-button type="primary" :loading="formLoading" @click="submitForm">
+      <el-button v-hasPermi="['farm:harvest:create']" type="primary" :loading="formLoading" @click="submitForm">
         <Icon icon="ep:check" class="mr-5px" />保存并推送
       </el-button>
     </div>
@@ -106,7 +106,7 @@
           </el-form-item>
           <el-form-item label="环境快照">
             <div class="text-12px text-[var(--el-text-color-secondary)]">
-              气温、湿度、土壤墒情由标的设备自动带出，不能手动修改（后台录入暂不带环境数据）
+              气温、湿度、土壤墒情由系统按标的当前环境自动带出，不能手动修改（演示数据，在下方历史录入里展开查看）
             </div>
           </el-form-item>
         </el-form>
@@ -187,6 +187,30 @@
 
   <ContentWrap>
     <el-table v-loading="loading" :data="list">
+      <el-table-column type="expand">
+        <template #default="{ row }">
+          <div class="px-40px py-8px text-13px">
+            <template v-if="envOf(row)">
+              <b>采收时环境快照</b>
+              <el-tag size="small" type="info" class="ml-6px">
+                {{ envOf(row).source || '演示数据' }}
+              </el-tag>
+              <el-descriptions :column="5" border size="small" class="mt-8px">
+                <el-descriptions-item label="温度">{{ envOf(row).temp ?? '-' }} ℃</el-descriptions-item>
+                <el-descriptions-item label="湿度">{{ envOf(row).humidity ?? '-' }} %</el-descriptions-item>
+                <el-descriptions-item label="土壤湿度">
+                  {{ envOf(row).soilMoisture ?? '-' }} %
+                </el-descriptions-item>
+                <el-descriptions-item label="光照">{{ envOf(row).light ?? '-' }} lux</el-descriptions-item>
+                <el-descriptions-item label="采集时间">
+                  {{ envTime(envOf(row).capturedAt) }}
+                </el-descriptions-item>
+              </el-descriptions>
+            </template>
+            <span v-else class="text-[var(--el-text-color-secondary)]">这批收成没有环境快照</span>
+          </div>
+        </template>
+      </el-table-column>
       <el-table-column label="采收日期" width="120">
         <template #default="{ row }">{{ fmtDay(row.harvestDate) }}</template>
       </el-table-column>
@@ -231,7 +255,7 @@
 import type { FormInstance, FormRules } from 'element-plus'
 import * as HarvestApi from '@/api/farm/harvest'
 import { useUserStore } from '@/store/modules/user'
-import { fmtDay } from '../constants'
+import { fmtDay, fmtTime } from '../constants'
 import { FARM_TYPES, LINKAGES } from './constants'
 
 defineOptions({ name: 'FarmHarvest' })
@@ -271,6 +295,23 @@ const resetQuery = () => {
   queryParams.assetCode = undefined
   queryParams.shipped = undefined
   handleQuery()
+}
+/** envSnapshot 可能是对象，也可能是 JSON 字符串 */
+const envOf = (row: any) => {
+  const v = row.envSnapshot
+  if (!v) return null
+  if (typeof v === 'string') {
+    try {
+      return JSON.parse(v)
+    } catch {
+      return null
+    }
+  }
+  return v
+}
+const envTime = (v: any) => {
+  if (!v) return '-'
+  return typeof v === 'number' ? fmtTime(v) : String(v).replace('T', ' ').slice(0, 16)
 }
 const historyRef = ref<HTMLElement>()
 const scrollToHistory = () => historyRef.value?.scrollIntoView({ behavior: 'smooth' })

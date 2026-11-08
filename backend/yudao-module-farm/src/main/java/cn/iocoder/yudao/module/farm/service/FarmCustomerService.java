@@ -184,6 +184,18 @@ public class FarmCustomerService {
         return v;
     }
 
+    /** 订单详情用：该客户的标签 + 分层名（mock customerTagsOf） */
+    public List<String> tagsOf(Long memberId) {
+        for (Row r : build(LocalDateTime.now())) {
+            if (r.id.equals(memberId)) {
+                List<String> out = new ArrayList<>(r.tags);
+                out.add(tierName(r.tier));
+                return out;
+            }
+        }
+        return new ArrayList<>();
+    }
+
     // ---------- 接口 ----------
 
     public PageResult<FarmCustomerRespVO> page(FarmCustomerPageReqVO req) {

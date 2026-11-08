@@ -28,6 +28,8 @@ export const setToken = (token: TokenType) => {
 export const removeToken = () => {
   wsCache.delete(AccessTokenKey)
   wsCache.delete(RefreshTokenKey)
+  // 退出登录时一并清掉「访问租户」，避免下一个登录的人带着上一个人切换的租户
+  wsCache.delete(CACHE_KEY.VisitTenantId)
 }
 
 /** 格式化token（jwt格式） */

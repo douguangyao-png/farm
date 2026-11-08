@@ -112,6 +112,19 @@ export const customTabbarList: CustomTabBarItem[] = [
   //   iconType: 'unocss',
   //   icon: 'i-carbon-chat',
   // },
+  // edit by 认养农场：按原型 09 底部四个标签 工作台 / 标的 / 消息 / 我的（页面必须在主包，才能 switchTab）
+  {
+    text: '标的',
+    pagePath: 'pages/farm-land/index',
+    iconType: 'unocss',
+    icon: 'i-carbon-grid',
+  },
+  {
+    text: '消息',
+    pagePath: 'pages/farm-msg/index',
+    iconType: 'unocss',
+    icon: 'i-carbon-chat',
+  },
   {
     text: '我的',
     pagePath: 'pages/user/index',

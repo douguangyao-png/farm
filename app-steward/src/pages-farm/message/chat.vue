@@ -34,7 +34,6 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
 import { getChat, sendChat } from '@/api/farm/steward'
-import { navigateBackPlus } from '@/utils'
 import { fmtTime } from '../components/farm-utils'
 
 definePage({ style: { navigationBarTitleText: '聊天', navigationStyle: 'custom' } })
@@ -74,7 +73,8 @@ async function send() {
   }
 }
 function goBack() {
-  navigateBackPlus('/pages-farm/message/index')
+  if (getCurrentPages().length > 1) uni.navigateBack()
+  else uni.switchTab({ url: '/pages/farm-msg/index' })
 }
 </script>
 

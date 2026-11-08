@@ -34,6 +34,28 @@
                   {{ enumLabel(CARE_MODES, order.careMode) }}
                 </el-tag>
               </el-descriptions-item>
+              <el-descriptions-item label="来源渠道">
+                {{ enumLabel(ORDER_CHANNELS, order.channel) }}
+              </el-descriptions-item>
+              <el-descriptions-item label="交付方式">
+                {{ enumLabel(ORDER_DELIVER_WAYS, order.deliverWay) }}
+              </el-descriptions-item>
+              <el-descriptions-item label="所选套餐">{{ order.packageName || '-' }}</el-descriptions-item>
+              <el-descriptions-item label="优惠券">
+                <template v-if="order.couponName">
+                  {{ order.couponName }}
+                  <span class="text-[var(--el-color-danger)] ml-4px">
+                    -{{ formatMoney(order.couponAmount || 0) }}
+                  </span>
+                </template>
+                <template v-else>未使用</template>
+              </el-descriptions-item>
+              <el-descriptions-item v-if="hasGps" label="下单位置" :span="2">
+                {{ order.gpsText || '-' }}
+                <span class="ml-6px text-12px text-[var(--el-text-color-secondary)]">
+                  （{{ order.gpsLng }}, {{ order.gpsLat }}）
+                </span>
+              </el-descriptions-item>
               <el-descriptions-item label="实付金额">
                 <b class="text-[var(--el-color-danger)]">{{ formatMoney(order.amount) }}</b>
               </el-descriptions-item>
@@ -189,6 +211,9 @@
                 </div>
               </div>
             </div>
+            <div v-if="order.customerTags?.length" class="mt-10px flex flex-wrap gap-6px">
+              <el-tag v-for="t in order.customerTags" :key="t" size="small" effect="plain">{{ t }}</el-tag>
+            </div>
             <el-descriptions :column="1" class="mt-12px" border>
               <el-descriptions-item label="累计认养">
                 {{ order.customer?.orderCount ?? 0 }} 单
@@ -238,6 +263,8 @@
 import * as OrderApi from '@/api/farm/order'
 import {
   CARE_MODES,
+  ORDER_CHANNELS,
+  ORDER_DELIVER_WAYS,
   ORDER_STATUS,
   SHIPMENT_STATUS,
   enumLabel,
@@ -255,6 +282,7 @@ const message = useMessage()
 const loading = ref(false)
 const order = ref<any>()
 const ad = computed(() => order.value?.adoption)
+const hasGps = computed(() => !!(order.value?.gpsLng && order.value?.gpsLat))
 const signed = computed(() => !!(order.value?.contract?.agreed && order.value?.contract?.signedAt))
 const deliverPercent = computed(() => {
   const a = ad.value

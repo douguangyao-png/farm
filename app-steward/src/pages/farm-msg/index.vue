@@ -1,6 +1,6 @@
 <template>
   <view class="farm-page">
-    <wd-navbar title="消息" left-arrow placeholder safe-area-inset-top fixed @click-left="goBack" />
+    <wd-navbar title="消息" placeholder safe-area-inset-top fixed />
     <view class="farm-note">
       这里是你负责的认养人。点进去可以直接发消息，自管提醒也会出现在对话里。
     </view>
@@ -35,9 +35,8 @@
 import type { Conversation } from '@/api/farm/steward'
 import { ref } from 'vue'
 import { getConversations } from '@/api/farm/steward'
-import { navigateBackPlus } from '@/utils'
-import DemoBadge from '../components/demo-badge.vue'
-import { fmtTime } from '../components/farm-utils'
+import DemoBadge from '@/pages-farm/components/demo-badge.vue'
+import { fmtTime } from '@/pages-farm/components/farm-utils'
 
 definePage({ style: { navigationBarTitleText: '消息', navigationStyle: 'custom' } })
 
@@ -57,13 +56,10 @@ onShow(async () => {
 function open(memberId: number) {
   uni.navigateTo({ url: `/pages-farm/message/chat?memberId=${memberId}` })
 }
-function goBack() {
-  navigateBackPlus('/pages/index/index')
-}
 </script>
 
 <style lang="scss" scoped>
-@import '../components/farm-extra.scss';
+@import '@/pages-farm/components/farm-extra.scss';
 
 .item {
   display: flex;

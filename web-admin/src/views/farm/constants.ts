@@ -87,6 +87,21 @@ export const DELIVER_WAYS: EnumItem<string>[] = [
   { value: 'apply', label: '农场代施' }
 ]
 
+/** 订单来源渠道（第一期补齐约定 1） */
+export const ORDER_CHANNELS: EnumItem<string>[] = [
+  { value: 'mini', label: '小程序' },
+  { value: 'h5', label: 'H5' },
+  { value: 'scan', label: '扫码' },
+  { value: 'steward', label: '管家代下单' }
+]
+
+/** 订单交付方式（第一期补齐约定 1；和上面的 DELIVER_WAYS「标的交付方式」不是一回事） */
+export const ORDER_DELIVER_WAYS: EnumItem<string>[] = [
+  { value: 'express', label: '快递到家' },
+  { value: 'pickup', label: '到基地自提' },
+  { value: 'farm_deliver', label: '基地配送' }
+]
+
 export const TRACE_STATE: EnumItem<number>[] = [
   { value: 0, label: '待登记', type: 'warning' },
   { value: 10, label: '已写入', type: 'success' }

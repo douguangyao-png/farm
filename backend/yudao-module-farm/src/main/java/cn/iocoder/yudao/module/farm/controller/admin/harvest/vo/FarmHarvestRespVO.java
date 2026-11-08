@@ -19,4 +19,6 @@ public class FarmHarvestRespVO {
     private List<String> photos;
     private String remark;
     private Long shipmentId;
+    /** 环境快照 {temp,humidity,soilMoisture,light,capturedAt,source} */
+    private java.util.Map<String, Object> envSnapshot;
 }

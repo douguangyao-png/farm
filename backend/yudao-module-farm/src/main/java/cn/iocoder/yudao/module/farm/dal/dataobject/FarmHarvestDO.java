@@ -30,4 +30,7 @@ public class FarmHarvestDO extends TenantBaseDO {
     private List<String> photos;
     private String remark;
     private Long shipmentId;
+    /** 环境快照 JSON：{temp,humidity,soilMoisture,light,capturedAt,source}；老数据为空，视图里按采收日补 */
+    @TableField(typeHandler = JacksonTypeHandler.class)
+    private Map<String, Object> envSnapshot;
 }

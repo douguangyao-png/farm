@@ -163,9 +163,9 @@ const QUICK = [
   { text: '农资代办', ic: '资', url: '/pages-farm/supply-task/index' },
   { text: '自管指导', ic: '导', url: '/pages-farm/self-guide/index' },
   { text: '我的记录', ic: '记', url: '/pages-farm/record/index' },
-  { text: '标的管理', ic: '地', url: '/pages-farm/land/index' },
+  { text: '标的管理', ic: '地', url: '/pages/farm-land/index' },
   { text: '异常上报', ic: '警', url: '/pages-farm/alarm/index' },
-  { text: '客户消息', ic: '信', url: '/pages-farm/message/index' },
+  { text: '客户消息', ic: '信', url: '/pages/farm-msg/index' },
   { text: '绩效', ic: '绩', url: '/pages-farm/mine/index' },
 ]
 
@@ -215,7 +215,8 @@ function gotoTask(id: number) {
 }
 
 function goto(url: string) {
-  uni.navigateTo({ url })
+  if (['/pages/index/index', '/pages/farm-land/index', '/pages/farm-msg/index', '/pages/user/index'].includes(url)) uni.switchTab({ url })
+  else uni.navigateTo({ url })
 }
 
 function gotoOrders(scope: 'pool' | 'mine') {

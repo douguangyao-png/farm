@@ -445,7 +445,7 @@ export function hostingConfigView(t: number, productId?: number) {
   const d = db()
   const products = d.products.filter((p) => p.tenantId === t).sort((a, b) => a.id - b.id)
   const p = products.find((x) => x.id === productId) ?? products[0]
-  if (!p) return null
+  if (!p) return { empty: true, products: [], product: null, modes: [] }
   const fullPrice = p.careModes.find((m) => m.mode === 'full')?.price ?? p.basePrice
   const supplies = d.supplies.filter((s) => s.tenantId === t && s.status === 0 && s.retailAllowed !== false)
   const modes = MODES.map((mode) => {

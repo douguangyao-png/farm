@@ -32,6 +32,7 @@
       <el-form-item>
         <el-button @click="handleQuery"><Icon icon="ep:search" class="mr-5px" />搜索</el-button>
         <el-button
+          v-hasPermi="['farm:record:audit']"
           type="primary"
           plain
           :disabled="!selectedPending.length"
@@ -41,7 +42,7 @@
             selectedPending.length ? `（${selectedPending.length}）` : ''
           }}
         </el-button>
-        <el-button @click="message.info('演示版暂未开放：代管家发布')">
+        <el-button v-hasPermi="['farm:record:create']" @click="message.info('演示版暂未开放：代管家发布')">
           <Icon icon="ep:edit-pen" class="mr-5px" />代管家发布
         </el-button>
       </el-form-item>
@@ -138,8 +139,8 @@
       <el-table-column label="操作" width="130" align="center" fixed="right">
         <template #default="{ row }">
           <template v-if="row.status === 0">
-            <el-button link type="primary" @click="handleApprove(row)">通过</el-button>
-            <el-button link type="danger" @click="openReject(row)">驳回</el-button>
+            <el-button v-hasPermi="['farm:record:audit']" link type="primary" @click="handleApprove(row)">通过</el-button>
+            <el-button v-hasPermi="['farm:record:audit']" link type="danger" @click="openReject(row)">驳回</el-button>
           </template>
           <el-button v-else link type="primary" @click="message.info('演示版暂未开放：预览 C 端')">
             预览 C 端

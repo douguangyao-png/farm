@@ -84,7 +84,8 @@ public class FarmContractService {
             v.setSignMethod("电子签名");
             v.setCaAuth(status == 10);
             v.setChainProof(status == 10);
-            v.setSignedAt(status == 10 ? o.getPayTime() : null);
+            v.setSignedAt(o.getSignedAt() != null ? o.getSignedAt() : (status == 10 ? o.getPayTime() : null));
+            v.setHasSignature(StrUtil.isNotEmpty(o.getSignature()));
             v.setCreateTime(o.getCreateTime());
             out.add(v);
         }

@@ -39,4 +39,15 @@ public class FarmOrderRespVO {
     private BigDecimal harvestedJin;
     /** 履约进度 0-100 整数 = 已收 / 约定交付 */
     private Integer progress;
+    /** 第一期补齐：来源渠道 mini/h5/scan/steward（老订单默认 h5） */
+    private String channel;
+    private String packageName;
+    private String couponName;
+    /** 分 */
+    private Long couponAmount;
+    private BigDecimal gpsLng;
+    private BigDecimal gpsLat;
+    private String gpsText;
+    /** express / pickup / farm_deliver（老订单默认 express） */
+    private String deliverWay;
 }

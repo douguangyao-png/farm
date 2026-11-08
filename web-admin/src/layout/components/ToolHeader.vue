@@ -17,6 +17,7 @@ import { useAppStore } from '@/store/modules/app'
 import { useDesign } from '@/hooks/web/useDesign'
 import { Icon } from '@/components/Icon'
 import { checkPermi } from '@/utils/permission'
+import { getTenantId } from '@/utils/auth'
 import { isHorizontalMenuLayout, isMixedNavLayout, isTwoColumnLayout } from '@/utils/layout'
 
 const { getPrefixCls, variables } = useDesign()
@@ -52,9 +53,11 @@ const message = computed(() => appStore.getMessage)
 // IM即时通讯图标
 const im = computed(() => appStore.getIm)
 
-// 租户切换权限
+// 租户切换：芋道的 system:tenant:visit 权限，或登录租户是平台租户（tenantId=1，平台管理员）才显示
 const hasTenantVisitPermission = computed(
-  () => import.meta.env.VITE_APP_TENANT_ENABLE === 'true' && checkPermi(['system:tenant:visit'])
+  () =>
+    import.meta.env.VITE_APP_TENANT_ENABLE === 'true' &&
+    (checkPermi(['system:tenant:visit']) || Number(getTenantId()) === 1)
 )
 
 // 顶部聊天入口：用路由 name resolve 出完整 URL，在新标签页打开 IM 主页

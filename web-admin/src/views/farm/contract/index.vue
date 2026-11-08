@@ -8,8 +8,8 @@
         </div>
       </div>
       <div>
-        <el-button @click="notImp">模板管理</el-button>
-        <el-button type="primary" @click="notImp"
+        <el-button v-hasPermi="['farm:contract:template']" @click="notImp">模板管理</el-button>
+        <el-button v-hasPermi="['farm:contract:create']" type="primary" @click="notImp"
           ><Icon icon="ep:plus" class="mr-5px" />发起签署</el-button
         >
       </div>
@@ -96,7 +96,7 @@
       <el-table-column label="操作" width="190" align="center" fixed="right">
         <template #default="{ row }">
           <el-button link type="primary" @click="openOrder(row.orderId)">查看订单</el-button>
-          <el-button link type="primary" @click="notImp">下载</el-button>
+          <el-button v-hasPermi="['farm:contract:download']" link type="primary" @click="notImp">下载</el-button>
           <el-button link type="primary" @click="notImp">验真</el-button>
         </template>
       </el-table-column>

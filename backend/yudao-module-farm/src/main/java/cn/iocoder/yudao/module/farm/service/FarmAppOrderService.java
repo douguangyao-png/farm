@@ -103,7 +103,29 @@ public class FarmAppOrderService {
         if (mode == null) throw exception(BAD_REQUEST, "请选择托管方式");
         if (!Boolean.TRUE.equals(req.getContractAgreed())) throw exception(ORDER_CONTRACT_NOT_AGREED);
 
+        // 第一期补齐：渠道、交付方式、定位。缺省 channel=h5、deliverWay=express，传了不认识的值 400
+        String channel = StrUtil.isEmpty(req.getChannel()) ? "h5" : req.getChannel();
+        if (!List.of("mini", "h5", "scan", "steward").contains(channel)) throw exception(BAD_REQUEST, "来源渠道不正确");
+        String deliverWay = StrUtil.isEmpty(req.getDeliverWay()) ? "express" : req.getDeliverWay();
+        if (!List.of("express", "pickup", "farm_deliver").contains(deliverWay)) throw exception(BAD_REQUEST, "交付方式不正确");
+        BigDecimal lng = req.getLng();
+        BigDecimal lat = req.getLat();
+        if ((lng != null && (lng.compareTo(BigDecimal.valueOf(-180)) < 0 || lng.compareTo(BigDecimal.valueOf(180)) > 0))
+                || (lat != null && (lat.compareTo(BigDecimal.valueOf(-90)) < 0 || lat.compareTo(BigDecimal.valueOf(90)) > 0))) {
+            throw exception(BAD_REQUEST, "定位坐标不正确");
+        }
+
         FarmOrderDO o = new FarmOrderDO();
+        o.setChannel(channel);
+        o.setDeliverWay(deliverWay);
+        String pkg = req.getPackageName() == null ? "" : req.getPackageName().trim();
+        if (pkg.length() > 64) pkg = pkg.substring(0, 64);
+        o.setPackageName(pkg.isEmpty() ? FarmViewLookup.careModeName(String.valueOf(mode.get("mode"))) + " · "
+                + (p.getCycleDays() != null && p.getCycleDays() >= 360 ? "一年" : p.getCycleDays() + " 天") : pkg);
+        o.setCouponAmount(0L);
+        o.setGpsLng(lng);
+        o.setGpsLat(lat);
+        o.setGpsText(req.getGpsText() == null ? null : (req.getGpsText().length() > 128 ? req.getGpsText().substring(0, 128) : req.getGpsText()));
         o.setNo(noGenerator.next("RY"));
         o.setMemberId(m.getId());
         o.setProductId(p.getId());
@@ -275,6 +297,9 @@ public class FarmAppOrderService {
             v.setProductCover(pp == null || pp.getCover() == null ? "" : pp.getCover());
             v.setAssetCode(aa == null || aa.getCode() == null ? "" : aa.getCode());
             v.setCareModeName(FarmViewLookup.careModeName(o.getCareMode()));
+            if (v.getChannel() == null) v.setChannel("h5");
+            if (v.getDeliverWay() == null) v.setDeliverWay("express");
+            if (v.getCouponAmount() == null) v.setCouponAmount(0L);
             out.add(v);
         }
         return out;
@@ -296,7 +321,8 @@ public class FarmAppOrderService {
             c.setVersion(o.getContractVersion());
             c.setTitle("《认养服务合同（" + FarmViewLookup.careModeName(o.getCareMode()) + "）》" + o.getContractVersion());
             c.setAgreed(o.getContractAgreed());
-            c.setSignedAt(o.getPayTime());
+            c.setSignedAt(o.getSignedAt() != null ? o.getSignedAt() : o.getPayTime());
+            c.setHasSignature(StrUtil.isNotEmpty(o.getSignature()));
             d.setContract(c);
 
             FarmAdoptionDO ad = o.getAdoptionId() == null ? null : adoptions.get(o.getAdoptionId());

@@ -58,6 +58,8 @@ farmAppRouter.get('/supply/get', (req, res) => {
 })
 
 // ---------- 认养下单、支付 ----------
+const CHANNELS = ['mini', 'h5', 'scan', 'steward']
+const DELIVER_WAYS = ['express', 'pickup', 'farm_deliver']
 farmAppRouter.post('/order/create', login, (req, res) => {
   const m = mine(req)
   const b = req.body ?? {}
@@ -66,10 +68,20 @@ farmAppRouter.post('/order/create', login, (req, res) => {
   const mode = p.careModes.find((x) => x.mode === b.careMode && x.enabled)
   if (!mode) return badRequest(res, '请选择托管方式')
   if (b.contractAgreed !== true) return fail(res, BIZ.CONTRACT_NOT_AGREED, '请先阅读并勾选认养合同')
-  const o = {
+  // 第一期补齐：渠道、交付方式、所选套餐、定位。缺省 channel=h5、deliverWay=express；传了不认识的值按 400 拒绝
+  const channel = b.channel === undefined || b.channel === '' ? 'h5' : String(b.channel)
+  if (!CHANNELS.includes(channel)) return badRequest(res, '来源渠道不正确')
+  const deliverWay = b.deliverWay === undefined || b.deliverWay === '' ? 'express' : String(b.deliverWay)
+  if (!DELIVER_WAYS.includes(deliverWay)) return badRequest(res, '交付方式不正确')
+  const lng = b.lng === undefined || b.lng === null || b.lng === '' ? null : Number(b.lng)
+  const lat = b.lat === undefined || b.lat === null || b.lat === '' ? null : Number(b.lat)
+  if ((lng !== null && !(lng >= -180 && lng <= 180)) || (lat !== null && !(lat >= -90 && lat <= 90))) return badRequest(res, '定位坐标不正确')
+  const o: Order = {
     id: nextId(db().orders), tenantId: m.tenantId, no: makeNo('RY'), memberId: m.id, productId: p.id, careMode: mode.mode, amount: mode.price, status: 0,
     assetId: null, adoptionId: null, contractVersion: mode.contractVersion, contractAgreed: true,
-    receiverName: b.receiverName || m.nickname, receiverMobile: b.receiverMobile || m.mobile, address: b.address || m.address || '', createTime: Date.now(), payTime: null
+    receiverName: b.receiverName || m.nickname, receiverMobile: b.receiverMobile || m.mobile, address: b.address || m.address || '', createTime: Date.now(), payTime: null,
+    channel, deliverWay, packageName: String(b.packageName ?? '').trim().slice(0, 64) || `${CARE_MODE_NAME[mode.mode]} · ${p.cycleDays >= 360 ? '一年' : p.cycleDays + ' 天'}`,
+    couponName: null, couponAmount: 0, gpsLng: lng, gpsLat: lat, gpsText: b.gpsText ? String(b.gpsText).slice(0, 128) : null, signature: null, signedAt: null
   }
   db().orders.push(o)
   return ok(res, { id: o.id, no: o.no, amount: o.amount })

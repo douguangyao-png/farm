@@ -1,0 +1,4 @@
+[
+  {"id": 1, "tenantId": 2, "no": "PC20261102001", "harvestId": 1, "planDate": "2026-11-02T00:00:00+08:00", "status": 20, "remark": "第一批生菜、萝卜（演示）", "createTime": "2026-11-02T10:00:00+08:00"},
+  {"id": 2, "tenantId": 2, "no": "PC20261108002", "harvestId": 2, "planDate": "2026-11-09T00:00:00+08:00", "status": 0, "remark": "待发的生菜批次（演示）", "createTime": "2026-11-08T09:00:00+08:00"}
+]

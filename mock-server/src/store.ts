@@ -21,7 +21,14 @@ export interface Base { id: number; tenantId: number; name: string; address: str
 export interface Asset { id: number; tenantId: number; baseId: number; assetType: 'plot' | 'animal' | 'tree'; code: string; name: string; specs: { areaM2?: number; crop?: string; breed?: string; count?: number }; status: number; cameraName: string | null; sensorName: string | null; createTime: number }
 export interface CareModeConfig { mode: CareMode; enabled: boolean; price: number; slogan: string; outputPromise: string; contractVersion: string; weeklyTodo: number; insurance: string; duty: { item: string; owner: 'farm' | 'member' }[] }
 export interface Product { id: number; tenantId: number; baseId: number; assetType: Asset['assetType']; title: string; cover: string; description: string; cycleDays: number; areaM2: number | null; basePrice: number; stock: number; sold: number; status: number; careModes: CareModeConfig[]; createTime: number }
-export interface Order { id: number; tenantId: number; no: string; memberId: number; productId: number; careMode: CareMode; amount: number; status: number; assetId: number | null; adoptionId: number | null; contractVersion: string; contractAgreed: boolean; receiverName: string | null; receiverMobile: string | null; address: string | null; createTime: number; payTime: number | null }
+export interface Order { id: number; tenantId: number; no: string; memberId: number; productId: number; careMode: CareMode; amount: number; status: number; assetId: number | null; adoptionId: number | null; contractVersion: string; contractAgreed: boolean; receiverName: string | null; receiverMobile: string | null; address: string | null; createTime: number; payTime: number | null
+  /** 第一期补齐：来源渠道 mini/h5/scan/steward；缺省按 h5 显示 */
+  channel?: string; packageName?: string | null; couponName?: string | null; couponAmount?: number
+  gpsLng?: number | null; gpsLat?: number | null; gpsText?: string | null
+  /** express 快递到家 / pickup 到基地自提 / farm_deliver 基地配送 */
+  deliverWay?: string
+  /** 合同手写签名（PNG dataURL）与签署时间 */
+  signature?: string | null; signedAt?: number | null }
 export interface Adoption { id: number; tenantId: number; orderId: number; memberId: number; productId: number; assetId: number; careMode: CareMode; startAt: number; endAt: number; status: number; promisedJin: number | null; harvestedJin: number; stewardId: number }
 export interface Env { airTemp: number; airHumidity: number; soilMoisture: number }
 export interface GrowthRecord { id: number; tenantId: number; adoptionId: number | null; assetId: number; stewardId: number; taskId: number | null; kind: 'farming' | 'harvest' | 'service'; title: string; content: string; photos: string[]; lng: number; lat: number; env: Env; checks: { exifTime: boolean; gpsFence: boolean; duplicate: boolean }; status: number; auditRemark: string | null; createTime: number; auditTime: number | null }
@@ -30,8 +37,13 @@ export interface ServiceOrder { id: number; tenantId: number; no: string; fromTa
 export interface Supply { id: number; tenantId: number; name: string; cat: string; cover: string; price: number; cost: number; stock: number; unit: string; spec: string; fitModes: CareMode[]; batchNo: string; retailAllowed: boolean; needWorkorder: boolean; status: number; sold: number; description: string }
 export interface SupplyOrder { id: number; tenantId: number; no: string; memberId: number; adoptionId: number; assetId: number; spuId: number; qty: number; amount: number; deliverWay: string; batchNo: string; traceState: number; usedAt: number | null; dosage: string | null; createTime: number }
 export interface InputRecord { id: number; tenantId: number; assetId: number; source: 'farm' | 'member'; name: string; batchNo: string; usedAt: number; dosage: string; operator: string }
-export interface Harvest { id: number; tenantId: number; adoptionId: number; assetId: number; crop: string; weightJin: number; harvestDate: number; photos: string[]; remark: string; shipmentId: number | null }
-export interface Shipment { id: number; tenantId: number; no: string; harvestId: number; adoptionId: number; memberId: number; receiverName: string; receiverMobile: string; address: string; weightJin: number; carrier: string; logisticsNo: string; coldChain: boolean; status: number; tracks: { time: number; content: string }[]; createTime: number }
+export interface EnvSnapshot { temp: number; humidity: number; soilMoisture: number; light: number; capturedAt: number; source: string }
+export interface Harvest { id: number; tenantId: number; adoptionId: number; assetId: number; crop: string; weightJin: number; harvestDate: number; photos: string[]; remark: string; shipmentId: number | null; envSnapshot?: EnvSnapshot | null }
+/** 配送批次：status 0 待发 / 10 已发出 / 20 已完成 */
+export interface ShipBatch { id: number; tenantId: number; no: string; harvestId: number; planDate: number; status: number; remark: string; createTime: number }
+/** 畜禽批次：status 0 在栏 / 10 出栏中 / 20 已出栏 */
+export interface LivestockBatch { id: number; tenantId: number; no: string; baseId: number; species: string; breed: string; inDate: number; count: number; outCount: number; status: number; pen: string; remark: string; createTime: number }
+export interface Shipment { id: number; tenantId: number; no: string; harvestId: number; adoptionId: number; memberId: number; receiverName: string; receiverMobile: string; address: string; weightJin: number; carrier: string; logisticsNo: string; coldChain: boolean; status: number; tracks: { time: number; content: string }[]; createTime: number; batchId?: number | null }
 export interface RiskAlert { id: number; tenantId: number; type: string; level: number; title: string; content: string; source: string; status: number; handleRemark: string | null; createTime: number; handleTime: number | null }
 export interface ArticleCategory { id: number; tenantId: number; name: string; picUrl: string; sort: number; status: number; createTime: number }
 export interface Article { id: number; tenantId: number; categoryId: number; title: string; author: string; picUrl: string; introduction: string; content: string; sort: number; status: number; browseCount: number; recommendHot: boolean; recommendBanner: boolean; spuId: number; createTime: number }
@@ -43,7 +55,7 @@ export interface Db {
   diyTemplates: Record<string, unknown>[]; dictTypes: DictType[]; dictData: DictData[]
   bases: Base[]; assets: Asset[]; products: Product[]; orders: Order[]; adoptions: Adoption[]; records: GrowthRecord[]; tasks: Task[]
   serviceOrders: ServiceOrder[]; supplies: Supply[]; supplyOrders: SupplyOrder[]; inputRecords: InputRecord[]
-  harvests: Harvest[]; shipments: Shipment[]; riskAlerts: RiskAlert[]
+  harvests: Harvest[]; shipments: Shipment[]; riskAlerts: RiskAlert[]; shipBatches: ShipBatch[]; livestockBatches: LivestockBatch[]
   articleCategories: ArticleCategory[]; articles: Article[]; feedbacks: Feedback[]; depts: Dept[]
   /** 上传的文件（data URL），重置后清空 */
   files: { id: number; url: string }[]

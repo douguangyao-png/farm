@@ -50,6 +50,10 @@ CREATE TABLE farm_order (
   id int8 PRIMARY KEY, no varchar(32) NOT NULL, member_id int8 NOT NULL, product_id int8 NOT NULL, care_mode varchar(8) NOT NULL,
   amount int8 NOT NULL DEFAULT 0, status int2 NOT NULL DEFAULT 0, asset_id int8, adoption_id int8, contract_version varchar(16) DEFAULT '',
   contract_agreed bool NOT NULL DEFAULT false, receiver_name varchar(64), receiver_mobile varchar(20), address varchar(255), pay_time timestamp,
+  -- 第一期补齐：来源渠道 mini/h5/scan/steward；交付方式 express/pickup/farm_deliver；签名为 PNG dataURL（text）
+  channel varchar(16) NOT NULL DEFAULT 'h5', package_name varchar(64), coupon_name varchar(64), coupon_amount int8 NOT NULL DEFAULT 0,
+  gps_lng numeric(10,6), gps_lat numeric(10,6), gps_text varchar(128), deliver_way varchar(16) NOT NULL DEFAULT 'express',
+  signature text, signed_at timestamp,
   creator varchar(64) DEFAULT '', create_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, updater varchar(64) DEFAULT '',
   update_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, deleted int2 NOT NULL DEFAULT 0, tenant_id int8 NOT NULL DEFAULT 0
 );
@@ -113,6 +117,7 @@ CREATE TABLE farm_input_record (
 CREATE TABLE farm_harvest (
   id int8 PRIMARY KEY, adoption_id int8 NOT NULL, asset_id int8 NOT NULL, crop varchar(64) NOT NULL, weight_jin numeric(10,1) NOT NULL,
   harvest_date date NOT NULL, photos text DEFAULT '[]', remark varchar(255) DEFAULT '', shipment_id int8,
+  env_snapshot text,
   creator varchar(64) DEFAULT '', create_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, updater varchar(64) DEFAULT '',
   update_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, deleted int2 NOT NULL DEFAULT 0, tenant_id int8 NOT NULL DEFAULT 0
 );
@@ -121,7 +126,7 @@ CREATE TABLE farm_shipment (
   id int8 PRIMARY KEY, no varchar(32) NOT NULL, harvest_id int8 NOT NULL, adoption_id int8 NOT NULL, member_id int8 NOT NULL,
   receiver_name varchar(64) DEFAULT '', receiver_mobile varchar(20) DEFAULT '', address varchar(255) DEFAULT '', weight_jin numeric(10,1) NOT NULL DEFAULT 0,
   carrier varchar(64) DEFAULT '', logistics_no varchar(64) DEFAULT '', cold_chain bool NOT NULL DEFAULT false, status int2 NOT NULL DEFAULT 0,
-  tracks text DEFAULT '[]',
+  tracks text DEFAULT '[]', batch_id int8,
   creator varchar(64) DEFAULT '', create_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, updater varchar(64) DEFAULT '',
   update_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, deleted int2 NOT NULL DEFAULT 0, tenant_id int8 NOT NULL DEFAULT 0
 );

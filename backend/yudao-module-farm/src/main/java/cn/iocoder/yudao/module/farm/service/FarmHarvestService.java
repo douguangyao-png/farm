@@ -102,6 +102,7 @@ public class FarmHarvestService {
             v.setPhotos(h.getPhotos() == null ? new ArrayList<>() : h.getPhotos());
             v.setRemark(h.getRemark());
             v.setShipmentId(h.getShipmentId());
+            v.setEnvSnapshot(envOf(h, a));
             out.add(v);
         }
         FarmFulfillPage<FarmHarvestRespVO> result = new FarmFulfillPage<>();
@@ -109,6 +110,13 @@ public class FarmHarvestService {
         result.setTotal((long) filtered.size());
         result.setStats(stats);
         return result;
+    }
+
+    /** 有快照用快照；老数据（种子）按采收日补一份，标「演示数据」 */
+    public static Map<String, Object> envOf(FarmHarvestDO h, FarmAssetDO asset) {
+        if (h.getEnvSnapshot() != null) return h.getEnvSnapshot();
+        if (h.getHarvestDate() == null) return null;
+        return FarmAssetService.snapshotAt(asset, h.getHarvestDate().atStartOfDay(ZONE).toInstant().toEpochMilli());
     }
 
     private static double sumWeight(List<FarmHarvestDO> list) {
@@ -189,6 +197,8 @@ public class FarmHarvestService {
         h.setHarvestDate(harvestDate);
         h.setPhotos(photos);
         h.setRemark(remark);
+        // 环境快照：按该资产此刻的环境数据（与 FarmAssetService.env 同口径的 IoT 演示数据）
+        h.setEnvSnapshot(FarmAssetService.snapshotAt(assetMapper.selectById(ad.getAssetId()), System.currentTimeMillis()));
         harvestMapper.insert(h);
 
         // 累加认养的已收成斤数（SQL 内自增，避免并发覆盖）

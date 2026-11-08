@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /** farm_order（字段见 backend/sql/postgresql/farm.sql；由 gen.py 生成） */
@@ -32,4 +33,18 @@ public class FarmOrderDO extends TenantBaseDO {
     private String receiverMobile;
     private String address;
     private LocalDateTime payTime;
+    /** 第一期补齐：来源渠道 mini/h5/scan/steward */
+    private String channel;
+    private String packageName;
+    private String couponName;
+    /** 分 */
+    private Long couponAmount;
+    private BigDecimal gpsLng;
+    private BigDecimal gpsLat;
+    private String gpsText;
+    /** express 快递到家 / pickup 到基地自提 / farm_deliver 基地配送 */
+    private String deliverWay;
+    /** 合同手写签名（PNG dataURL），不进订单视图 */
+    private String signature;
+    private LocalDateTime signedAt;
 }

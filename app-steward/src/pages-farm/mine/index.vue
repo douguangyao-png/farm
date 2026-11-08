@@ -71,8 +71,8 @@ const ENTRIES = [
   { text: '异常上报', ic: '警', url: '/pages-farm/alarm/index' },
   { text: '农资代办', ic: '资', url: '/pages-farm/supply-task/index' },
   { text: '自管指导', ic: '导', url: '/pages-farm/self-guide/index' },
-  { text: '标的管理', ic: '地', url: '/pages-farm/land/index' },
-  { text: '客户消息', ic: '信', url: '/pages-farm/message/index' },
+  { text: '标的管理', ic: '地', url: '/pages/farm-land/index' },
+  { text: '客户消息', ic: '信', url: '/pages/farm-msg/index' },
   { text: '代管工单', ic: '单', url: '/pages-farm/service-order/index' },
 ]
 const p = ref<Performance>()
@@ -99,7 +99,8 @@ onShow(async () => {
 })
 
 function go(url: string) {
-  uni.navigateTo({ url })
+  if (['/pages/index/index', '/pages/farm-land/index', '/pages/farm-msg/index', '/pages/user/index'].includes(url)) uni.switchTab({ url })
+  else uni.navigateTo({ url })
 }
 function goBack() {
   navigateBackPlus('/pages/index/index')

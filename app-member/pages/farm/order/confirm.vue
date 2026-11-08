@@ -29,7 +29,7 @@
       <!-- 交付方式（原型 07 order：3 选 1） -->
       <view class="f-card">
         <view class="f-title">交付方式</view>
-        <view class="ship" v-for="w in SHIP_WAYS" :key="w.value" @tap="deliverWay = w.value">
+        <view class="ship" v-for="w in ORDER_DELIVER_WAYS" :key="w.value" @tap="deliverWay = w.value">
           <view>
             <view class="ship-name">{{ w.label }}</view>
             <view class="f-sub">{{ w.tip }}</view>
@@ -47,9 +47,13 @@
         </view>
       </view>
 
-      <!-- 收货人 -->
+      <view class="f-card" v-if="packageName">
+        <view class="f-kv"><text class="k">农资套餐</text><text class="v">{{ packageName }}</text></view>
+      </view>
+
+      <!-- 收货人：快递到家必填；自提 / 基地配送不需要地址 -->
       <view class="f-card">
-        <view class="f-title">收货信息<text class="f-more">收成配送用</text></view>
+        <view class="f-title">收货信息<text class="f-more" v-if="needAddress" @tap="pickAddress">选择地址 ›</text><text class="f-more" v-else>当前交付方式无需收货地址</text></view>
         <view class="field">
           <text class="label">收货人</text>
           <input class="input" v-model="form.receiverName" placeholder="请输入收货人" />
@@ -58,9 +62,9 @@
           <text class="label">手机号</text>
           <input class="input" v-model="form.receiverMobile" type="number" placeholder="请输入手机号" />
         </view>
-        <view class="field">
-          <text class="label">地址</text>
-          <input class="input" v-model="form.address" placeholder="不填则使用账户的默认地址" />
+        <view class="field" v-if="needAddress">
+          <text class="label">地址<text class="req">*</text></text>
+          <input class="input" v-model="form.address" placeholder="请输入或点右上「选择地址」" />
         </view>
       </view>
 
@@ -131,10 +135,10 @@
 
 <script setup>
   import { computed, reactive, ref } from 'vue';
-  import { onLoad } from '@dcloudio/uni-app';
+  import { onLoad, onShow } from '@dcloudio/uni-app';
   import sheep from '@/sheep';
   import FarmApi from '@/sheep/api/farm';
-  import { CARE_MODE_NAME, yuan, call, contractTitle, needLogin } from '@/pages/farm/common/farm';
+  import { CARE_MODE_NAME, ORDER_DELIVER_WAYS, yuan, call, contractTitle, needLogin } from '@/pages/farm/common/farm';
   import DemoBadge from '@/pages/farm/components/demo-badge.vue';
 
   const p = ref(null);
@@ -146,13 +150,10 @@
   const order = ref(null);
   const form = reactive({ receiverName: '', receiverMobile: '', address: '' });
 
-  // 交付方式 3 选 1（原型 07）。演示口径：只作为下单时的选择记录，暂未落库，配送时由农场和管家按收货信息安排
-  const SHIP_WAYS = [
-    { value: 'cold', label: '冷链快递到家', tip: '免费 · 每月 2 次' },
-    { value: 'pickup', label: '基地自提', tip: '随时 · 可顺丰到付' },
-    { value: 'monthly', label: '月度集中配送', tip: '每月 1 次 · 免运费' },
-  ];
-  const deliverWay = ref('cold');
+  // 交付方式 3 选 1（原型 07 order；值见接口约定第 1 条 deliverWay）
+  const deliverWay = ref('express');
+  const packageName = ref('');
+  const needAddress = computed(() => deliverWay.value === 'express');
   const maskedMobile = computed(() => (form.receiverMobile || '').replace(/^(\d{3})\d{4}(\d{4})$/, '$1****$2') || '—');
   const docTitle = computed(() =>
     doc.value === 'notice' ? '《产出浮动告知书》' : doc.value === 'waiver' ? '《免责条款》' : contractName.value,
@@ -213,6 +214,11 @@
     }
     if (needLogin()) return;
     if (!order.value) {
+      if (needAddress.value) {
+        if (!form.receiverName.trim()) return sheep.$helper.toast('请填写收货人');
+        if (!/^1\d{10}$/.test(form.receiverMobile)) return sheep.$helper.toast('请填写 11 位手机号');
+        if (!form.address.trim()) return sheep.$helper.toast('请填写或选择收货地址');
+      }
       const data = await call(
         FarmApi.createOrder({
           productId: p.value.id,
@@ -220,8 +226,10 @@
           contractAgreed: true,
           receiverName: form.receiverName,
           receiverMobile: form.receiverMobile,
-          address: form.address,
+          address: needAddress.value ? form.address : '',
           deliverWay: deliverWay.value,
+          channel: 'h5',
+          ...(packageName.value ? { packageName: packageName.value } : {}),
         }),
       );
       if (!data) return;
@@ -241,7 +249,21 @@
     });
   }
 
+  // 地址页选择模式（?select=1）会把所选地址写进 storage，返回时在 onShow 里取走
+  function pickAddress() {
+    sheep.$router.go('/pages/farm/address/list', { select: 1 });
+  }
+  onShow(() => {
+    const a = uni.getStorageSync('farm_picked_address');
+    if (!a) return;
+    uni.removeStorageSync('farm_picked_address');
+    if (a.name) form.receiverName = a.name;
+    if (a.mobile) form.receiverMobile = a.mobile;
+    if (a.detail) form.address = a.detail;
+  });
+
   onLoad(async (options) => {
+    packageName.value = options.package ? decodeURIComponent(options.package) : '';
     modeKey.value = options.mode || 'full';
     const user = sheep.$store('user');
     if (user.isLogin && !user.userInfo?.mobile) await user.getInfo();
@@ -352,6 +374,10 @@
     .total {
       font-size: 40rpx;
     }
+  }
+  .req {
+    color: $fr;
+    margin-left: 4rpx;
   }
   .ship {
     display: flex;

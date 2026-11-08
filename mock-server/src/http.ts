@@ -39,7 +39,7 @@ export function findByRefresh(refreshToken: string) {
 }
 
 declare module 'express-serve-static-core' {
-  interface Request { session?: Session; tenantId?: number }
+  interface Request { session?: Session; tenantId?: number; visitTenantId?: number }
 }
 
 /** 解析 Authorization: Bearer <token> 和 tenant-id 请求头 */
@@ -50,6 +50,9 @@ export function attachContext(req: Request, _res: Response, next: NextFunction) 
   if (token) req.session = sessions.get(token)
   const t = req.header('tenant-id')
   if (t && /^\d+$/.test(t)) req.tenantId = Number(t)
+  // 平台管理员切换租户：请求头 visit-tenant-id（只对平台租户的后台账号生效，见 farm/common.ts tenantOf）
+  const v = req.header('visit-tenant-id')
+  if (v && /^\d+$/.test(v)) req.visitTenantId = Number(v)
   next()
 }
 

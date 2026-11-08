@@ -7,8 +7,8 @@
       </div>
     </div>
     <div class="flex gap-8px">
-      <el-button @click="notOpen">派单规则</el-button>
-      <el-button type="primary" @click="notOpen">
+      <el-button v-hasPermi="['farm:serviceorder:rule']" @click="notOpen">派单规则</el-button>
+      <el-button v-hasPermi="['farm:serviceorder:create']" type="primary" @click="notOpen">
         <Icon icon="ep:plus" class="mr-5px" />手动建单
       </el-button>
     </div>

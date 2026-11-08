@@ -22,4 +22,6 @@ public class FarmOrderDetailRespVO extends FarmOrderRespVO {
     private Map<String, Object> customer;
     /** 专属管家：{ name, mobile(脱敏) }，没有认养关系时为 null */
     private Map<String, Object> steward;
+    /** 客户标签（新客/多单客户/全托管用户/有退款记录 + 分层名），由客户分层派生，不落库 */
+    private java.util.List<String> customerTags;
 }

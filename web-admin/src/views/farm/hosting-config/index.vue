@@ -1,6 +1,12 @@
 <!-- 权限串：farm:hostingconfig:query / farm:hostingconfig:update。三档价格、产出承诺、合同版本、责任矩阵与认养商品是同一份 careModes，保存走 PUT /farm/product/update，不另存一份 -->
 <template>
   <div v-loading="loading">
+    <!-- 平台管理员（平台运营中心租户）没有认养商品，不报错，提示切到经营者账号 -->
+    <el-empty
+      v-if="empty"
+      description="当前租户还没有认养商品，没有可配置的托管方式。请用经营者账号（如 qingshan）查看，或先发布认养商品。"
+    />
+    <template v-else>
     <div class="flex items-start justify-between mb-12px">
       <div>
         <div class="text-18px font-600">托管模式配置</div>
@@ -185,6 +191,7 @@
       show-icon
       title="三档配置共用同一份地块资产池，切换模式不会改变地块编号与摄像头绑定，认养人历史数据与生长档案连续保留。"
     />
+    </template>
   </div>
 </template>
 <script lang="ts" setup>
@@ -198,6 +205,7 @@ const message = useMessage()
 const loading = ref(false)
 const saving = ref(false)
 const data = ref<any>({})
+const empty = ref(false)
 const productId = ref<number>()
 const activeMode = ref('semi')
 const modes = ref<any[]>([])
@@ -237,6 +245,11 @@ const load = async () => {
   banned.value = null
   try {
     data.value = await HostingApi.getHostingConfig(productId.value)
+    empty.value = !!data.value.empty
+    if (empty.value) {
+      modes.value = []
+      return
+    }
     productId.value = data.value.product.id
     // 深拷贝一份给表单编辑，保存前不影响服务端数据
     modes.value = JSON.parse(JSON.stringify(data.value.modes))

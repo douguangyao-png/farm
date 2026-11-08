@@ -7,8 +7,8 @@
       </div>
     </div>
     <div class="flex gap-8px">
-      <el-button @click="notOpen">打印面单</el-button>
-      <el-button type="primary" @click="openForm">
+      <el-button v-hasPermi="['farm:shipment:print']" @click="notOpen">打印面单</el-button>
+      <el-button v-hasPermi="['farm:shipment:create']" type="primary" @click="openForm">
         <Icon icon="ep:plus" class="mr-5px" />新建批次
       </el-button>
     </div>
@@ -98,8 +98,8 @@
       <el-table-column label="操作" width="150" align="center" fixed="right">
         <template #default="{ row }">
           <el-button link type="primary" @click="toggleDetail(row)">明细</el-button>
-          <el-button link type="primary" @click="notOpen">导出</el-button>
-          <el-button v-if="row.status === 10" link type="primary" @click="handleSign(row)">
+          <el-button v-hasPermi="['farm:shipment:export']" link type="primary" @click="notOpen">导出</el-button>
+          <el-button v-if="row.status === 10" v-hasPermi="['farm:shipment:sign']" link type="primary" @click="handleSign(row)">
             确认签收
           </el-button>
         </template>
@@ -122,8 +122,8 @@
           <span>{{ x.v }}</span>
         </div>
         <div class="flex gap-8px mt-12px">
-          <el-button type="primary" size="small" @click="notOpen">一键通知认养人</el-button>
-          <el-button size="small" @click="notOpen">批量打印</el-button>
+          <el-button v-hasPermi="['farm:shipment:notify']" type="primary" size="small" @click="notOpen">一键通知认养人</el-button>
+          <el-button v-hasPermi="['farm:shipment:print']" size="small" @click="notOpen">批量打印</el-button>
         </div>
       </ContentWrap>
     </el-col>

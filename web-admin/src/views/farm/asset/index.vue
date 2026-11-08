@@ -28,7 +28,7 @@
       <el-form-item>
         <el-button @click="handleQuery"><Icon icon="ep:search" class="mr-5px" />搜索</el-button>
         <el-button @click="resetQuery"><Icon icon="ep:refresh" class="mr-5px" />重置</el-button>
-        <el-button type="primary" plain @click="openForm()">
+        <el-button v-hasPermi="['farm:asset:create']" type="primary" plain @click="openForm()">
           <Icon icon="ep:plus" class="mr-5px" />新建资产
         </el-button>
       </el-form-item>
@@ -86,7 +86,7 @@
       </el-table-column>
       <el-table-column label="操作" width="150" align="center" fixed="right">
         <template #default="{ row }">
-          <el-button link type="primary" @click="openForm(row)">编辑</el-button>
+          <el-button v-hasPermi="['farm:asset:update']" link type="primary" @click="openForm(row)">编辑</el-button>
           <el-button link type="primary" @click="openEnv(row)">环境数据</el-button>
         </template>
       </el-table-column>

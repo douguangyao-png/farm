@@ -143,7 +143,54 @@ for t in ['system_user_role', 'system_role_menu', 'system_users', 'system_role',
 # 菜单只删目录和菜单（type 1、2），保留芋道自带的按钮权限（type 3），经营者管理员按需授予其中一部分
 lines.append('DELETE FROM system_menu WHERE type <> 3;')
 
+# ---------- 第一期补齐新增菜单（mock-server/seed/menus.json 不归本脚本管，这里追加；见 docs/plans/第一期补齐-2026-11-08.md 第 6 条） ----------
+def _btn(mid, parent, label, perm):
+    return {'id': mid, 'parentId': parent, 'name': label, 'permission': perm}
+
+
+def _page(mid, parent, name, path, comp, cname, icon):
+    return {'id': mid, 'parentId': parent, 'name': name, 'path': path, 'component': comp, 'componentName': cname, 'icon': icon}
+
+
+# (插在哪个菜单 id 之后, 要插入的菜单列表)
+EXTRA_MENUS = [
+    (321, [_page(322, 310, '发布认养商品', 'product-create', 'farm/product/create', 'FarmProductCreate', 'ep:circle-plus')]),
+    (31304, [_page(314, 310, '畜禽批次', 'livestock-batch', 'farm/livestock-batch/index', 'FarmLivestockBatch', 'ep:dish')] + [
+        _btn(31400 + i + 1, 314, lbl, f'farm:livestockbatch:{act}')
+        for i, (act, lbl) in enumerate([('query', '查询'), ('create', '新增'), ('update', '修改'), ('out', '出栏'), ('delete', '删除')])]),
+    (333, [_page(336, 330, '配送批次', 'ship-batch', 'farm/ship-batch/index', 'FarmShipBatch', 'ep:box')] + [
+        _btn(33600 + i + 1, 336, lbl, f'farm:shipbatch:{act}')
+        for i, (act, lbl) in enumerate([('query', '查询'), ('create', '新建'), ('ship', '发出'), ('finish', '完成')])]),
+]
+
+# 第一期已有页面的按钮级权限（type=3），id = 页面菜单 id * 100 + 序号；权限串与前端 v-hasPermi 一致。
+# 同时生成增量 SQL backend/sql/postgresql/farm-p1c-perm.sql（已上线的库执行它即可，不必重灌种子）。
+_A = {'query': '查询', 'create': '新增', 'update': '修改', 'delete': '删除', 'export': '导出', 'audit': '审核', 'status': '上下架',
+      'import': '导入', 'sign': '确认签收', 'print': '打印', 'notify': '通知认养人', 'download': '下载', 'template': '模板管理',
+      'trace': '登记施用', 'rule': '派单规则', 'reply': '回复'}
+P1C_PAGES = [
+    (321, 'product', ['query', 'create', 'update', 'status']),
+    (311, 'base', ['query', 'create', 'update', 'delete']),
+    (312, 'asset', ['query', 'create', 'update']),
+    (331, 'order', ['query', 'create', 'export']),
+    (334, 'contract', ['query', 'create', 'download', 'template']),
+    (333, 'shipment', ['query', 'create', 'sign', 'export', 'print', 'notify']),
+    (332, 'harvest', ['query', 'create']),
+    (351, 'supply', ['query', 'create', 'update', 'status', 'import']),
+    (352, 'supplyorder', ['query', 'create', 'export', 'trace']),
+    (342, 'serviceorder', ['query', 'create', 'rule']),
+    (341, 'record', ['query', 'create', 'audit']),
+    (206, 'feedback', ['query', 'update', 'reply']),
+]
+P1C_BTNS = [_btn(pid * 100 + i + 1, pid, _A[a], f'farm:{mod}:{a}')
+            for pid, mod, acts in P1C_PAGES for i, a in enumerate(acts)]
+for pid, _mod, _acts in P1C_PAGES:
+    EXTRA_MENUS.append((pid, [b for b in P1C_BTNS if b['parentId'] == pid]))
+EXTRA_IDS = [m['id'] for _, ms in EXTRA_MENUS for m in ms]
+
 packages = load('tenantPackages')
+for p in packages:
+    p['menuIds'] = list(p['menuIds']) + EXTRA_IDS
 for p in packages:
     insert('system_tenant_package', {'id': p['id'], 'name': p['name'], 'status': p['status'], 'remark': p.get('remark', ''),
                                       'menu_ids': json.dumps([mapmenu(i) for i in p['menuIds']]), 'creator': 'admin', 'create_time': p.get('createTime')})
@@ -153,6 +200,9 @@ for t in load('tenants'):
                               'expire_time': t.get('expireTime'), 'account_count': t.get('accountCount', 10), 'creator': 'admin', 'create_time': t.get('createTime')})
 
 menus = load('menus')
+for after, ms in EXTRA_MENUS:
+    _pos = next(i for i, m in enumerate(menus) if m['id'] == after)
+    menus[_pos + 1:_pos + 1] = ms
 for i, m in enumerate(menus):
     insert('system_menu', {'id': mapmenu(m['id']), 'name': m['name'], 'permission': m.get('permission', ''), 'type': 3 if m.get('permission') else (1 if m['parentId'] == 0 else 2), 'sort': i,
                             'parent_id': mapmenu(m['parentId']), 'path': m.get('path', ''), 'icon': m.get('icon', ''), 'component': m.get('component'),
@@ -190,7 +240,9 @@ rm_id = 1
 for r in load('roles'):
     insert('system_role', {'id': r['id'], 'name': r['name'], 'code': r['code'], 'sort': r['id'], 'data_scope': 1, 'status': 0,
                             'type': 1 if r['code'] in ('super_admin', 'tenant_admin') else 2, 'creator': 'admin', 'tenant_id': r['tenantId']})
-    ids = [m['id'] for m in menus] if r['menuIds'] == '*' else r['menuIds']
+    ids = [m['id'] for m in menus] if r['menuIds'] == '*' else list(r['menuIds'])
+    if r['code'] == 'tenant_admin':
+        ids += [i for i in EXTRA_IDS if i not in ids]
     ids = [mapmenu(i) for i in ids]
     for mid in ids:
         insert('system_role_menu', {'id': rm_id, 'role_id': r['id'], 'menu_id': mid, 'creator': 'admin', 'tenant_id': r['tenantId']})
@@ -243,6 +295,32 @@ for t in seqs:
 lines.append('COMMIT;')
 
 OUT.write_text('\n'.join(lines) + '\n', encoding='utf-8', newline='\n')
+
+# ---------- 增量 SQL：第一期按钮权限（可重复执行，只 INSERT / 追加，不删数据） ----------
+_ids = [b['id'] + MENU_OFFSET for b in P1C_BTNS]
+_arr = 'ARRAY[' + ', '.join(str(i) for i in _ids) + ']::bigint[]'
+inc = ['-- 由 deploy/tools/gen-farm-seed.py 生成，不要手改。第一期页面按钮级权限（type=3）的增量脚本，可重复执行：',
+       '--   1) 新增按钮菜单（已存在的 id 跳过）；2) 授予所有 tenant_admin 角色（已有的跳过）；3) 追加进所有租户套餐的 menu_ids（已含的跳过）。',
+       f'-- 共 {len(_ids)} 个按钮，菜单 id {min(_ids)}~{max(_ids)}（含 +{MENU_OFFSET} 偏移）。', 'BEGIN;']
+for b in P1C_BTNS:
+    inc.append("INSERT INTO system_menu (id, name, permission, type, sort, parent_id, path, icon, component, component_name, status, visible, keep_alive, always_show, creator) "
+               f"VALUES ({mapmenu(b['id'])}, {lit(b['name'])}, {lit(b['permission'])}, 3, {b['id'] % 100}, {mapmenu(b['parentId'])}, '', '', NULL, NULL, 0, true, true, false, 'admin') "
+               "ON CONFLICT (id) DO NOTHING;")
+inc.append(f"""INSERT INTO system_role_menu (id, role_id, menu_id, creator, tenant_id)
+SELECT nextval('system_role_menu_seq'), r.id, m.id, 'admin', r.tenant_id
+FROM system_role r CROSS JOIN unnest({_arr}) AS m(id)
+WHERE r.code = 'tenant_admin' AND r.deleted = 0
+  AND EXISTS (SELECT 1 FROM system_menu x WHERE x.id = m.id)
+  AND NOT EXISTS (SELECT 1 FROM system_role_menu e WHERE e.role_id = r.id AND e.menu_id = m.id AND e.deleted = 0);""")
+inc.append(f"""UPDATE system_tenant_package p
+SET menu_ids = (p.menu_ids::jsonb || (SELECT COALESCE(jsonb_agg(i), '[]'::jsonb) FROM unnest({_arr}) AS i WHERE NOT (p.menu_ids::jsonb @> to_jsonb(i))))::text
+WHERE p.deleted = 0;""")
+inc.append("SELECT setval('system_role_menu_seq', GREATEST((SELECT COALESCE(MAX(id), 0) FROM system_role_menu) + 1, nextval('system_role_menu_seq')), false);")
+inc.append('COMMIT;')
+INC_OUT = OUT.with_name('farm-p1c-perm.sql')
+INC_OUT.write_text(chr(10).join(inc) + chr(10), encoding='utf-8', newline=chr(10))
+print(f'写出 {INC_OUT}，{len(P1C_BTNS)} 个按钮')
+
 print(f'写出 {OUT}，{len(lines)} 行；密码哈希 {len(PW_HASH)} 种')
 if dropped:
     print('种子里有、但表里没有的字段（已丢弃）：', dropped)

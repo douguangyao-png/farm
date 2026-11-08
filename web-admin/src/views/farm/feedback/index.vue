@@ -158,6 +158,7 @@
               }}</el-radio-button>
             </el-radio-group>
             <el-button
+              v-hasPermi="['farm:feedback:update']"
               class="ml-8px"
               :disabled="statusEdit === detail.status"
               :loading="saving"
@@ -177,6 +178,7 @@
           </el-form-item>
           <el-form-item>
             <el-button
+              v-hasPermi="['farm:feedback:reply']"
               type="primary"
               :disabled="!replyText.trim()"
               :loading="saving"

@@ -1,0 +1,5 @@
+[
+  {"id": 1, "tenantId": 2, "no": "XB20261008001", "baseId": 1, "species": "鸡", "breed": "三黄鸡", "inDate": "2026-10-08T00:00:00+08:00", "count": 200, "outCount": 0, "status": 0, "pen": "A 栏", "remark": "春季雏鸡批次（演示）", "createTime": "2026-10-08T09:00:00+08:00"},
+  {"id": 2, "tenantId": 2, "no": "XB20260915002", "baseId": 1, "species": "鸭", "breed": "绍兴麻鸭", "inDate": "2026-09-15T00:00:00+08:00", "count": 120, "outCount": 40, "status": 10, "pen": "B 栏", "remark": "已出栏 40 只（演示）", "createTime": "2026-09-15T09:00:00+08:00"},
+  {"id": 3, "tenantId": 3, "no": "XB20261001003", "baseId": 3, "species": "鹅", "breed": "太湖白鹅", "inDate": "2026-10-01T00:00:00+08:00", "count": 80, "outCount": 0, "status": 0, "pen": "东棚", "remark": "（演示）", "createTime": "2026-10-01T09:00:00+08:00"}
+]

@@ -27,11 +27,13 @@
 | 资产类型 `assetType` | `plot` 地块、`animal` 畜禽、`tree` 果树 |
 | 资产状态 `asset.status` | `0` 空闲、`10` 已认养、`20` 停用 |
 | 认养商品状态 `product.status` | `0` 上架、`1` 下架 |
-| 认养订单状态 `order.status` | `0` 待付款、`10` 认养中、`20` 已完成、`30` 已取消 |
+| 认养订单状态 `order.status` | `0` 待付款、`10` 认养中、`20` 已完成、`30` 已取消、`40` 退款中、`50` 已退款（第二期，退款闭环） |
+| 认养状态 `adoption.status` | `10` 认养中、`20` 已完成、`30` 已终止（第二期，退款通过后） |
+| 退款单状态 `refund.status` | `0` 待审核、`10` 已通过、`20` 已驳回 |
 | 农事记录状态 `record.status` | `0` 待审核、`10` 已通过、`20` 已驳回 |
-| 农事任务状态 `task.status` | `0` 待办、`10` 已完成、`20` 已委托代办 |
+| 农事任务状态 `task.status` | `0` 待办、`10` 已完成、`20` 已委托代办、`30` 已关闭（第二期，退款通过后） |
 | 任务执行方 `task.owner` | `steward` 管家、`member` 认养人（自管任务） |
-| 代管工单状态 `serviceOrder.status` | `0` 待接单、`10` 已接单、`20` 已完成、`30` 已取消 |
+| 代管工单状态 `serviceOrder.status` | `0` 待接单、`10` 已接单、`20` 已完成、`30` 已取消（退款通过时，名下待接单工单置 30） |
 | 农资类目 `supply.cat` | `seed` 种子、`fert` 肥料、`tool` 农具、`bio` 生物防治、`svc` 代管服务、`ins` 保险、`pesticide` 化学农药（只能农场代施，不零售） |
 | 农资交付方式 `deliverWay` | `store` 寄存基地、`express` 快递到家、`pickup` 基地自提、`apply` 农场代施 |
 | 投入品留痕 `traceState` | `0` 待登记、`10` 已写入 |
@@ -53,7 +55,11 @@
 | 1_030_000_004 | 「请选择要使用这份农资的认养地块」 | 农资下单没带 `adoptionId`（文档 10：必须绑定地块） |
 | 1_030_000_005 | 「该农资不能零售，只能由农场代施」 | 化学农药类农资零售下单 |
 | 1_030_000_006 | 「任务状态已变化，请刷新」 | 已完成/已委托的任务再次完成或委托；工单重复接单 |
-| 1_030_000_007 | 「只能处理分配给自己的任务」 | 管家操作别的管家的任务 |
+| 1_030_000_007 | 「只能处理分配给自己的任务」 | 管家操作别的管家的任务；第二期管家端新接口同码，文案为「只能处理自己负责的认养」 |
+| 1_030_000_008 | 「该订单已有退款申请在处理中」/「该订单已退款」 | 订单已是 40（或有待审核退款单）、已是 50 时再次申请退款 |
+| 1_030_000_009 | 「该订单当前状态不能申请退款」 | 订单不是 10 认养中（待付款、已完成、已取消） |
+| 1_030_000_010 | 「退款单状态已变化，请刷新」 | 审核时退款单已不是待审核，或订单已不是 40 |
+| 1_030_000_011 | 「合同已签署，不能重复签名」 | C 端 `POST /contract/sign`，该订单已有签名（2026-11-08 第一期补齐） |
 
 违禁词表（R-2）：`收益、回报、利息、稳赚、返利、回购、分红、年化、投资`，另加文档 12 第 11.4 节列出的承诺类词（词表在 `mock-server/src/compliance.ts`；R-10 的 grep 检查针对页面、种子和产物，不含这张词表）。
 
@@ -258,4 +264,171 @@ createTime
 ## 5. 不在契约里的
 
 - 分账、真实支付、电子合同签署、直播流、IoT 设备接入：页面用演示数据代替并标出「演示数据」。
-- 退款售后、优惠券、积分、分销、社区。
+- 优惠券、积分、分销、社区。（退款闭环第二期已做，见第 6.1 节；真实原路退款仍不做，只改状态。）
+
+## 6. 第二期新增接口（2026-11-07 汇总）
+
+来源：`docs/plans/第二期-登记/{A,B,C端,管家端}.md`，路由以 `mock-server/src/routes/farm-{refund,people,ext-b,app-extra,steward-extra}.ts` 核对，路径与登记一致，差异写在各节备注。金额单位分，时间毫秒时间戳；后台、管家端前缀 `/admin-api/farm`，C 端前缀 `/app-api/farm`；分页接口返回 `{ list, total, stats }`。Java 未编译、登录后页面未验证，以服务器实测为准 [未验证]。
+
+### 6.1 退款（A）
+
+状态联动：申请时订单 `10 -> 40`；驳回时退款单 `0 -> 20`、订单回到申请前状态；通过时退款单 `0 -> 10`、订单 `40 -> 50`、认养 `10 -> 30`、地块 `10 -> 0`、待办任务 `0 -> 30`、待接单代管工单 `0 -> 30`，合同台账显示「已解除」。款项原路退回不做，只改状态。试算：已过周期比例 × 实付 × 20%（演示系数）为投入扣减，已收斤数 / 约定斤数折算为交付扣减。
+
+| 方法 路径 | 入参 | 出参关键字段 | 备注/错误 |
+|---|---|---|---|
+| GET `/admin-api/farm/refund/page` | `no, orderNo, memberMobile`（模糊）、`status, pageNo, pageSize` | 退款单：`id, no, orderId, orderNo, orderStatus, memberName, memberMobile, productTitle, assetCode, careMode, amount, investDeduct, deliverDeduct, deduct, refundAmount, reason, status, statusName, auditRemark, prevOrderStatus, createTime, auditTime` | 经营者；新的在前 |
+| GET `/admin-api/farm/refund/stats` | - | `counts{all,0,10,20}, monthApply, refundRate, pending, pendingOver24h, avgHandleHours, refundedAmount, refundedCount, reasonAlert` | `refundRate` = 本月申请数 / 本月已付订单数（%），分母 0 为 null |
+| GET `/admin-api/farm/refund/get?id=` | `id` | 退款单字段 + `adoption{id,startAt,endAt,promisedJin,harvestedJin}`（可空）、`elapsedRate` | 不存在 404 |
+| PUT `/admin-api/farm/refund/audit` | `{ id, approve, remark? }` | 审核后的退款单 | 驳回 `remark` 必填（≤200）否则 400；已审核或订单状态变 `1_030_000_010` |
+| POST `/app-api/farm/refund/create` | `{ orderId, reason }`（≤200） | 退款单（`status=0`） | 原因空 400；别人的订单 404；`1_030_000_008`、`1_030_000_009`；驳回后可再次申请 |
+| GET `/app-api/farm/refund/list` | - | 我的退款单数组，字段同上 | 新的在前 |
+| GET `/app-api/farm/refund/preview?orderId=` | `orderId` | `orderId, orderNo, canApply, orderStatus, amount, elapsedRate, investDeduct, deliverDeduct, deduct, refundAmount` | 退款页试算；别人的订单 404 |
+
+备注：C 端登记（C端.md）按 0 待审核 / 10 已同意 / 20 已退款 / 30 已驳回四档显示退款状态，与 A 和 mock 的三档（0 / 10 已通过 / 20 已驳回）不一致，以 A 和 mock 为准，C 端页面需对齐 [待对齐]。订单 `status` 会出现 40/50，C 端订单为 50 时 `adoptionStatus=30`；2.5 合同台账 50 按「已解除」（`contractStatusOf` 需同步，主线程跟进项）。
+
+### 6.2 客户、分层、管家管理（A，全部只读，经营者）
+
+| 方法 路径 | 入参 | 出参关键字段 | 备注/错误 |
+|---|---|---|---|
+| GET `/customer/page` | `keyword, city, tag, tier(core/growth/new/sleep/other), productId, activeDays, minAmount, maxAmount, expiring=1, pageNo, pageSize` | `id, name, mobile(脱敏), city, level(V1-V4), adoptCount, totalAmount, tags[], lastActive, tier, tierName, renewIntent, activeAdoptionCount, expiringCount` | 按最近活跃倒序；已付订单 = 有支付时间且状态 ∈ {10,20,40}，已退款/已取消不计；V1-V4 按累计消费 <1000/<3000/<8000 元，演示口径 |
+| GET `/customer/stats` | - | `total, newThisMonth, adopting, expiring30, repeatRate, avgOrderAmount, cities[], tags[]` | - |
+| GET `/customer-tier/summary` | - | `total, tiers[{key,name,level,levelType,rule,action,count}], expiring{customerCount,adoptionCount,estimateAmount,remindDays}, packs[], updatedAt` | RFM 规则圈选；人群包只读，新建、推送、续费券不做 |
+| GET `/steward-manage/page` | `keyword, baseId` | `id, name, mobile(脱敏), roleName, baseId, baseName, assetTotal, assetAdopted, memberCount, monthTaskTotal, monthTaskDone, monthTaskRate, avgResponseMinutes, status` | 前缀 `steward-manage`，不是管家端的 `steward`；在岗状态恒 0 |
+| GET `/steward-manage/overview` | - | `ranking[{id,name,score}], today{pendingTasks,pendingRecords,pendingServiceOrders}` | - |
+| GET `/steward-manage/get?id=` | `id` | 同 page 行 | mock 有、登记未写；非本租户管家 404 |
+
+### 6.3 交易流水、分账、经营分析（B）
+
+| 方法 路径 | 入参 | 出参关键字段 | 备注/错误 |
+|---|---|---|---|
+| GET `/finance/flow/page` | `pageNo, pageSize, tradeNo, memberName, type(adopt/supply/service), settleStatus(settled/settling), beginTime, endTime` | 行 `tradeNo, memberName, type, typeName, amount, fee, net, settleStatus, settleStatusName, time, refNo`；stats `todayAmount/Count, last30Amount/Count/Growth, last30Fee, feeRate, pendingAmount/Count` | 由已付未取消的认养订单 + 农资订单 + 已完成代管工单派生；服务费 3%、T+1 为演示口径；统计为滚动 30 天且不受筛选影响；退款流水未接入 |
+| GET `/finance/split/get` | - | `demo, exampleAmount, rules[{key,name,type,percent,exampleAmount}], account, month{label,total,items[]}, serviceSplit{count,total,steward,farm,platform}, invoices[], feeRate` | 规则 88/3/6/3 为演示；`serviceSplit` 取代管工单的真实比例 |
+| GET `/analysis/summary` | `days=7/30/90`（默认 30） | `funnel[{name,value,rate,demo}], channels[], categories[], retention[], quality[], paidCount` | 下单、支付、签约为订单实算；曝光、浏览、首季续费、渠道、留存为演示（`demo=true`） |
+
+### 6.4 资质证照、资金公示（B）
+
+| 方法 路径 | 入参 | 出参关键字段 | 备注/错误 |
+|---|---|---|---|
+| GET `/cert/page` | `pageNo, pageSize, name, type(必备/建议/按需)` | 行 `verify(verified/pending/renew/expired), verifyName, daysLeft, expiringSoon, publicMode, publicName, editable, source(upload/base), demo`；stats `total, expiringSoon, expired, missingRequired, records[]` | 基地备案证（id≥9000）由基地资料派生，只读 |
+| POST `/cert/create` | `name, no, type, validUntil(ms 或 null), publicMode, fileUrl` | 新 id | 状态固定「待核验」；名称/编号空、类型不在三值内 400；无删除、无平台核验 |
+| PUT `/cert/update-public` | `id, publicMode` | - | 基地备案证 400「来自基地资料」 |
+| GET `/fund-notice/get` | - | `fields[{key,label,recommend,enabled}], preview{payeeName,channelName,feeRate,policyNo,monthlyTotal,memberTotal,steps}, usage[], usageTotal, updateTime` | 用途占比为演示，仅平台服务费一行真实 |
+| PUT `/fund-notice/save` | `fields:{flowChart,payeeName,channelName,feeRate,policyNo,monthlyTotal,memberTotal}`（boolean） | - | 只更新传了 boolean 的键；C 端「合规说明」读取接口未做 |
+
+### 6.5 IoT 设备、视频监控（B）
+
+| 方法 路径 | 入参 | 出参关键字段 | 备注/错误 |
+|---|---|---|---|
+| GET `/device/page` | `pageNo, pageSize, code, kind(camera/sensor), status(online/offline)` | 行 `code, kind, typeName, position, bindText, assetCodes, status, statusName, lastReportTime, firmware, dispatched, custom`；stats `total, cameraCount, sensorCount, onlineCount, offlineCount, todayReports, retainDays, storage*` | 设备由资产的 `cameraName/sensorName` 去重派生；在线状态、上报时间、固件为演示值 |
+| POST `/device/create` | `kind, typeName, name, position, bindText` | 设备编号 | 名称空 400 |
+| PUT `/device/update` | `code, position, firmware` | - | 找不到 404 |
+| PUT `/device/dispatch` | `code` | - | 非离线设备 400「只有离线设备可以派单」 |
+| GET `/camera/overview` | - | `demo, stats{cameraCount,onlineCount,offlineCount,todayViews,watchHours,retainDays,alertCount}, cameras[], policy[]` | 画面为占位；`visibleMembers` 真实，`todayViews` 演示 |
+
+### 6.6 托管模式配置（B）
+
+| 方法 路径 | 入参 | 出参关键字段 | 备注/错误 |
+|---|---|---|---|
+| GET `/hosting-config/get` | `productId`（缺省取本租户第一个商品） | `product, products[], modes[3]{mode,name,configured,enabled,price,priceDelta,slogan,outputPromise,contractVersion,weeklyTodo,insurance,duty,dutyFarmCount,dutyMemberCount,supplyPackage[]}, dutyMatrix[], switchRule, trigger{overdueIncome,overdueCount}, compliance{pesticideBlocked,rules[]}` | 只读；保存走 2.4 的 `PUT /product/update`（传 `id + careModes`），违禁词校验同在那里；沿用「约定交付 X 斤，不足部分按同等品质补发」，不用原型的「保底」 |
+
+### 6.7 消息模板（B）
+
+| 方法 路径 | 入参 | 出参关键字段 | 备注/错误 |
+|---|---|---|---|
+| GET `/msg-template/page` | `pageNo, pageSize, name, status(0 启用/1 停用)` | `id, name, trigger, channels[], content, status` | - |
+| POST `/msg-template/create`、PUT `/msg-template/update` | `name, trigger, channels(订阅消息/短信/App 推送), content`（update 另传 `id`，未传字段沿用） | 新 id / true | 名称或内容命中违禁词 `1_030_000_000`，`data{words,suggestion}` |
+| PUT `/msg-template/update-status` | `id, status` | - | - |
+| POST `/msg-template/test-send` | `id` | `{ sent:false, demo:true, channels, preview }` | 不真实下发；已停用 400 |
+
+### 6.8 C 端新增接口（`/app-api/farm`）
+
+退款相关见 6.1。数据存 `farm_app_extra` 一张表，按 `kind` 区分（收藏、地址、评价、到访、转赠、聊天、消息已读）。
+
+| 方法 路径 | 入参 | 出参关键字段 | 备注/错误 |
+|---|---|---|---|
+| GET `/search/hot`（免登录） | - | `string[]` | - |
+| GET `/search`（免登录） | `keyword, type(plot/animal/tree), sort(default/sold/price)` | `{ products[], bases[] }` | mock 的 products 为完整商品视图，字段是登记的超集 |
+| GET `/base/list`、`/base/get?id=`（免登录） | `id` | 基地卡片 `id, name, cover, address, areaMu, cropSummary, certNo, productCount, rating, reviewCount`；get 另有 `lng, lat, products[], certs[], news[], reviews[]` | 无评价时 `rating=null` |
+| GET `/favorite/list`、GET `/favorite/check`、POST `/favorite/toggle` | `type(product/base), targetId` | 列表 `[{id,type,targetId,product/base}]`；check、toggle 返回 boolean | - |
+| GET `/address/list`、POST `/address/save`、POST `/address/delete` | save `{id?,name,mobile,detail,isDefault}`；delete `{id}` | 列表 `[{id,name,mobile,detail,isDefault}]`；save 返回 id | 收货人、地址必填，手机号 11 位，否则 400；无地址时用会员资料带出一条 `id=0` |
+| GET `/message/list`、POST `/message/read` | list `type(system/logistics/farming/interact)`；read `{key?}`（不传=全部已读） | `{ unread, list:[{key,type,title,content,createTime,link,read}] }` | 由订单、配送、农事记录、管家回复、转赠派生 |
+| GET `/record/get?id=`、`/report/get?adoptionId=`、`/logistics/get?id=` | `id` / `adoptionId` | 记录详情（含 `env, checks, evidenceNo, workHours=null`）；质检报告（`demo=true`）；配送单 + `nth, items[], steward` | 只能看自己的，否则 404；质检报告、存证编号为演示数据 |
+| GET `/transfer/list`、POST `/transfer/create` | `{ adoptionId, toMobile, scope(all/right), message? }` | `{ id, no }` | 只记录申请，不改归属；非认养中、已有待确认转赠 `1_030_000_002` |
+| GET `/review/list`（免登录）、GET `/review/mine`、POST `/review/create` | create `{ adoptionId, score(1-5), dims{freshness,service,logistics}, content? }` | 新 id | 同一认养只评一次，重复 `1_030_000_002`；别人的认养 404 |
+| GET `/visit/list`、POST `/visit/create` | `{ baseId, date(YYYY-MM-DD), people(1-20), meal, items[], remark? }` | `{ id, no }` | 日期早于今天 400 |
+| GET `/service/messages`、POST `/service/send` | `{ content }` | 聊天记录 | 发送后自动追加一条演示回复 |
+
+### 6.9 管家端新增接口（`/admin-api/farm/steward`，管家账号）
+
+只能操作 `adoption.stewardId` 是当前账号的认养；非本人负责 `1_030_000_007`；非管家账号 403。mock 的异常上报、消息、自管提醒数据存内存，重启清空；Java 落 `farm_steward_alarm / message / remind` 三张表。
+
+| 方法 路径 | 入参 | 出参关键字段 | 备注/错误 |
+|---|---|---|---|
+| GET `/shipment/list` | `status`（0/10/20） | `{ stats{pending,shipped,done}, pending[{harvestId,crop,weightJin,harvestDate,assetCode,memberName}], list[] }` | `status` 非 0 时 `pending` 为空，=0 时 `list` 为空 |
+| POST `/shipment/create` | `harvestId, carrier, logisticsNo, coldChain?` | 配送单 id | 承运商空 400「请填写承运商」；口径同后台建单，多一层归属校验 |
+| PUT `/shipment/sign` | `id` 或 `no`（扫码单号） | true | 自提核销、签收；非运输中 `1_030_000_002`「只有运输中的配送单能确认签收」 |
+| GET `/self-guide/list` | `state`(todo/reminded/over，默认 todo) | `{ stats{plots,weekTodo,reminded,overdue}, counts, list[{taskId,assetCode,memberId,memberName,careModeName,title,deadline,state,entrustPrice,remindedAt}] }` | 数据为名下 `owner=member` 的自管任务 |
+| POST `/self-guide/remind` | `taskId, entrust?` | true | 记提醒并给认养人发聊天消息；`entrust=true` 只发消息，不自动建工单；任务非待办 `1_030_000_006` |
+| GET `/record/list` | `status` | `{ stats{all,pending,published,rejected}, list[] }` | 我提交的，最多 100 条 |
+| GET `/asset/list` | `scope`(all/raising/free) | `{ counts, list[{id,code,name,assetType,crop,areaM2,raising,statusName,memberName,mine,progress,harvestedJin,promisedJin,leftDays}] }` | 范围 = 所在基地的标的 |
+| GET `/supply-task/list` | `tab`(todo/done) | `{ counts{todo,done}, list[{id,no,assetCode,memberName,supplyName,cat,batchNo,kind,hint,done,usedAt,dosage}] }` | 排除保险(ins)、服务(svc)类 |
+| PUT `/supply-task/apply` | `id, dosage, usedAt?` | true | 写投入品台账（source=farm），口径同后台 `PUT /supply-order/trace`；已登记 `1_030_000_006`「已经登记过了」 |
+| GET `/alarm/list` | - | `[{id,type,level,assetCode,title,content,qty,photos,insuranceReported,createTime}]` | 我上报的 |
+| POST `/alarm/create` | `type(设备异常/损耗登记/气象灾害/病虫害爆发), content, assetId?, qty?, photos?` | id | 非「设备异常」必须有照片；损耗必须填数量；保险报备仅演示标记 |
+| GET `/message/conversations` | - | `{ list[{memberId,memberName,assetCode,last,lastTime,unread}], notices }` | 名下在养认养人 |
+| GET `/message/list` | `memberId` | `{ member{id,name,mobile(脱敏),assetCode}, list[{id,from,content,createTime}] }` | 非名下认养人 `1_030_000_007` |
+| POST `/message/send` | `memberId, content`（1-500 字） | true | 同上 |
+| GET `/performance` | - | `{ month, assetCount, memberCount, monthCheckins, completionRate, passRate, outputRate, responseMinutes, satisfaction, score }` | `responseMinutes, satisfaction, score` 无数据恒 null，页面显示「暂无数据」 |
+
+## 7. 第一期补齐（2026-11-08，方案见 docs/plans/第一期补齐-2026-11-08.md）
+
+admin = `/admin-api/farm`，app = `/app-api/farm`；响应均 `{code,data,msg}`；状态不对、参数不对统一 `400`，不存在 `404`。时间一律毫秒时间戳，金额分。[未验证：Java 仅编译，登录后页面未走]
+
+### 7.1 订单补字段（farm_order 加列）
+| 方法路径 | 入参 | 出参关键字段 | 备注/错误 |
+|---|---|---|---|
+| POST app `/order/create`（变更） | 原入参 + 可选 `deliverWay`(express 快递到家/pickup 到基地自提/farm_deliver 基地配送，缺省 express)、`channel`(mini/h5/scan/steward，缺省 h5)、`packageName`(≤64，缺省「托管方式 · 一年」)、`lng`(-180~180)、`lat`(-90~90)、`gpsText`(≤128) | `{id,no,amount}` | 不认识的 deliverWay/channel、坐标越界 → 400；旧版前端传 cold/monthly 会被拒，须改成新取值 |
+| GET admin `/order/page`（变更） | 同前 | 行增加 `channel, deliverWay, packageName, couponName, couponAmount, gpsLng, gpsLat, gpsText` | 老订单缺省 channel=h5、deliverWay=express、couponAmount=0 |
+| GET admin `/order/get`（变更） | `id` | 在原字段上增加：上述订单字段 + `customerTags: string[]`（新客/多单客户/全托管用户/有退款记录 + 分层名，由客户分层派生不落库）、`contract.signedAt`（手写签名时间，无签名沿用支付时间）、`contract.hasSignature` | 订单视图不返回签名图片；couponName/couponAmount 目前只有演示种子，下单不产生优惠 |
+| GET app `/order/get` `/order/list`（变更） | 同前 | 同订单视图增加上述字段 + `contract.hasSignature` | |
+
+### 7.2 配送批次（farm_ship_batch；farm_shipment 加 batch_id）
+| 方法路径 | 入参 | 出参关键字段 | 备注/错误 |
+|---|---|---|---|
+| GET admin `/ship-batch/page` | `pageNo,pageSize,status(0待发/10已发出/20已完成),no` | `{list[{id,no(PC+日期+序号),harvestId,planDate,status,remark,createTime,harvestCrop,assetCode,shipmentCount,weightJin}],total}` | |
+| GET admin `/ship-batch/get` | `id` | 同上 + `shipments[]`（配送单视图） | 不存在 404 |
+| POST admin `/ship-batch/create` | `{harvestId, planDate, remark?(≤255), shipmentIds[]}` | id | 收成/配送单不存在、配送单为空/重复、已在其它批次、planDate 缺失 → 400 |
+| PUT admin `/ship-batch/ship` | `{id}` | true | 只允许 status=0（否则 400）；批次下待发配送单置 10 并追加轨迹 |
+| PUT admin `/ship-batch/finish` | `{id}` | true | 只允许 status=10（否则 400） |
+
+### 7.3 收成环境快照（farm_harvest.env_snapshot，text JSON）
+| 方法路径 | 入参 | 出参关键字段 | 备注/错误 |
+|---|---|---|---|
+| POST admin `/harvest/create`（变更） | 同前 | id | 创建时按该资产此刻的环境数据写快照 |
+| GET admin `/harvest/page`（变更） | 同前 | 行增加 `envSnapshot{temp,humidity,soilMoisture,light,capturedAt,source:'演示数据'}` | 老数据按采收日的环境数据补，`source` 恒为「演示数据」（IoT 为演示口径） |
+| GET app `/harvest/list`（新增） | `adoptionId?` | 同上行（含 `envSnapshot`） | 仅自己认养下的收成 |
+| GET app `/harvest/get`（新增） | `id` | 同上 | 别人的/不存在 404 |
+
+### 7.4 畜禽批次（farm_livestock_batch）
+| 方法路径 | 入参 | 出参关键字段 | 备注/错误 |
+|---|---|---|---|
+| GET admin `/livestock-batch/page` | `pageNo,pageSize,species(模糊),status(0在栏/10出栏中/20已出栏),baseId` | `{list[{id,no(XB+日期+序号),baseId,baseName,species,breed,inDate,count,outCount,remaining,status,pen,remark,createTime}],total}` | |
+| GET admin `/livestock-batch/get` | `id` | 同上一行 | 404 |
+| POST admin `/livestock-batch/create` | `{baseId,species(≤32),breed?,inDate?(缺省今天),count(正整数),pen?,remark?}` | id | 基地不是本租户/种类为空/数量非法 → 400 |
+| PUT admin `/livestock-batch/update` | 同上 + `id` | true | `count` 不得小于已出栏数；有出栏时状态按新数量重算 |
+| PUT admin `/livestock-batch/out` | `{id,count}` | true | out_count 累加，超出剩余 → 400；满额置 20，否则 10 |
+| DELETE admin `/livestock-batch/delete` | `id` | true | 仅 out_count=0，否则 400 |
+
+### 7.5 合同签名（farm_order.signature text、signed_at）
+| 方法路径 | 入参 | 出参关键字段 | 备注/错误 |
+|---|---|---|---|
+| GET app `/contract/get` | `orderId` | `{id,no,orderId,orderNo,title,version,careMode,careModeName,status,productTitle,amount,memberName,createTime,payTime,signed,signedAt,hasSignature,signature(dataURL 或 null)}` | 只能看自己的，否则 404；合同编号=订单编号 |
+| POST app `/contract/sign` | `{contractId 或 orderId, signature}`：PNG 的 base64 或 `data:image/png;base64,…`，解码后 ≤200KB | `{orderId,signedAt}` | 非本人 404；已解除合同 400；非 PNG/格式错/超 200KB/为空 400；已签 `1_030_000_011` |
+| GET admin `/contract/page`（变更） | 同前 | 行增加 `hasSignature`；`signedAt` 优先取签名时间 | 后台不返回签名图片本身 |
+
+### 7.6 租户切换
+平台管理员（tenantId=1 的后台账号）请求头带 `visit-tenant-id: <租户编号>`，后续 admin 请求按所选租户查看；其它账号带该头无效（mock）。Java 沿用芋道 `TenantVisitContextInterceptor`，需账号有 `system:tenant:visit` 权限，无权限返回 403「您无权切换租户」；切换期间 `FarmPlatformGuard.isPlatform()` 按所选租户判断。
+
+### 7.7 差异与未做
+- mock 单号序号 3 位，Java（`FarmNoGenerator`）4 位。
+- 菜单（发布认养商品、配送批次、畜禽批次，权限串 `farm:shipbatch:*`、`farm:livestockbatch:*`）与按钮权限属 web-admin/菜单种子，不在本节。

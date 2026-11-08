@@ -7,9 +7,9 @@
       </div>
     </div>
     <div class="flex gap-8px">
-      <el-button @click="exportCsv">导出台账</el-button>
-      <el-button @click="notOpen">批量登记施用</el-button>
-      <el-button type="primary" @click="notOpen">新增线下单</el-button>
+      <el-button v-hasPermi="['farm:supplyorder:export']" @click="exportCsv">导出台账</el-button>
+      <el-button v-hasPermi="['farm:supplyorder:trace']" @click="notOpen">批量登记施用</el-button>
+      <el-button v-hasPermi="['farm:supplyorder:create']" type="primary" @click="notOpen">新增线下单</el-button>
     </div>
   </div>
 
@@ -89,7 +89,7 @@
       <el-table-column label="操作" width="130" align="center" fixed="right">
         <template #default="{ row }">
           <el-button link type="primary" @click="openDetail(row)">详情</el-button>
-          <el-button v-if="row.traceState === 0" link type="primary" @click="openTrace(row)">
+          <el-button v-if="row.traceState === 0" v-hasPermi="['farm:supplyorder:trace']" link type="primary" @click="openTrace(row)">
             登记施用
           </el-button>
         </template>

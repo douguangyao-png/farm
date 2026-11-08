@@ -23,7 +23,7 @@
                 <div class="flex items-center mt-10px gap-6px">
                   <template v-for="(s, i) in data.preview?.steps || []" :key="s">
                     <div class="step">{{ s }}</div>
-                    <span v-if="i < 3" class="text-[var(--el-color-primary)]">→</span>
+                    <span v-if="Number(i) < 3" class="text-[var(--el-color-primary)]">→</span>
                   </template>
                 </div>
               </div>

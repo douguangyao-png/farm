@@ -20,5 +20,8 @@ public interface ErrorCodeConstants {
     ErrorCode TASK_STATUS_CHANGED = new ErrorCode(1_030_000_006, "任务状态已变化，请刷新");
     ErrorCode TASK_NOT_MINE = new ErrorCode(1_030_000_007, "只能处理分配给自己的任务");
 
+    /** 第一期补齐：合同已签署，不能重复签名 */
+    ErrorCode CONTRACT_SIGNED = new ErrorCode(1_030_000_011, "合同已签署，不能重复签名");
+
     ErrorCode FORBIDDEN = new ErrorCode(403, "{}");
 }

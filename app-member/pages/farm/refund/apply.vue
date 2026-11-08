@@ -55,8 +55,17 @@
     const list = (await call(FarmApi.getOrderList())) || [];
     order.value = list.find((o) => String(o.id) === String(opt.orderId)) || null;
     loaded.value = true;
+    // 退款单状态 0 待审核 / 10 已同意 / 20 已驳回；驳回后可再次申请，其余状态不能重复提交
+    const rf = await call(FarmApi.getRefundList());
+    const rows = Array.isArray(rf) ? rf : (rf && rf.list) || [];
+    const hit = order.value && rows.find((r) => r.orderId === order.value.id && r.status !== 20);
+    if (hit) {
+      sheep.$helper.toast(hit.status === 0 ? '该订单已有待审核的退款申请' : '该订单的退款申请已同意');
+      setTimeout(() => sheep.$router.redirect('/pages/farm/order/list'), 800);
+    }
   });
   async function submit() {
+    if (busy.value) return;
     busy.value = true;
     // 约定字段 {orderId, reason}；补充说明拼进 reason，等 A 的契约确认是否有独立字段
     const text = remark.value.trim() ? `${reason.value}：${remark.value.trim()}` : reason.value;
